@@ -17,7 +17,8 @@
 | **Luật quan trọng nhất** | BR-01: không cho 2 lịch trùng giờ cùng 1 bác sĩ (mỗi ca 30 phút) |
 | **Quy tắc phân quyền** | Mỗi người chỉ xem/sửa dữ liệu của mình; ADMIN xem tất cả |
 | **KHÔNG làm** | Thanh toán online, video call, app mobile, bảo hiểm, xếp hàng trong ngày |
-| **Công nghệ** | Spring Boot microservice · PostgreSQL (Supabase) · Kafka/RabbitMQ |
+| **Công nghệ** | Spring Boot microservice · PostgreSQL (Supabase) · Kafka/RabbitMQ · **Keycloak** (đăng nhập/OAuth2) |
+| **Đăng nhập** | KHÔNG tự viết service tài khoản. Toàn bộ đăng ký/đăng nhập/mật khẩu/token do **Keycloak** lo; api-gateway chỉ kiểm tra token Keycloak |
 | **Nguyên tắc vàng** | Mỗi service 1 database riêng; service không đụng DB của nhau, cần thì gọi API |
 
 > 💡 *PRD là gì?* Tài liệu mô tả **sản phẩm cần làm gì và vì sao**, KHÔNG mô tả code viết thế nào.
@@ -86,6 +87,12 @@ Viết theo dạng **User Story**: *"Là [vai trò], tôi muốn [làm gì], đ�
 - ✅ Đăng nhập đúng → nhận token, giữ đăng nhập.
 - ✅ Gọi API mà không đăng nhập → trả lỗi **401 Unauthorized**.
 - ✅ Gọi API không đúng quyền (VD: bệnh nhân gọi chức năng admin) → trả lỗi **403 Forbidden**.
+
+> 🔑 *Ai lo việc này?* Hệ thống **không tự viết service quản lý tài khoản**. Việc đăng ký, lưu mật khẩu (đã băm), đăng nhập và phát hành **token JWT** đều giao cho **Keycloak** (một Identity Provider ngoài, chuẩn OAuth2/OIDC).
+> - Client đăng nhập trực tiếp với Keycloak → nhận **JWT** (bên trong có `sub` = ID người dùng và `role`).
+> - Mỗi request kèm JWT này. **api-gateway** xác thực chữ ký token với Keycloak: thiếu/sai token → **401**; sai role → **403**; hợp lệ → chuyển tiếp xuống service con kèm `userId` + `role` (qua header).
+> - Các service con (patient/doctor/...) **không tự kiểm tra mật khẩu**, chỉ tin thông tin gateway đã xác thực để áp quyền (BR-06).
+> - Mỗi hồ sơ `patient`/`doctor` lưu `keycloak_id` để nối user Keycloak với hồ sơ nghiệp vụ.
 
 ### 4.2. Hồ sơ bệnh nhân (Patient)
 
@@ -180,7 +187,9 @@ Hệ thống chia thành các **service độc lập** (microservice), mỗi ser
 | **appointment-service** | Đặt/hủy/xem lịch hẹn, chống trùng | Lịch hẹn |
 | **medical-record-service** | Hồ sơ khám điện tử | Chẩn đoán, đơn thuốc |
 | **notification-service** | Gửi email xác nhận & nhắc lịch | (không có DB nghiệp vụ riêng) |
-| **api-gateway** | Cửa ngõ nhận mọi request, kiểm tra đăng nhập | — |
+| **api-gateway** | Cửa ngõ nhận mọi request, xác thực token Keycloak, định tuyến | — |
+
+> 🔑 **Đăng nhập / tài khoản không phải là một service ta tự viết.** Nó do **Keycloak** (Identity Provider ngoài) đảm nhiệm — lưu tài khoản, băm mật khẩu, phát hành JWT, quản lý 3 role PATIENT/DOCTOR/ADMIN. Vì vậy danh sách trên **không có** "auth-service" hay "account-service". Luồng: *Client → Keycloak (login, lấy JWT) → gửi JWT kèm request → api-gateway verify → service con.*
 
 **Nguyên tắc vàng:** service này KHÔNG được truy cập thẳng vào database của service khác. Cần dữ liệu thì gọi qua API của nhau.
 
@@ -192,10 +201,10 @@ Mô tả các "bảng" chính và quan hệ, để dev hình dung. (Không phả
 
 ```
 PATIENT (Bệnh nhân)
-  - id, họ tên, ngày sinh, giới tính, sđt, email, địa chỉ
+  - id, keycloak_id (nối tới user đăng nhập bên Keycloak), họ tên, ngày sinh, giới tính, sđt, email, địa chỉ
 
 DOCTOR (Bác sĩ)
-  - id, họ tên, chuyên khoa, giờ_bắt_đầu_làm, giờ_kết_thúc_làm
+  - id, keycloak_id (nối tới user đăng nhập bên Keycloak), họ tên, chuyên khoa, giờ_bắt_đầu_làm, giờ_kết_thúc_làm
 
 APPOINTMENT (Lịch hẹn)
   - id, patient_id, doctor_id, thời_gian_hẹn, lý_do, trạng_thái
@@ -224,6 +233,7 @@ MEDICAL_RECORD (Hồ sơ khám)
 
 **Ràng buộc:**
 - Công nghệ: Spring Boot (backend microservice), PostgreSQL (Supabase), Kafka/RabbitMQ cho gửi mail bất đồng bộ.
+- Xác thực: dùng **Keycloak** (OAuth2/OIDC) làm Identity Provider — không tự xây dựng cơ chế lưu mật khẩu/token.
 - Ngân sách hạ tầng: dùng gói miễn phí (Supabase free) → giới hạn số database.
 
 ---
@@ -239,6 +249,10 @@ MEDICAL_RECORD (Hồ sơ khám)
 | **In/Out of scope** | Cái có làm / không làm trong phiên bản này |
 | **Microservice** | Chia app lớn thành nhiều app nhỏ độc lập |
 | **Token** | "Vé" chứng minh đã đăng nhập, gửi kèm mỗi request |
+| **Keycloak** | Phần mềm quản lý danh tính (Identity Provider) ngoài: lo đăng ký, đăng nhập, lưu mật khẩu, phát hành token — thay cho việc tự viết account service |
+| **OAuth2 / OIDC** | Chuẩn mở để đăng nhập và cấp token; Keycloak nói theo chuẩn này |
+| **JWT** | Loại token dạng chuỗi tự chứa thông tin (ID người dùng, role), gateway đọc để biết bạn là ai |
+| **keycloak_id** | ID của user bên Keycloak, lưu trong hồ sơ patient/doctor để nối user đăng nhập với dữ liệu nghiệp vụ |
 | **401 / 403 / 409** | Mã lỗi: chưa đăng nhập / không đủ quyền / dữ liệu bị xung đột (trùng lịch) |
 
 ---

@@ -18,6 +18,8 @@
 | medical-record-service | `medical_record_db` | `medical_records`, `prescription_items` |
 | notification-service | `notification_db` | `notifications` |
 
+> 🔑 **Không có bảng `account`/`users` trong hệ thống.** Tài khoản, mật khẩu và role do **Keycloak** (Identity Provider ngoài) tự quản lý trong kho dữ liệu riêng của nó — không nằm trong database service nào ở bảng trên. Các bảng `patients`/`doctors` chỉ giữ `keycloak_id` (UUID) để **trỏ mềm** tới user tương ứng bên Keycloak.
+
 ---
 
 ## 2. ERD tổng thể (Mermaid)
