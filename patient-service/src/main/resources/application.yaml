@@ -1,3 +1,6 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: patient-service
@@ -7,6 +10,12 @@ spring:
     username: postgres.nxfrravtjtxnjrwldfse
     password: healthcare_12345?
     driver-class-name: org.postgresql.Driver
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/healthcare
 
   jpa:
     hibernate:

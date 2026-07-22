@@ -63,7 +63,6 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Một artifact duy nhất cho toàn bộ test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -72,6 +71,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
 		</dependency>
 	</dependencies>
 
