@@ -16,5 +16,5 @@ public interface PatientRepository extends JpaRepository<Patient,String> {
 
     // Kiểm tra email đã tồn tại chưa
     boolean existsByEmail(String email);
-
+    boolean existsByKeycloakId(String keycloakId);
 }

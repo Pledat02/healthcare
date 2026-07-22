@@ -8,6 +8,8 @@ public enum ErrorCode {
     PATIENT_NOT_FOUND(404, "Không tìm thấy bệnh nhân"),
     INVALID_INPUT(400, "Dữ liệu không hợp lệ"),
     PHONE_ALREADY_EXISTS(409, "Số điện thoại đã tồn tại"),
+    FORBIDDEN(403, "Bạn không có quyền truy cập dữ liệu này"),
+    PATIENT_ALREADY_EXISTS(409, "Hồ sơ bệnh nhân đã tồn tại"),
     INTERNAL_ERROR(500, "Lỗi hệ thống");
 
     private final int code;

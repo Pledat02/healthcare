@@ -10,6 +10,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,11 +25,12 @@ public class PatientController {
     PatientService patientService;
 
     @PostMapping("/")
-    public ApiResponse<PatientResponse> create(@Valid @RequestBody
+    public ApiResponse<PatientResponse> create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody
                                                CreationPatientRequest request) {
+        String keycloakId = jwt.getSubject();
         return ApiResponse.<PatientResponse>builder().
                 code(201)
-                .data(patientService.create(request))
+                .data(patientService.create(request,keycloakId))
                 .message("Đã tạo thành công bệnh nhân")
                 .build();
     }
@@ -41,9 +44,17 @@ public class PatientController {
                 .message("Đã lấy thành công bệnh nhân")
                 .build();
     }
+    @GetMapping("/me")
+    public ApiResponse<PatientResponse> getMe( ) {
+        return ApiResponse.<PatientResponse>builder().
+                code(200)
+                .data(patientService.getMe())
+                .message("Đã lấy thành công bệnh nhân")
+                .build();
+    }
 
     @PutMapping("/{id}")
-    public ApiResponse<PatientResponse> update( @PathVariable String id, @Valid UpdationPatientRequest request) {
+    public ApiResponse<PatientResponse> update( @PathVariable String id, @Valid @RequestBody UpdationPatientRequest request) {
         return ApiResponse.<PatientResponse>builder()
                 .code(200)
                 .data(patientService.update(id, request))
