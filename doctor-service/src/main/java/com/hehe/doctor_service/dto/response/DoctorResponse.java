@@ -1,4 +1,4 @@
-package com.hehe.doctor_service.dto.request;
+package com.hehe.doctor_service.dto.response;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,13 +9,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-import java.sql.Time;
 import java.time.LocalTime;
 
 @Data
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreationDoctorRequest {
+public class DoctorResponse {
+
+    String id;
+
     @NotBlank(message = "Tên bác sĩ không được để trống")
     String fullName;
 

@@ -9,13 +9,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-import java.sql.Time;
 import java.time.LocalTime;
 
 @Data
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreationDoctorRequest {
+public class UpdateDoctorRequest {
     @NotBlank(message = "Tên bác sĩ không được để trống")
     String fullName;
 
