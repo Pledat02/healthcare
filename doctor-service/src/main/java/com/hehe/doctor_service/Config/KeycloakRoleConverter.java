@@ -1,4 +1,27 @@
 package com.hehe.doctor_service.Config;
 
-public class KeycloakRoleConverter {
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.authentication.AuthenticationConverter;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Component("bean")
+public class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+    @Override
+    public Collection<GrantedAuthority> convert(Jwt jwt) {
+        Map<String,Object> realmAccess = jwt.getClaim("realm_access");
+        if (realmAccess == null || realmAccess.get("roles")==null)  return List.of();
+        ArrayList<String> roles = (ArrayList<String>) realmAccess.get("roles");
+        return roles.stream().map(r -> new SimpleGrantedAuthority("ROLE_"+r)).collect(Collectors.toList());
+
+    }
 }

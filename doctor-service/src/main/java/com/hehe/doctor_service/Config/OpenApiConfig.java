@@ -1,4 +1,4 @@
-package com.hehe.patient_service.config;
+package com.hehe.doctor_service.Config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
