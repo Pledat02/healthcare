@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
+
 public interface PatientMapper {
     Patient toEntity(CreationPatientRequest request);
     PatientResponse toResponse(Patient patient);

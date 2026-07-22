@@ -54,6 +54,7 @@ public class PatientService {
     }
 
     public List<PatientResponse> getAll() {
+        if (!SecurityUtil.isAdmin()) throw new AppException(ErrorCode.FORBIDDEN);
         return patientRepository.findAll().stream()
                 .map(patientMapper::toResponse).toList();
 
