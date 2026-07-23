@@ -49,7 +49,7 @@ public class DoctorService {
                         () -> new AppException(ErrorCode.DOCTOR_NOT_FOUND)
                 );
 //        if (!SecurityUtils.isAccessed(doctor)) throw new AppException(ErrorCode.FORBIDDEN);
-        doctorMapper.updateEntity(doctor,request);
+         doctor = doctorMapper.updateEntity(doctor,request);
         doctorRepository.save(doctor);
         return doctorMapper.toResponse(doctor);
     }
