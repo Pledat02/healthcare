@@ -1,4 +1,4 @@
-package com.hehe.appointment_service.dto.foreign;
+package com.hehe.appointment_service.dto.response;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

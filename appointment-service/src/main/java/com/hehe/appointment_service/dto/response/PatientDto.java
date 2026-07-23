@@ -1,6 +1,6 @@
-package com.hehe.patient_service.dto.response;
+package com.hehe.appointment_service.dto.response;
 
-import com.hehe.patient_service.entity.Gender;
+import com.hehe.appointment_service.utils.Gender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,9 +9,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
-public class PatientResponse {
+public class PatientDto {
 
     String id;
 
