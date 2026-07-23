@@ -2,13 +2,16 @@ server:
   port: 8082
 
 spring:
+  # Mat khau DB nam trong secrets.yaml (da gitignore, khong day len GitHub)
+  config:
+    import: optional:classpath:secrets.yaml
+
   application:
     name: doctor-service
 
   datasource:
     url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
     username: postgres.ewxubwczuqljaqbyjnmp
-    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:

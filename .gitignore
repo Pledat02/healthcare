@@ -1,0 +1,5 @@
+# Khong bao gio commit file chua mat khau / thong tin bi mat
+**/secrets.yaml
+**/secrets.yml
+**/application-local.yaml
+.env
