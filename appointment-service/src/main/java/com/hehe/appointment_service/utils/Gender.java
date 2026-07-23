@@ -1,4 +1,4 @@
-package com.hehe.patient_service.entity;
+package com.hehe.appointment_service.utils;
 
 public enum Gender {
     MALE,

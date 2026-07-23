@@ -1,4 +1,4 @@
-package com.hehe.appointment_service.dto.request;
+package com.hehe.appointment_service.dto.response;
 
 import com.hehe.appointment_service.utils.AppointmentStatus;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -15,14 +15,15 @@ import java.sql.Timestamp;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreationAppointmentRequest {
+public class AppointmentResponse {
     @NotNull
-    String patientId;
+    DoctorDto doctor;
     @NotNull
-    String doctorId;
+    PatientDto patient;
+
     @FutureOrPresent
     Timestamp appointmentTime;
 
     String reason;
-
+    AppointmentStatus status;
 }
