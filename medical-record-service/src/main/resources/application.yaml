@@ -1,0 +1,38 @@
+server:
+  port: 8085
+
+services:
+  appointment:
+    url: http://localhost:8083
+  patient:
+    url: http://localhost:8081
+  doctor:
+    url: http://localhost:8082
+
+spring:
+  # Mat khau DB nam trong secrets.yaml (da gitignore)
+  config:
+    import: optional:classpath:secrets.yaml
+
+  application:
+    name: medical-record-service
+
+  # Dung chung Supabase project voi patient-service (Singapore / ap-southeast-1)
+  datasource:
+    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.nxfrravtjtxnjrwldfse
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/healthcare
