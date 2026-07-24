@@ -1,0 +1,52 @@
+server:
+  port: 8084
+
+services:
+  appointment:
+    url: http://localhost:8083
+  patient:
+    url: http://localhost:8081
+
+spring:
+  # Mat khau DB + mat khau email nam trong secrets.yaml (da gitignore)
+  config:
+    import: optional:classpath:secrets.yaml
+
+  application:
+    name: notification-service
+
+  # Dung chung Supabase project voi doctor-service + appointment-service (Mumbai / ap-south-1)
+  datasource:
+    url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.ewxubwczuqljaqbyjnmp
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/healthcare
+
+  # US-08/US-09: gui email. Username/password nam trong secrets.yaml
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Cau hinh nghiep vu
+notification:
+  reminder-hours-before: 24     # US-09: nhac truoc 24 gio
+  scan-cron: "0 0 * * * *"      # quet moi gio de tim lich can nhac
