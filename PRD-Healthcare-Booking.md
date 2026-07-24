@@ -271,7 +271,8 @@ MEDICAL_RECORD (Hồ sơ khám)
 | patient-service | **8081** | |
 | doctor-service | **8082** | |
 | appointment-service | **8083** | |
-| notification-service | 8084 | *(chưa làm)* |
+| notification-service | **8084** | |
+| medical-record-service | **8085** | |
 | api-gateway | 8090 | *(chưa làm)* |
 
 **Database (Supabase, gói free):**
@@ -279,8 +280,10 @@ MEDICAL_RECORD (Hồ sơ khám)
 | Service | Supabase project | Schema | Bảng |
 |---|---|---|---|
 | patient-service | Singapore (`ap-southeast-1`) | `public` | `patients` |
+| medical-record-service | Singapore — **dùng chung project với patient** | `public` | `medical_records`, `prescription_items` |
 | doctor-service | Mumbai (`ap-south-1`) | `public` | `doctors` |
 | appointment-service | Mumbai — **dùng chung project với doctor** | `public` | `appointments` |
+| notification-service | Mumbai — **dùng chung project với doctor** | `public` | `notifications` |
 
 > ⚠️ **Thỏa hiệp có chủ ý:** appointment và doctor dùng chung Supabase project vì gói free giới hạn số project. Điều này **KHÔNG** cho phép hai service truy vấn bảng của nhau — nguyên tắc "gọi qua API" (mục 7) vẫn giữ nguyên. Dùng chung chỉ là chuyện hạ tầng, không phải chuyện thiết kế.
 
