@@ -1,6 +1,6 @@
 # PRD — Hệ thống Đặt lịch khám bệnh (Healthcare Booking System)
 
-**Phiên bản:** 1.0 | **Ngày:** 21/07/2026 | **Người viết:** BA
+**Phiên bản:** 1.1 | **Ngày:** 23/07/2026 | **Người viết:** BA + Dev
 **Đối tượng đọc:** Đội phát triển (fresher/junior fullstack)
 
 ---
@@ -257,4 +257,295 @@ MEDICAL_RECORD (Hồ sơ khám)
 
 ---
 
-*Hết PRD v1.0. Mọi thay đổi yêu cầu sẽ cập nhật vào bảng lịch sử phiên bản ở các bản sau.*
+# PHẦN B — ĐẶC TẢ KỸ THUẬT (cho dev)
+
+> Phần A ở trên trả lời *"làm cái gì và vì sao"*. Phần B trả lời *"làm chính xác như thế nào"* — đủ chi tiết để code mà không phải đoán.
+
+---
+
+## 11. Bản đồ cổng & hạ tầng
+
+| Thành phần | Cổng | Ghi chú |
+|---|---|---|
+| Keycloak | **8080** | Chạy Docker, realm `healthcare` |
+| patient-service | **8081** | |
+| doctor-service | **8082** | |
+| appointment-service | **8083** | |
+| notification-service | 8084 | *(chưa làm)* |
+| api-gateway | 8090 | *(chưa làm)* |
+
+**Database (Supabase, gói free):**
+
+| Service | Supabase project | Schema | Bảng |
+|---|---|---|---|
+| patient-service | Singapore (`ap-southeast-1`) | `public` | `patients` |
+| doctor-service | Mumbai (`ap-south-1`) | `public` | `doctors` |
+| appointment-service | Mumbai — **dùng chung project với doctor** | `public` | `appointments` |
+
+> ⚠️ **Thỏa hiệp có chủ ý:** appointment và doctor dùng chung Supabase project vì gói free giới hạn số project. Điều này **KHÔNG** cho phép hai service truy vấn bảng của nhau — nguyên tắc "gọi qua API" (mục 7) vẫn giữ nguyên. Dùng chung chỉ là chuyện hạ tầng, không phải chuyện thiết kế.
+
+**Kết nối DB:** dùng **Session pooler cổng 5432**, KHÔNG dùng Transaction pooler (6543) — pooler 6543 không hỗ trợ prepared statement, gây lỗi khi Hibernate chạy CRUD.
+
+---
+
+## 12. Đặc tả API
+
+Mọi response bọc trong `ApiResponse<T>`:
+```json
+{ "code": 200, "message": "Mô tả kết quả", "data": { ... } }
+```
+
+### 12.1. patient-service — `/api/patients`
+
+| Method | Đường dẫn | Vai trò | Mô tả |
+|---|---|---|---|
+| POST | `/api/patients/` | PATIENT | Tạo hồ sơ của chính mình (US-02) |
+| GET | `/api/patients/me` | PATIENT | Xem hồ sơ của chính mình |
+| GET | `/api/patients/{id}` | chủ hồ sơ / ADMIN | Xem 1 hồ sơ (BR-06) |
+| PUT | `/api/patients/{id}` | chủ hồ sơ / ADMIN | Sửa hồ sơ (BR-06) |
+| GET | `/api/patients` | ADMIN | Danh sách toàn bộ |
+| DELETE | `/api/patients/{id}` | ADMIN | Xóa hồ sơ |
+
+### 12.2. doctor-service — `/api/doctors`
+
+| Method | Đường dẫn | Vai trò | Mô tả |
+|---|---|---|---|
+| POST | `/api/doctors` | ADMIN | Thêm bác sĩ (US-03) |
+| GET | `/api/doctors` | đã đăng nhập | Danh sách bác sĩ, lọc `?specialization=` (US-04) |
+| GET | `/api/doctors/{id}` | đã đăng nhập | Chi tiết bác sĩ |
+| GET | `/api/doctors/me` | DOCTOR | Hồ sơ của chính bác sĩ đang đăng nhập |
+| PUT | `/api/doctors/{id}` | ADMIN / bác sĩ chính chủ | Sửa hồ sơ, giờ làm việc |
+| DELETE | `/api/doctors/{id}` | ADMIN | Xóa bác sĩ |
+
+> `GET /api/doctors/**` phải cho **mọi vai trò đã đăng nhập**, vì bệnh nhân cần xem bác sĩ để đặt lịch (US-04).
+
+### 12.3. appointment-service — `/api/appointments`
+
+| Method | Đường dẫn | Vai trò | Mô tả |
+|---|---|---|---|
+| POST | `/api/appointments` | PATIENT | Đặt lịch (US-05) |
+| GET | `/api/appointments/patients/me` | PATIENT | Lịch hẹn của tôi |
+| GET | `/api/appointments/doctors/me` | DOCTOR | Lịch của tôi, lọc `?date=` (US-07) |
+| GET | `/api/appointments/{id}` | chủ lịch / ADMIN | Chi tiết (BR-06) |
+| GET | `/api/appointments` | ADMIN | Tra cứu toàn bộ |
+| PUT | `/api/appointments/{id}` | chủ lịch | Dời giờ hẹn / sửa lý do |
+| PATCH | `/api/appointments/{id}/cancel` | chủ lịch | Hủy lịch (US-06) |
+| PATCH | `/api/appointments/{id}/confirm` | DOCTOR / ADMIN | Xác nhận lịch |
+| PATCH | `/api/appointments/{id}/complete` | DOCTOR | Đánh dấu đã khám xong |
+
+> **Quy ước đường dẫn:** mọi endpoint về lịch hẹn nằm dưới `/api/appointments`, KHÔNG đặt dưới `/api/doctors/...` — vì api-gateway định tuyến theo tiền tố, đặt sai sẽ bị đẩy nhầm service.
+
+---
+
+## 13. Ma trận phân quyền
+
+Ký hiệu: ✅ được — ❌ không — 🔒 chỉ dữ liệu của mình (BR-06)
+
+| Hành động | PATIENT | DOCTOR | ADMIN |
+|---|---|---|---|
+| Tạo hồ sơ bệnh nhân | ✅ (của mình) | ❌ | ❌ |
+| Xem hồ sơ bệnh nhân | 🔒 | ❌ | ✅ tất cả |
+| Sửa hồ sơ bệnh nhân | 🔒 | ❌ | ✅ tất cả |
+| Xem danh sách bác sĩ | ✅ | ✅ | ✅ |
+| Thêm/xóa bác sĩ | ❌ | ❌ | ✅ |
+| Sửa hồ sơ + giờ làm bác sĩ | ❌ | 🔒 | ✅ tất cả |
+| Đặt lịch | ✅ | ❌ | ❌ |
+| Xem lịch hẹn | 🔒 | 🔒 (của mình) | ✅ tất cả |
+| Dời lịch | 🔒 | ❌ | ❌ |
+| Hủy lịch | 🔒 | ❌ | ❌ |
+| Xác nhận lịch | ❌ | ✅ | ✅ |
+| Đánh dấu đã khám | ❌ | ✅ | ❌ |
+
+**Hai tầng kiểm tra — phải làm ĐỦ CẢ HAI:**
+
+| Tầng | Kiểm gì | Ở đâu |
+|---|---|---|
+| 1. Vai trò | *"Anh có phải PATIENT không?"* | `SecurityConfig` (theo URL) |
+| 2. Chủ sở hữu (BR-06) | *"Có phải dữ liệu **của anh** không?"* | Trong service, so ID |
+
+> ⚠️ Chỉ làm tầng 1 là **thủng BR-06**: bệnh nhân A biết ID của B vẫn xem/sửa được dữ liệu B. Tầng 2 bắt buộc phải có trong `getOne`, `update`, `cancel`.
+
+---
+
+## 14. Vòng đời trạng thái lịch hẹn
+
+```
+          đặt lịch (PATIENT)
+                 │
+                 ▼
+            ┌─────────┐   confirm (DOCTOR/ADMIN)   ┌───────────┐
+            │ PENDING │ ─────────────────────────▶ │ CONFIRMED │
+            └─────────┘                            └───────────┘
+                 │                                       │
+                 │ cancel (PATIENT)                      │ cancel (PATIENT)
+                 │                                       │ complete (DOCTOR)
+                 ▼                                       ▼
+           ┌───────────┐                    ┌───────────┐  ┌───────────┐
+           │ CANCELLED │                    │ CANCELLED │  │ COMPLETED │
+           └───────────┘                    └───────────┘  └───────────┘
+              (kết thúc)                                      (kết thúc)
+```
+
+| Chuyển trạng thái | Ai làm | Điều kiện |
+|---|---|---|
+| *(mới)* → `PENDING` | PATIENT | Qua hết BR-01, BR-02, BR-03 |
+| `PENDING` → `CONFIRMED` | DOCTOR / ADMIN | — |
+| `PENDING`/`CONFIRMED` → `CANCELLED` | PATIENT (chủ lịch) | BR-04: chưa `COMPLETED` |
+| `CONFIRMED` → `COMPLETED` | DOCTOR | Buổi khám đã diễn ra |
+
+**Quy tắc bắt buộc:**
+- `COMPLETED` và `CANCELLED` là **trạng thái cuối** — không chuyển đi đâu nữa.
+- **Client KHÔNG được gửi `status` lên.** Trạng thái chỉ đổi qua các endpoint `/confirm`, `/cancel`, `/complete`. Nếu cho client gửi, bệnh nhân sẽ tự đặt lịch thành `COMPLETED` → phá BR-05.
+- Lịch `CANCELLED` **không tính** khi kiểm trùng BR-01 (khung giờ đó đã trống).
+
+---
+
+## 15. Danh mục mã lỗi
+
+| Mã lỗi | HTTP | Khi nào | Luật |
+|---|---|---|---|
+| `PATIENT_NOT_FOUND` | 404 | Không tìm thấy bệnh nhân | US-05 |
+| `DOCTOR_NOT_FOUND` | 404 | Không tìm thấy bác sĩ | US-05 |
+| `APPOINTMENT_NOT_FOUND` | 404 | Không tìm thấy lịch hẹn | — |
+| `PATIENT_ALREADY_EXISTS` | 409 | Tài khoản đã có hồ sơ | US-02 |
+| `APPOINTMENT_TIME_IN_PAST` | 400 | Đặt lịch vào quá khứ | **BR-02** |
+| `OUTSIDE_WORKING_HOURS` | 400 | Ngoài giờ làm bác sĩ | **BR-03** |
+| `APPOINTMENT_CONFLICT` | **409** | Bác sĩ đã có lịch trùng giờ | **BR-01** |
+| `CANNOT_MODIFY_COMPLETED` | 400 | Sửa/hủy lịch đã khám xong | **BR-04** |
+| `INVALID_STATUS_TRANSITION` | 400 | Chuyển trạng thái sai luồng | Mục 14 |
+| `FORBIDDEN` | 403 | Đụng dữ liệu người khác | **BR-06** |
+| `INVALID_INPUT` | 400 | Dữ liệu không hợp lệ | — |
+| `DOCTOR_SERVICE_UNAVAILABLE` | 503 | Không gọi được service khác | Mục 16 |
+
+> `GlobalExceptionHandler` phải trả **đúng HTTP status theo mã trong enum**, không được trả cứng 400/500 cho mọi lỗi. Riêng BR-01 bắt buộc **409** (US-05 ghi rõ).
+
+---
+
+## 16. Giao tiếp giữa các service
+
+```
+appointment-service ──HTTP+JWT──▶ doctor-service   (kiểm tồn tại + giờ làm việc)
+appointment-service ──HTTP+JWT──▶ patient-service  (biết bệnh nhân đang đăng nhập là ai)
+```
+
+**Quy tắc bắt buộc:**
+
+1. **Gọi REST** (`RestClient`), không truy vấn thẳng DB của service khác — kể cả khi dùng chung Supabase project.
+2. **Phải chuyển tiếp JWT** của người gọi sang service đích:
+   ```
+   Authorization: Bearer <token đang cầm>
+   ```
+   Quên bước này → service đích trả **401**. Đây là lỗi hay gặp nhất.
+3. **Địa chỉ service khai trong `application.yaml`**, không viết cứng trong code:
+   ```yaml
+   services:
+     doctor:
+       url: http://localhost:8082
+   ```
+4. Service đích chết → trả **503 `DOCTOR_SERVICE_UNAVAILABLE`**, không để lỗi 500 lọt ra ngoài.
+
+**Một lần gọi `GET /api/doctors/{id}` phục vụ 2 việc:** kiểm bác sĩ tồn tại (US-05) *và* lấy giờ làm việc (BR-03). Không cần gọi 2 lần.
+
+**Thứ tự kiểm tra khi đặt lịch — rẻ trước, tốn kém sau:**
+```
+1. BR-02 quá khứ?        → tự kiểm, không tốn gì
+2. Bác sĩ tồn tại + BR-03 → gọi mạng sang doctor-service
+3. BR-01 trùng lịch?      → truy vấn DB của mình
+4. Lấy patientId từ token → gọi patient-service
+5. Lưu
+```
+
+---
+
+## 17. Quy ước kỹ thuật bắt buộc
+
+### 17.1. Dữ liệu client KHÔNG được gửi lên
+
+Đây là nguyên tắc bảo mật cốt lõi — **thứ gì server tự quyết được thì đừng nhận từ client**:
+
+| Trường | Vì sao cấm | Server lấy từ đâu |
+|---|---|---|
+| `keycloakId` | Gửi ID người khác → chiếm hồ sơ | `jwt.getSubject()` |
+| `patientId` (khi đặt lịch) | Đặt lịch dưới tên người khác | Gọi patient-service `/me` |
+| `durationMinutes` | Gửi 1 phút → **né được BR-01** | Đọc từ `application.yaml` |
+| `status` | Tự đặt `COMPLETED` → phá BR-05 | Chỉ đổi qua endpoint riêng |
+
+### 17.2. Múi giờ
+
+| Dữ liệu | Kiểu | Lý do |
+|---|---|---|
+| `appointmentTime` | `Instant` (lưu UTC) | Mốc thời gian tuyệt đối |
+| `workStartTime` / `workEndTime` | `LocalTime` | Chỉ là giờ, lặp lại mỗi ngày |
+| `createdAt` / `updatedAt` | `Instant` | Mốc hệ thống |
+
+⚠️ **Khi kiểm BR-03 phải quy đổi múi giờ**, không so trực tiếp:
+```java
+static final ZoneId CLINIC_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+LocalTime gioHen = appointmentTime.atZone(CLINIC_ZONE).toLocalTime();
+```
+Gọi thẳng `LocalTime.from(instant)` sẽ **ném exception lúc chạy**.
+
+### 17.3. Hằng số nghiệp vụ ra file cấu hình
+
+```yaml
+appointment:
+  duration-minutes: 30      # BR-01
+```
+Đọc bằng `@Value("${appointment.duration-minutes}")`. **Không gán cứng số 30** trong entity lẫn trong câu SQL — nếu không, đổi config một nơi mà nơi kia vẫn dùng giá trị cũ → lọt lịch trùng.
+
+### 17.4. Quản lý mật khẩu
+
+- `application.yaml` (được commit) chứa mọi cấu hình **trừ mật khẩu**.
+- Mật khẩu nằm trong `secrets.yaml` — **đã gitignore, không bao giờ push**.
+- `application.yaml` nạp bằng: `spring.config.import: optional:classpath:secrets.yaml`
+
+### 17.5. Công thức BR-01 (chi tiết cài đặt)
+
+Hai khoảng thời gian trùng nhau khi: `bắt_đầu_1 < kết_thúc_2` **VÀ** `bắt_đầu_2 < kết_thúc_1`
+
+```sql
+SELECT EXISTS (
+  SELECT 1 FROM appointments a
+  WHERE a.doctor_id = :doctorId
+    AND a.status <> 'CANCELLED'                    -- lịch đã hủy không tính
+    AND a.appointment_time < :appointmentTime + (:durationMinutes * INTERVAL '1 minute')
+    AND :appointmentTime < a.appointment_time + (a.duration_minutes * INTERVAL '1 minute')
+)
+```
+
+⚠️ **Khi DỜI lịch** phải loại trừ chính nó, nếu không lịch sẽ tự trùng với chính mình và không bao giờ dời được:
+```sql
+AND a.id <> :currentId
+```
+
+**Index bắt buộc** (đã ghi trong ERD): `appointments(doctor_id, appointment_time)`.
+
+---
+
+## 18. Xác thực với Keycloak — cấu hình thực tế
+
+| Mục | Giá trị |
+|---|---|
+| Realm | `healthcare` |
+| Client | `healthcare-app` (public, bật Direct access grants) |
+| Roles | `PATIENT`, `DOCTOR`, `ADMIN` |
+| issuer-uri | `http://localhost:8080/realms/healthcare` |
+
+**Cách tạo tài khoản theo từng vai trò:**
+
+| Vai trò | Cách tạo | Ghi chú |
+|---|---|---|
+| PATIENT | **Tự đăng ký** trên trang Keycloak | Bật *User registration*; `PATIENT` là **default role** nên user mới tự có |
+| DOCTOR | **ADMIN tạo** qua Keycloak Admin API | US-03 — bác sĩ không tự đăng ký |
+| ADMIN | Tạo tay trong Keycloak Console | |
+
+**Đọc role trong Spring:** Keycloak đặt role tại claim `realm_access.roles`. Spring **không tự đọc chỗ này** — bắt buộc viết `KeycloakRoleConverter` để map sang `ROLE_*`:
+```java
+List<String> roles = ((Map<String,Object>) jwt.getClaim("realm_access")).get("roles");
+// -> "PATIENT" thành "ROLE_PATIENT"
+```
+Thiếu bước này thì `hasRole()` **luôn trả 403** dù token hoàn toàn hợp lệ.
+
+---
+
+*Hết PRD v1.1. Phần A (nghiệp vụ) giữ nguyên từ v1.0; Phần B (kỹ thuật) bổ sung ngày 23/07/2026 từ các quyết định phát sinh trong quá trình cài đặt.*
