@@ -1,0 +1,117 @@
+package com.hehe.appointment_service.controller;
+
+import com.hehe.appointment_service.dto.request.CreationAppointmentRequest;
+import com.hehe.appointment_service.dto.request.UpdateAppointmentRequest;
+import com.hehe.appointment_service.dto.response.ApiResponse;
+import com.hehe.appointment_service.dto.response.AppointmentResponse;
+import com.hehe.appointment_service.service.AppointmentService;
+import jakarta.validation.Valid;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/appointments")
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class AppointmentController {
+
+    AppointmentService appointmentService;
+
+    // US-05: benh nhan dat lich
+    @PostMapping
+    public ApiResponse<AppointmentResponse> create(@Valid @RequestBody CreationAppointmentRequest request) {
+        return ApiResponse.<AppointmentResponse>builder()
+                .code(201)
+                .data(appointmentService.create(request))
+                .message("Đặt lịch hẹn thành công")
+                .build();
+    }
+
+    // Doi gio hen / sua ly do (chu lich)
+    @PutMapping("/{id}")
+    public ApiResponse<AppointmentResponse> update(@PathVariable String id,
+                                                   @Valid @RequestBody UpdateAppointmentRequest request) {
+        return ApiResponse.<AppointmentResponse>builder()
+                .code(200)
+                .data(appointmentService.update(id, request))
+                .message("Cập nhật lịch hẹn thành công")
+                .build();
+    }
+
+    // US-06: benh nhan huy lich
+    @PatchMapping("/{id}/cancel")
+    public ApiResponse<Void> cancel(@PathVariable String id) {
+        appointmentService.cancel(id);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Hủy lịch hẹn thành công")
+                .build();
+    }
+
+    // Bac si / admin xac nhan lich
+    @PatchMapping("/{id}/confirm")
+    public ApiResponse<Void> confirm(@PathVariable String id) {
+        appointmentService.confirm(id);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Xác nhận lịch hẹn thành công")
+                .build();
+    }
+
+    // Bac si danh dau da kham xong
+    @PatchMapping("/{id}/complete")
+    public ApiResponse<Void> complete(@PathVariable String id) {
+        appointmentService.complete(id);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Đánh dấu hoàn thành lịch hẹn thành công")
+                .build();
+    }
+
+    // Benh nhan xem lich cua minh
+    @GetMapping("/patients/me")
+    public ApiResponse<List<AppointmentResponse>> getMyPatientAppointments() {
+        return ApiResponse.<List<AppointmentResponse>>builder()
+                .code(200)
+                .data(appointmentService.getMyPatientAppointments())
+                .message("Lấy danh sách lịch hẹn thành công")
+                .build();
+    }
+
+    // US-07: bac si xem lich cua minh theo ngay
+    @GetMapping("/doctors/me")
+    public ApiResponse<List<AppointmentResponse>> getMyDoctorAppointments(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ApiResponse.<List<AppointmentResponse>>builder()
+                .code(200)
+                .data(appointmentService.getMyDoctorAppointments(date))
+                .message("Lấy danh sách lịch hẹn thành công")
+                .build();
+    }
+
+    // Xem chi tiet 1 lich hen
+    @GetMapping("/{id}")
+    public ApiResponse<AppointmentResponse> getOne(@PathVariable String id) {
+        return ApiResponse.<AppointmentResponse>builder()
+                .code(200)
+                .data(appointmentService.getOne(id))
+                .message("Lấy thông tin lịch hẹn thành công")
+                .build();
+    }
+
+    // ADMIN xem toan bo lich hen
+    @GetMapping
+    public ApiResponse<List<AppointmentResponse>> getAll() {
+        return ApiResponse.<List<AppointmentResponse>>builder()
+                .code(200)
+                .data(appointmentService.getAll())
+                .message("Lấy danh sách lịch hẹn thành công")
+                .build();
+    }
+}
