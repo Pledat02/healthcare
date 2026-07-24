@@ -13,6 +13,7 @@ import com.hehe.appointment_service.exception.ErrorCode;
 import com.hehe.appointment_service.mapper.AppointmentMapper;
 import com.hehe.appointment_service.repository.AppointmentRepository;
 import com.hehe.appointment_service.utils.AppointmentStatus;
+import com.hehe.appointment_service.utils.SecurityUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,8 +21,10 @@ import lombok.experimental.NonFinal;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -103,16 +106,98 @@ public class AppointmentService {
         if (appointmentRepository.isConflictOnUpdate(request.getDoctorId(),appointmentTime,durationMinutes,id)) {
             throw new AppException(ErrorCode.APPOINTMENT_CONFLICT);
         }
-         appointment = appointmentMapper.updateEntity(appointment,request);
 
         appointment.setDurationMinutes(durationMinutes);
+        if(request.getReason()!=null)
+            appointment.setReason(request.getReason());
+        appointment.setAppointmentTime(appointmentTime);
 
         return appointmentMapper.toResponse(appointmentRepository.save(appointment));
     }
 
+    public boolean cancel(String id){
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(()->new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
+        PatientDto me = patientClient.getPatient();
+        if (!appointment.getPatientId().equals(me.getId())) {
+            throw new AppException(ErrorCode.FORBIDDEN);
+        }
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new AppException(ErrorCode.CANNOT_MODIFY_COMPLETED);
+        }
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointmentRepository.save(appointment);
+        return true;
+    }
+    public boolean confirm(String id){
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(()->new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
+
+        DoctorDto me = doctorClient.getMe();
+        if (appointment.getDoctorId().equals(me.getId())
+        || SecurityUtils.hasRole("ADMIN")) {
+            if (appointment.getStatus() == AppointmentStatus.COMPLETED
+                    || appointment.getStatus() == AppointmentStatus.CANCELLED) {
+                throw new AppException(ErrorCode.CANNOT_MODIFY_COMPLETED);
+            }
+
+            appointment.setStatus(AppointmentStatus.CONFIRMED);
+            appointmentRepository.save(appointment);
+            return true;
+        }
+        throw new AppException(ErrorCode.FORBIDDEN);
+    }
+    public boolean complete(String id){
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(()->new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
+
+        DoctorDto me = doctorClient.getMe();
+        if (appointment.getDoctorId().equals(me.getId())
+               ) {
+            if (appointment.getStatus() != AppointmentStatus.CONFIRMED
+                   ) {
+                throw new AppException(ErrorCode.CANNOT_MODIFY_COMPLETED);
+            }
+
+            appointment.setStatus(AppointmentStatus.COMPLETED);
+            appointmentRepository.save(appointment);
+            return true;
+        }
+        throw new AppException(ErrorCode.FORBIDDEN);
+    }
+    // GET /api/appointments/patients/me
+    public List<AppointmentResponse> getMyPatientAppointments() {
+        PatientDto me = patientClient.getPatient();
+        return appointmentRepository.findByPatientId(me.getId()).stream()
+                .map(appointmentMapper::toResponse).toList();
+    }
+
+    // GET /api/appointments/doctors/me
+    public List<AppointmentResponse> getMyDoctorAppointments(LocalDate date) {
+        DoctorDto me = doctorClient.getMe();
+        return appointmentRepository.findByDoctorIdAndDate(me.getId(), date).stream()
+                .map(appointmentMapper::toResponse).toList();
+    }
     private boolean isConflictCalendar(String doctorId, Instant appointmentTime) {
         return appointmentRepository.isConflict(doctorId, appointmentTime, durationMinutes);
+    }
+    public AppointmentResponse getOne(String id){
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
+
+        // BR-06: chi chu lich hoac ADMIN
+        if (!SecurityUtils.hasRole("ADMIN")) {
+            PatientDto me = patientClient.getPatient();
+            if (!appointment.getPatientId().equals(me.getId())) {
+                throw new AppException(ErrorCode.FORBIDDEN);
+            }
+        }
+        return appointmentMapper.toResponse(appointment);
+    }
+    public List<AppointmentResponse> getAll(){
+        return appointmentRepository.findAll().stream()
+                .map(appointmentMapper::toResponse).toList();
     }
 
 }

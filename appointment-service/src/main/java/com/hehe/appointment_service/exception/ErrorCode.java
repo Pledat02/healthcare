@@ -29,8 +29,11 @@ public enum ErrorCode {
     // --- BR-06: chỉ truy cập dữ liệu của mình ---
     FORBIDDEN(403, "Bạn không có quyền truy cập lịch hẹn này"),
 
-    // --- Trạng thái ---
+    // --- Trạng thái (mục 14 - vòng đời lịch hẹn) ---
     INVALID_STATUS_TRANSITION(400, "Chuyển trạng thái không hợp lệ"),
+    APPOINTMENT_ALREADY_CANCELLED(400, "Lịch hẹn đã bị hủy trước đó"),
+    APPOINTMENT_NOT_CONFIRMED(400, "Chỉ có thể hoàn thành lịch hẹn đã được xác nhận"),
+    APPOINTMENT_ALREADY_COMPLETED(400, "Lịch hẹn đã hoàn thành, không thể xác nhận lại"),
 
     // --- Gọi service khác ---
     DOCTOR_SERVICE_UNAVAILABLE(503, "Không kết nối được doctor-service");

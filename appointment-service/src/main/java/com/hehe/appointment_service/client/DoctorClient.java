@@ -32,6 +32,18 @@ public class DoctorClient {
 
         return res.getData();
     }
+    public DoctorDto getMe() {
+        ApiResponse<DoctorDto> res = doctorRestClient.get()
+                .uri("/api/doctors/me")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + SecurityUtils.currentToken())   // ← forward thẻ
+                .retrieve()
+                .onStatus(s -> s.value() == 404, (req, resp) -> {
+                    throw new AppException(ErrorCode.DOCTOR_NOT_FOUND);
+                })
+                .body(new ParameterizedTypeReference<ApiResponse<DoctorDto>>() {});
+
+        return res.getData();
+    }
 
 
 }

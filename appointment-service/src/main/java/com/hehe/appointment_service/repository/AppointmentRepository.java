@@ -6,6 +6,10 @@ import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentRepository extends JpaRepository<Appointment,String> {
 
@@ -32,4 +36,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment,String>
                                @Param("appointmentTime") Instant appointmentTime,
                                @Param("durationMinutes") int durationMinutes,
                                @Param("currentId") String currentId);
+
+    List<Appointment> findByDoctorIdAndDate(String doctorId, LocalDate date);
+    List<Appointment> findByPatientId(String patientId);
 }
