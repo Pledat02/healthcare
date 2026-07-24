@@ -28,8 +28,16 @@ public class DoctorController {
                 .message("Lấy thông tin bác sĩ thành công")
                 .build();
     }
+    @GetMapping()
+    public ApiResponse<DoctorResponse> getMe(){
+        return ApiResponse.<DoctorResponse>builder()
+                .data(doctorService.getMe())
+                .code(200)
+                .message("Lấy thông tin bác sĩ thành công")
+                .build();
+    }
     @PostMapping()
-    public ApiResponse<DoctorResponse> getOne(@Valid @RequestBody CreationDoctorRequest request){
+    public ApiResponse<DoctorResponse> create(@Valid @RequestBody CreationDoctorRequest request){
         return ApiResponse.<DoctorResponse>builder()
                 .data(doctorService.create(request))
                 .code(201)
@@ -45,7 +53,7 @@ public class DoctorController {
                 .build();
     }
     @PutMapping("/{id}")
-    public ApiResponse<DoctorResponse> getOne(@PathVariable String id,
+    public ApiResponse<DoctorResponse> update(@PathVariable String id,
                                               @Valid @RequestBody UpdateDoctorRequest request){
         return ApiResponse.<DoctorResponse>builder()
                 .data(doctorService.update(id,request))

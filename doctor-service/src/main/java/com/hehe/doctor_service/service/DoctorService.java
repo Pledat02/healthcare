@@ -53,6 +53,11 @@ public class DoctorService {
         doctorRepository.save(doctor);
         return doctorMapper.toResponse(doctor);
     }
+    public DoctorResponse getMe(){
+        String idKeyCloak = SecurityUtils.getKeyCloakId();
+        return doctorMapper.toResponse(doctorRepository.findByKeycloakId(idKeyCloak).orElseThrow(() ->
+                new AppException(ErrorCode.DOCTOR_NOT_FOUND)));
+    }
 
     public void delete(String id){
         doctorRepository.deleteById(id);
