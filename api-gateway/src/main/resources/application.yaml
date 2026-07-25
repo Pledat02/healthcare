@@ -1,0 +1,58 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # CORS: cho phep frontend (cong khac) goi vao gateway
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origins:
+                  - "http://localhost:3000"    # URL frontend (doi theo du an cua ban)
+                allowed-methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowed-headers: "*"
+                allow-credentials: true
+          routes:
+            - id: patient-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/patients/**
+
+            - id: doctor-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api/doctors/**
+
+            - id: appointment-service
+              uri: http://localhost:8083
+              predicates:
+                - Path=/api/appointments/**
+
+            - id: notification-service
+              uri: http://localhost:8084
+              predicates:
+                - Path=/api/notifications/**
+
+            - id: medical-record-service
+              uri: http://localhost:8085
+              predicates:
+                - Path=/api/medical-records/**
+
+  # Xac thuc JWT Keycloak ngay tai cong
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/healthcare
