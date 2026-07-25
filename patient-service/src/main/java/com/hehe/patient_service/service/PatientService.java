@@ -34,7 +34,7 @@ public class PatientService {
     public PatientResponse update(String id, UpdationPatientRequest request) {
         Patient patient = patientRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.PATIENT_NOT_FOUND));
-        checkAccessRole(patient);
+        checkWriteAccess(patient);
         patientMapper.updateEntity(patient,request);
         Patient updatedPatient = patientRepository.save(patient);
         return patientMapper.toResponse(updatedPatient);
@@ -43,7 +43,7 @@ public class PatientService {
     public PatientResponse getOne(String id) {
         Patient patient = patientRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.PATIENT_NOT_FOUND));
-        checkAccessRole(patient);
+        checkReadAccess(patient);
         return patientMapper.toResponse(patient);
     }
 
@@ -65,7 +65,16 @@ public class PatientService {
 
     }
 
-    public void checkAccessRole(Patient patient){
+    // ĐỌC: ADMIN hoặc DOCTOR (bác sĩ điều trị cần xem thông tin bệnh nhân) hoặc chính chủ
+    public void checkReadAccess(Patient patient){
+        if(!SecurityUtil.isAdmin()
+                && !SecurityUtil.hasRole("DOCTOR")
+                && !patient.getKeycloakId().equals(SecurityUtil.getCurrentKeyCloakId()))
+            throw new AppException(ErrorCode.FORBIDDEN);
+    }
+
+    // GHI/SỬA: chỉ ADMIN hoặc chính chủ (US-02: bác sĩ KHÔNG được sửa hồ sơ bệnh nhân)
+    public void checkWriteAccess(Patient patient){
         if(!SecurityUtil.isAdmin() && !patient.getKeycloakId().equals(SecurityUtil.getCurrentKeyCloakId()))
             throw new AppException(ErrorCode.FORBIDDEN);
     }

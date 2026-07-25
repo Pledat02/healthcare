@@ -9,11 +9,15 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.Objects;
 
 public class SecurityUtil {
-    public static boolean isAdmin() {
+    public static boolean hasRole(String role) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        assert auth != null;
+        if (auth == null) return false;
         return auth.getAuthorities().stream().anyMatch(
-                grantedAuthority -> Objects.equals(grantedAuthority.getAuthority(), "ROLE_ADMIN"));
+                grantedAuthority -> Objects.equals(grantedAuthority.getAuthority(), "ROLE_" + role));
+    }
+
+    public static boolean isAdmin() {
+        return hasRole("ADMIN");
     }
     public static String getCurrentKeyCloakId(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
