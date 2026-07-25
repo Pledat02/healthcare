@@ -1,7 +1,10 @@
 package com.hehe.appointment_service.service;
 
 import com.hehe.appointment_service.client.DoctorClient;
+import com.hehe.appointment_service.client.NotificationClient;
 import com.hehe.appointment_service.client.PatientClient;
+import com.hehe.appointment_service.dto.event.AppointmentNotificationEvent;
+import com.hehe.appointment_service.dto.event.NotificationType;
 import com.hehe.appointment_service.dto.request.CreationAppointmentRequest;
 import com.hehe.appointment_service.dto.request.UpdateAppointmentRequest;
 import com.hehe.appointment_service.dto.response.AppointmentResponse;
@@ -37,7 +40,7 @@ public class AppointmentService {
     AppointmentMapper appointmentMapper;
     DoctorClient doctorClient;
     PatientClient patientClient;
-
+    NotificationClient notificationClient;
     @Value("${appointment.duration-minutes}")
     @NonFinal
     int durationMinutes;
@@ -195,6 +198,18 @@ public class AppointmentService {
     public List<AppointmentResponse> getAll(){
         return appointmentRepository.findAll().stream()
                 .map(appointmentMapper::toResponse).toList();
+    }
+    private void notify(NotificationType type, Appointment appt) {
+        PatientDto p = patientClient.getPatient(appt.getPatientId());
+        DoctorDto  d = doctorClient.getDoctor(appt.getDoctorId());
+
+        notificationClient.send(AppointmentNotificationEvent.builder()
+                .type(type)
+                .patientName(p.getFullName()).patientEmail(p.getEmail())
+                .doctorName(d.getFullName()).specialization(d.getSpecialization())
+                .appointmentTime(appt.getAppointmentTime())
+                .reason(appt.getReason())
+                .build());
     }
 
 }

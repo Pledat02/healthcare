@@ -10,7 +10,7 @@ import java.time.Instant;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class AppointmentConfirmedEvent {
+public class AppointmentNotificationEvent {
     NotificationType type;
     String patientName;
     String patientEmail;
