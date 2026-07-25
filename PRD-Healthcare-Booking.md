@@ -338,6 +338,58 @@ Mọi response bọc trong `ApiResponse<T>`:
 
 > **Quy ước đường dẫn:** mọi endpoint về lịch hẹn nằm dưới `/api/appointments`, KHÔNG đặt dưới `/api/doctors/...` — vì api-gateway định tuyến theo tiền tố, đặt sai sẽ bị đẩy nhầm service.
 
+### 12.4. medical-record-service — `/api/medical-records`
+
+| Method | Đường dẫn | Vai trò | Mô tả |
+|---|---|---|---|
+| POST | `/api/medical-records` | DOCTOR (bác sĩ khám buổi đó) | Ghi chẩn đoán + đơn thuốc (US-10) |
+| GET | `/api/medical-records/me` | PATIENT | Lịch sử khám của tôi (US-11) |
+| GET | `/api/medical-records/patients/{patientId}` | DOCTOR / ADMIN | Lịch sử khám của 1 bệnh nhân (mục tiêu **G4**) |
+| GET | `/api/medical-records/appointments/{appointmentId}` | chủ hồ sơ / bác sĩ khám / ADMIN | Hồ sơ của 1 lịch hẹn |
+| GET | `/api/medical-records/{id}` | chủ hồ sơ / bác sĩ khám / ADMIN | Chi tiết 1 hồ sơ |
+
+**Ba luật bắt buộc khi tạo hồ sơ (`POST`):**
+
+| Luật | Kiểm gì | Làm sao |
+|---|---|---|
+| **BR-05** | Lịch hẹn phải ở trạng thái `COMPLETED` | **Gọi appointment-service** `GET /api/appointments/{id}` |
+| **US-10** | Chỉ bác sĩ khám buổi đó mới được ghi | So `doctorId` của lịch hẹn với bác sĩ đang đăng nhập |
+| 1 lịch ↔ 1 hồ sơ | Không tạo 2 hồ sơ cho cùng lịch hẹn | Cột `appointment_id` **unique** (ERD) |
+
+**Đơn thuốc không có API riêng.** `PrescriptionItem` là dữ liệu con của hồ sơ khám, gửi lồng trong cùng request tạo hồ sơ:
+```json
+POST /api/medical-records
+{
+  "appointmentId": "...",
+  "diagnosis": "Viêm họng cấp",
+  "notes": "Nghỉ ngơi, uống nhiều nước",
+  "prescriptionItems": [
+    { "medicineName": "Amoxicillin 500mg", "dosage": "1 viên", "quantity": 20, "instruction": "Ngày 2 lần sau ăn" }
+  ]
+}
+```
+Dùng `cascade = ALL` ở quan hệ `@OneToMany` để lưu hồ sơ là đơn thuốc lưu theo.
+
+> 🚫 **KHÔNG làm chức năng sửa/xóa hồ sơ khám.** Hồ sơ khám là bản ghi lịch sử điều trị — sửa/xóa được sẽ mất tính tin cậy. Nếu bác sĩ ghi sai, nghiệp vụ y tế thực tế là **thêm bản ghi đính chính**, không sửa bản cũ. PRD cũng không yêu cầu chức năng này.
+
+### 12.5. notification-service — `/api/notifications`
+
+Service này chủ yếu chạy **nền**, ít API:
+
+| Method | Đường dẫn | Vai trò | Mô tả |
+|---|---|---|---|
+| POST | `/api/notifications/appointment-created` | *(nội bộ)* | Nhận sự kiện đặt lịch → gửi mail xác nhận (US-08) |
+| GET | `/api/notifications` | ADMIN | Xem nhật ký gửi mail, lọc `?status=` |
+
+**Job tự động (US-09):** không có endpoint. Một tác vụ hẹn giờ (`@Scheduled`) quét bảng `notifications` mỗi giờ, tìm lịch hẹn diễn ra sau **24 giờ** và gửi mail nhắc. Cấu hình:
+```yaml
+notification:
+  reminder-hours-before: 24
+  scan-cron: "0 0 * * * *"
+```
+
+> ⚠️ **Yêu cầu phi chức năng (mục 6):** *"Notification service chết KHÔNG được làm việc đặt lịch thất bại"*. Vì vậy về lâu dài phải gửi qua **Kafka/RabbitMQ** (bất đồng bộ). Giai đoạn hiện tại chưa dựng broker nên tạm gọi REST — **khi gọi phải bắt lỗi và bỏ qua**, tuyệt đối không để lỗi gửi mail làm hỏng giao dịch đặt lịch.
+
 ---
 
 ## 13. Ma trận phân quyền
@@ -358,6 +410,12 @@ Ký hiệu: ✅ được — ❌ không — 🔒 chỉ dữ liệu của mình (
 | Hủy lịch | 🔒 | ❌ | ❌ |
 | Xác nhận lịch | ❌ | ✅ | ✅ |
 | Đánh dấu đã khám | ❌ | ✅ | ❌ |
+| Ghi hồ sơ khám (US-10) | ❌ | ✅ (bác sĩ khám buổi đó) | ❌ |
+| Xem lịch sử khám của mình (US-11) | 🔒 | — | — |
+| Xem lịch sử khám của 1 bệnh nhân (G4) | ❌ | ✅ | ✅ |
+| Xem hồ sơ khám theo lịch hẹn | 🔒 | 🔒 (buổi mình khám) | ✅ tất cả |
+| Sửa / xóa hồ sơ khám | ❌ | ❌ | ❌ *(không làm)* |
+| Xem nhật ký gửi mail | ❌ | ❌ | ✅ |
 
 **Hai tầng kiểm tra — phải làm ĐỦ CẢ HAI:**
 
@@ -419,6 +477,15 @@ Ký hiệu: ✅ được — ❌ không — 🔒 chỉ dữ liệu của mình (
 | `FORBIDDEN` | 403 | Đụng dữ liệu người khác | **BR-06** |
 | `INVALID_INPUT` | 400 | Dữ liệu không hợp lệ | — |
 | `DOCTOR_SERVICE_UNAVAILABLE` | 503 | Không gọi được service khác | Mục 16 |
+
+**Riêng medical-record-service:**
+
+| Mã lỗi | HTTP | Khi nào | Luật |
+|---|---|---|---|
+| `MEDICAL_RECORD_NOT_FOUND` | 404 | Không tìm thấy hồ sơ khám | — |
+| `APPOINTMENT_NOT_COMPLETED` | 400 | Ghi hồ sơ cho lịch chưa khám xong | **BR-05** |
+| `NOT_THE_TREATING_DOCTOR` | 403 | Bác sĩ khác cố ghi hồ sơ hộ | **US-10** |
+| `MEDICAL_RECORD_ALREADY_EXISTS` | 409 | Lịch hẹn này đã có hồ sơ khám | 1 lịch ↔ 1 hồ sơ |
 
 > `GlobalExceptionHandler` phải trả **đúng HTTP status theo mã trong enum**, không được trả cứng 400/500 cho mọi lỗi. Riêng BR-01 bắt buộc **409** (US-05 ghi rõ).
 
