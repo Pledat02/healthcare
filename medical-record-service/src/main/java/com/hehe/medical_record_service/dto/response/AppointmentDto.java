@@ -1,23 +1,29 @@
 package com.hehe.appointment_service.dto.response;
 
 import com.hehe.appointment_service.utils.AppointmentStatus;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+
+import java.sql.Timestamp;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppointmentResponse {
-    String id;
-    String patientId;
-    String doctorId;
-    Instant appointmentTime;
-    int durationMinutes;
+    @NotNull
+    DoctorDto doctor;
+    @NotNull
+    PatientDto patient;
+
+    @FutureOrPresent
+    Timestamp appointmentTime;
+
     String reason;
     AppointmentStatus status;
 }

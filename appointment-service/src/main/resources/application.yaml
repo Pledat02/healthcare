@@ -4,6 +4,8 @@ server:
 services:
   doctor:
     url: http://localhost:8082
+  patient:
+    url: http://localhost:8081
 
 spring:
   # Mat khau DB nam trong secrets.yaml (da gitignore, khong day len GitHub)

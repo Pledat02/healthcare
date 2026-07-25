@@ -5,11 +5,13 @@ import com.hehe.appointment_service.dto.request.UpdateAppointmentRequest;
 import com.hehe.appointment_service.dto.response.AppointmentResponse;
 import com.hehe.appointment_service.entity.Appointment;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface AppointmentMapper {
-    Appointment  toEntity(CreationAppointmentRequest request);
+    Appointment toEntity(CreationAppointmentRequest request);
+
     AppointmentResponse toResponse(Appointment appointment);
 
-    Appointment updateEntity(Appointment appointment, UpdateAppointmentRequest request);
+    Appointment updateEntity(@MappingTarget Appointment appointment, UpdateAppointmentRequest request);
 }

@@ -107,10 +107,7 @@ public class AppointmentService {
             throw new AppException(ErrorCode.APPOINTMENT_CONFLICT);
         }
 
-        appointment.setDurationMinutes(durationMinutes);
-        if(request.getReason()!=null)
-            appointment.setReason(request.getReason());
-        appointment.setAppointmentTime(appointmentTime);
+        appointment = appointmentMapper.updateEntity(appointment,request);
 
         return appointmentMapper.toResponse(appointmentRepository.save(appointment));
     }
