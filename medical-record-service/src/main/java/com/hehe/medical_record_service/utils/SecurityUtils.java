@@ -1,12 +1,13 @@
-package com.hehe.appointment_service.utils;
+package com.hehe.medical_record_service.utils;
 
-import com.hehe.appointment_service.exception.AppException;
-import com.hehe.appointment_service.exception.ErrorCode;
+import com.hehe.medical_record_service.exception.AppException;
+import com.hehe.medical_record_service.exception.ErrorCode;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.Objects;
+
 
 public class SecurityUtils {
     static Authentication auth = SecurityContextHolder.getContext().getAuthentication();

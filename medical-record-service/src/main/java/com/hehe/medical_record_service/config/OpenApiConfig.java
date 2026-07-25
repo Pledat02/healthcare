@@ -1,4 +1,4 @@
-package com.hehe.appointment_service.config;
+package com.hehe.medical_record_service.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;

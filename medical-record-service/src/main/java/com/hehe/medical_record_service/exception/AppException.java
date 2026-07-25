@@ -1,4 +1,4 @@
-package com.hehe.appointment_service.exception;
+package com.hehe.medical_record_service.exception;
 
 import lombok.AccessLevel;
 import lombok.Getter;

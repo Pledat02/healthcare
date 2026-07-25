@@ -1,16 +1,13 @@
-package com.hehe.appointment_service.client;
+package com.hehe.medical_record_service.client;
 
-import com.hehe.appointment_service.dto.response.ApiResponse;
-import com.hehe.appointment_service.dto.response.DoctorDto;
-import com.hehe.appointment_service.exception.AppException;
-import com.hehe.appointment_service.exception.ErrorCode;
-import com.hehe.appointment_service.utils.SecurityUtils;
+import com.hehe.medical_record_service.dto.response.ApiResponse;
+import com.hehe.medical_record_service.dto.response.DoctorDto;
+import com.hehe.medical_record_service.exception.AppException;
+import com.hehe.medical_record_service.exception.ErrorCode;
+import com.hehe.medical_record_service.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 

@@ -1,4 +1,4 @@
-package com.hehe.appointment_service.dto.response;
+package com.hehe.medical_record_service.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

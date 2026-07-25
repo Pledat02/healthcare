@@ -1,25 +1,24 @@
-package com.hehe.medical_record_service.dto.request;
+package com.hehe.medical_record_service.dto.response;
 
 import com.hehe.medical_record_service.entity.PrescriptionItem;
-import jakarta.persistence.Column;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
 
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreationMedicalRecord {
+public class MedicalRecordResponse {
+    String id;
 
     String appointmentId;
 
-    String patientId;
+    DoctorDto doctor;
 
-     String doctorId;
+     PatientDto patient;
 
    String diagnosis;
 

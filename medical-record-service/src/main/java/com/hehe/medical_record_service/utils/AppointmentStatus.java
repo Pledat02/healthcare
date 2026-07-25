@@ -1,4 +1,4 @@
-package com.hehe.appointment_service.utils;
+package com.hehe.medical_record_service.utils;
 
 public  enum AppointmentStatus {
     PENDING,

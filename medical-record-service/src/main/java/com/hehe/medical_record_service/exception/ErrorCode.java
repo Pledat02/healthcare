@@ -1,4 +1,4 @@
-package com.hehe.appointment_service.exception;
+package com.hehe.medical_record_service.exception;
 
 import lombok.Getter;
 
@@ -6,37 +6,29 @@ import lombok.Getter;
 public enum ErrorCode {
 
     // --- Chung ---
-    APPOINTMENT_NOT_FOUND(404, "Không tìm thấy lịch hẹn"),
+    MEDICAL_RECORD_NOT_FOUND(404, "Không tìm thấy hồ sơ khám"),
     INVALID_INPUT(400, "Dữ liệu không hợp lệ"),
     INTERNAL_ERROR(500, "Lỗi hệ thống"),
 
-    // --- US-05: đặt lịch ---
+    // --- Tham chiếu tới service khác (gọi qua API) ---
+    APPOINTMENT_NOT_FOUND(404, "Không tìm thấy lịch hẹn"),
     PATIENT_NOT_FOUND(404, "Không tìm thấy bệnh nhân"),
     DOCTOR_NOT_FOUND(404, "Không tìm thấy bác sĩ"),
 
-    // --- BR-02: không đặt lịch trong quá khứ ---
-    APPOINTMENT_TIME_IN_PAST(400, "Không thể đặt lịch vào thời điểm trong quá khứ"),
+    // --- BR-05: chỉ tạo hồ sơ cho lịch hẹn đã COMPLETED ---
+    APPOINTMENT_NOT_COMPLETED(400, "Chỉ tạo được hồ sơ khám cho lịch hẹn đã hoàn thành"),
 
-    // --- BR-03: phải trong giờ làm việc của bác sĩ ---
-    OUTSIDE_WORKING_HOURS(400, "Giờ hẹn nằm ngoài giờ làm việc của bác sĩ"),
+    // --- US-10: chỉ bác sĩ khám buổi đó mới được ghi ---
+    NOT_THE_TREATING_DOCTOR(403, "Chỉ bác sĩ khám buổi đó mới được ghi hồ sơ"),
 
-    // --- BR-01: chống trùng lịch ---
-    APPOINTMENT_CONFLICT(409, "Bác sĩ đã có lịch hẹn khác trong khung giờ này"),
-
-    // --- BR-04: lịch đã khám xong thì khóa ---
-    CANNOT_MODIFY_COMPLETED(400, "Lịch hẹn đã hoàn thành, không thể hủy hoặc sửa"),
+    // --- 1 lịch hẹn chỉ có 1 hồ sơ khám ---
+    MEDICAL_RECORD_ALREADY_EXISTS(409, "Lịch hẹn này đã có hồ sơ khám"),
 
     // --- BR-06: chỉ truy cập dữ liệu của mình ---
-    FORBIDDEN(403, "Bạn không có quyền truy cập lịch hẹn này"),
+    FORBIDDEN(403, "Bạn không có quyền truy cập hồ sơ khám này"),
 
-    // --- Trạng thái (mục 14 - vòng đời lịch hẹn) ---
-    INVALID_STATUS_TRANSITION(400, "Chuyển trạng thái không hợp lệ"),
-    APPOINTMENT_ALREADY_CANCELLED(400, "Lịch hẹn đã bị hủy trước đó"),
-    APPOINTMENT_NOT_CONFIRMED(400, "Chỉ có thể hoàn thành lịch hẹn đã được xác nhận"),
-    APPOINTMENT_ALREADY_COMPLETED(400, "Lịch hẹn đã hoàn thành, không thể xác nhận lại"),
-
-    // --- Gọi service khác ---
-    DOCTOR_SERVICE_UNAVAILABLE(503, "Không kết nối được doctor-service");
+    // --- Gọi service khác thất bại ---
+    SERVICE_UNAVAILABLE(503, "Không kết nối được service phụ thuộc");
 
     private final int code;
     private final String message;

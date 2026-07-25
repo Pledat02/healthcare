@@ -1,14 +1,16 @@
-package com.hehe.medical_record_service.dto.request;
+package com.hehe.medical_record_service.dto.response;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PrescriptionItemRequest {
+public class PrescriptionItemResponse {
+    String id;
+
     String medicineName;
 
     String dosage;

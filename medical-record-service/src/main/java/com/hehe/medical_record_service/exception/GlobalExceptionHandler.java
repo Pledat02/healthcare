@@ -1,6 +1,6 @@
-package com.hehe.appointment_service.exception;
+package com.hehe.medical_record_service.exception;
 
-import com.hehe.appointment_service.dto.response.ApiResponse;
+import com.hehe.medical_record_service.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

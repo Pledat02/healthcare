@@ -1,6 +1,6 @@
-package com.hehe.appointment_service.dto.response;
+package com.hehe.medical_record_service.dto.response;
 
-import com.hehe.appointment_service.utils.Gender;
+import com.hehe.medical_record_service.utils.Gender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
