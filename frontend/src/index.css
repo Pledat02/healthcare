@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+/* ===== Design tokens - Healthcare Booking =====
+   Style: clean, professional, trustworthy. Teal + blue, high contrast. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand */
+  --color-primary: #0d9488;        /* teal-600 */
+  --color-primary-hover: #0f766e;  /* teal-700 */
+  --color-primary-soft: #f0fdfa;   /* teal-50  */
+  --color-accent: #2563eb;         /* blue-600 */
+
+  /* Neutrals / surfaces */
+  --color-bg: #f8fafc;             /* slate-50 */
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;         /* slate-200 */
+  --color-text: #0f172a;           /* slate-900 */
+  --color-muted: #64748b;          /* slate-500 */
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-info: #2563eb;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Visible focus ring for accessibility (§1 focus-states) */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
