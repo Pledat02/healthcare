@@ -28,7 +28,7 @@ public class DoctorController {
                 .message("Lấy thông tin bác sĩ thành công")
                 .build();
     }
-    @GetMapping()
+    @GetMapping("/me")
     public ApiResponse<DoctorResponse> getMe(){
         return ApiResponse.<DoctorResponse>builder()
                 .data(doctorService.getMe())

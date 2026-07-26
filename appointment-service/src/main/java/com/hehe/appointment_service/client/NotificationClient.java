@@ -15,10 +15,10 @@ public class NotificationClient {
 
     private final RestClient notificationRestClient;
 
-    public void sendAppointmentCreated(AppointmentNotificationEvent event) {
+    public void send(AppointmentNotificationEvent event) {
         try {
             notificationRestClient.post()
-                    .uri("/api/notifications/appointment-created")
+                    .uri("/api/notifications/appointments")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + SecurityUtils.currentToken())
                     .body(event)
                     .retrieve()

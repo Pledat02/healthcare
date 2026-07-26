@@ -37,6 +37,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment,String>
                                @Param("durationMinutes") int durationMinutes,
                                @Param("currentId") String currentId);
 
-    List<Appointment> findByDoctorIdAndDate(String doctorId, LocalDate date);
+    // Lay lich cua bac si trong 1 ngay: appointmentTime nam trong [dau ngay, dau ngay hom sau)
+    List<Appointment> findByDoctorIdAndAppointmentTimeBetween(String doctorId, Instant start, Instant end);
     List<Appointment> findByPatientId(String patientId);
 }

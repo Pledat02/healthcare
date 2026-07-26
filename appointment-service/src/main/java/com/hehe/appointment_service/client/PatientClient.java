@@ -27,4 +27,18 @@ public class PatientClient {
 
         return res.getData();
     }
+
+    // Lay ho so benh nhan theo id (dung khi gui mail cho lich do bac si xac nhan/hoan thanh)
+    public PatientDto getPatient(String patientId) {
+        ApiResponse<PatientDto> res = patientRestClient.get()
+                .uri("/api/patients/{id}", patientId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + SecurityUtils.currentToken())
+                .retrieve()
+                .onStatus(s -> s.value() == 404, (req, resp) -> {
+                    throw new AppException(ErrorCode.PATIENT_NOT_FOUND);
+                })
+                .body(new ParameterizedTypeReference<ApiResponse<PatientDto>>() {});
+
+        return res.getData();
+    }
 }

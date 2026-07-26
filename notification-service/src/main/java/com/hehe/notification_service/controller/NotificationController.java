@@ -16,7 +16,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @PostMapping("/api/notifications/appointments")
+    @PostMapping("/appointments")
     public ApiResponse<Void> onAppointmentEvent(@RequestBody AppointmentNotificationEvent event) {
         notificationService.handle(event);
         return ApiResponse.<Void>builder().code(200).message("Đã nhận").build();

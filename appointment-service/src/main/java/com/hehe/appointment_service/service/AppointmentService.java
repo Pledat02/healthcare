@@ -176,7 +176,9 @@ public class AppointmentService {
     // GET /api/appointments/doctors/me
     public List<AppointmentResponse> getMyDoctorAppointments(LocalDate date) {
         DoctorDto me = doctorClient.getMe();
-        return appointmentRepository.findByDoctorIdAndDate(me.getId(), date).stream()
+        Instant start = date.atStartOfDay(CLINIC_ZONE).toInstant();
+        Instant end = date.plusDays(1).atStartOfDay(CLINIC_ZONE).toInstant();
+        return appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(me.getId(), start, end).stream()
                 .map(appointmentMapper::toResponse).toList();
     }
     private boolean isConflictCalendar(String doctorId, Instant appointmentTime) {
