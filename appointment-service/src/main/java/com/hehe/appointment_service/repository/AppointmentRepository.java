@@ -17,8 +17,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment,String>
             "  SELECT 1 FROM appointments a " +
             "  WHERE a.doctor_id = :doctorId " +
             "    AND a.status <> 'CANCELLED' " +
-            "    AND a.appointment_time < :appointmentTime + (:durationMinutes * INTERVAL '1 minute') " +
-            "    AND :appointmentTime < a.appointment_time + (a.duration_minutes * INTERVAL '1 minute') " +
+            "    AND a.appointment_time < CAST(:appointmentTime AS timestamptz) + (:durationMinutes * INTERVAL '1 minute') " +
+            "    AND CAST(:appointmentTime AS timestamptz) < a.appointment_time + (a.duration_minutes * INTERVAL '1 minute') " +
             ")")
     boolean isConflict(@Param("doctorId") String doctorId,
                        @Param("appointmentTime") Instant appointmentTime,
@@ -29,8 +29,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment,String>
             "  WHERE a.doctor_id = :doctorId " +
             "    AND a.id <> :currentId " +          // ← LOẠI TRỪ chính nó
             "    AND a.status <> 'CANCELLED' " +
-            "    AND a.appointment_time < :appointmentTime + (:durationMinutes * INTERVAL '1 minute') " +
-            "    AND :appointmentTime < a.appointment_time + (a.duration_minutes * INTERVAL '1 minute') " +
+            "    AND a.appointment_time < CAST(:appointmentTime AS timestamptz) + (:durationMinutes * INTERVAL '1 minute') " +
+            "    AND CAST(:appointmentTime AS timestamptz) < a.appointment_time + (a.duration_minutes * INTERVAL '1 minute') " +
             ")")
     boolean isConflictOnUpdate(@Param("doctorId") String doctorId,
                                @Param("appointmentTime") Instant appointmentTime,

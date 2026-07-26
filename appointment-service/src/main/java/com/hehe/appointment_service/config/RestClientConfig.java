@@ -15,7 +15,7 @@ public class RestClientConfig {
                 .build();
     }
     @Bean
-    RestClient patientRestClient(@Value("${services.patient.url") String baseUrl) {
+    RestClient patientRestClient(@Value("${services.patient.url}") String baseUrl) {
         return RestClient.builder()
                 .baseUrl(baseUrl)
                 .build();
