@@ -1,0 +1,80 @@
+import { useEffect, useState } from 'react'
+import api, { unwrap, apiMessage } from '../../lib/api'
+import { formatDateTime } from '../../lib/format'
+import { useToast } from '../../components/Toast'
+import { Card, Spinner, EmptyState, PageHeader } from '../../components/ui'
+import { FileText, Pill } from 'lucide-react'
+
+export default function MyRecordsPage() {
+  const toast = useToast()
+  const [records, setRecords] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api
+      .get('/medical-records/me')
+      .then((res) => setRecords((unwrap(res) || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))))
+      .catch((e) => toast.error(apiMessage(e)))
+      .finally(() => setLoading(false))
+  }, []) // eslint-disable-line
+
+  if (loading) return <Spinner />
+
+  return (
+    <>
+      <PageHeader title="Hồ sơ khám bệnh" subtitle="Lịch sử chẩn đoán và đơn thuốc của bạn" />
+      {records.length === 0 ? (
+        <EmptyState icon={FileText} title="Chưa có hồ sơ khám" subtitle="Hồ sơ sẽ xuất hiện sau khi bạn hoàn thành buổi khám" />
+      ) : (
+        <div className="space-y-4">
+          {records.map((r) => (
+            <Card key={r.id} className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-sm text-[--color-muted]">{formatDateTime(r.createdAt)}</span>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-[--color-muted]">Chẩn đoán</p>
+                <p className="mt-0.5 font-medium text-[--color-text]">{r.diagnosis || '—'}</p>
+              </div>
+              {r.notes && (
+                <div className="mt-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-[--color-muted]">Ghi chú</p>
+                  <p className="mt-0.5 text-sm text-[--color-text]">{r.notes}</p>
+                </div>
+              )}
+              {r.prescriptionItems?.length > 0 && (
+                <div className="mt-4">
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-[--color-muted]">
+                    <Pill className="h-3.5 w-3.5" /> Đơn thuốc
+                  </p>
+                  <div className="overflow-hidden rounded-lg border border-[--color-border]">
+                    <table className="w-full text-sm">
+                      <thead className="bg-slate-50 text-left text-xs text-[--color-muted]">
+                        <tr>
+                          <th className="px-3 py-2 font-medium">Thuốc</th>
+                          <th className="px-3 py-2 font-medium">Liều</th>
+                          <th className="px-3 py-2 font-medium tabular-nums">SL</th>
+                          <th className="px-3 py-2 font-medium">Cách dùng</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[--color-border]">
+                        {r.prescriptionItems.map((p, i) => (
+                          <tr key={i}>
+                            <td className="px-3 py-2 font-medium text-[--color-text]">{p.medicineName}</td>
+                            <td className="px-3 py-2 text-[--color-muted]">{p.dosage}</td>
+                            <td className="px-3 py-2 tabular-nums text-[--color-muted]">{p.quantity}</td>
+                            <td className="px-3 py-2 text-[--color-muted]">{p.instruction}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
