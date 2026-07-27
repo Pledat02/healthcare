@@ -113,8 +113,9 @@ public class AppointmentService {
         }
 
         appointment = appointmentMapper.updateEntity(appointment,request);
-
-        return appointmentMapper.toResponse(appointmentRepository.save(appointment));
+        Appointment saved = appointmentRepository.save(appointment);
+        notify(NotificationType.APPOINTMENT_RESCHEDULED, saved);
+        return appointmentMapper.toResponse(saved);
     }
 
     public boolean cancel(String id){
