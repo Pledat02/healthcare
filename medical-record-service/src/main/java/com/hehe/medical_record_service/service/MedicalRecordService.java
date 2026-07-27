@@ -47,9 +47,15 @@ public class MedicalRecordService {
         if (medicalRecordRepository.existsByAppointmentId(request.getAppointmentId())) {
             throw new AppException(ErrorCode.MEDICAL_RECORD_ALREADY_EXISTS);
         }
-            return medicalRecordMapper.toResponse(
-                    medicalRecordRepository.save(
-                            medicalRecordMapper.toEntity(request)));
+        MedicalRecord record = medicalRecordMapper.toEntity(request);
+        // Lay tu lich hen, KHONG nhan tu client (tranh ghi ho so cho nguoi khac)
+        record.setPatientId(appt.getPatientId());
+        record.setDoctorId(appt.getDoctorId());
+        // Gan back-reference cho don thuoc, neu khong medical_record_id se null
+        if (record.getPrescriptionItems() != null) {
+            record.getPrescriptionItems().forEach(item -> item.setMedicalRecord(record));
+        }
+        return medicalRecordMapper.toResponse(medicalRecordRepository.save(record));
     }
     //api/medical-records/me
     public List<MedicalRecordResponse> getMyHistoryPatientMedicalRecord(){

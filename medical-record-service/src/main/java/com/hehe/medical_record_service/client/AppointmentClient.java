@@ -23,7 +23,7 @@ public class AppointmentClient {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + SecurityUtils.currentToken())   // ← forward thẻ
                 .retrieve()
                 .onStatus(s -> s.value() == 404, (req, resp) -> {
-                    throw new AppException(ErrorCode.DOCTOR_NOT_FOUND);
+                    throw new AppException(ErrorCode.APPOINTMENT_NOT_FOUND);
                 })
                 .body(new ParameterizedTypeReference<ApiResponse<AppointmentDto>>() {});
 
