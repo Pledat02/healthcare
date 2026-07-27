@@ -24,6 +24,7 @@ public class CreationPatientRequest {
     @NotNull(message = "Giới tính không được để trống")
     private Gender gender;
 
+    @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không đúng định dạng")
     private String email;
 
