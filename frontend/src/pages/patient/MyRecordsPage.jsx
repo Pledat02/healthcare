@@ -30,26 +30,26 @@ export default function MyRecordsPage() {
           {records.map((r) => (
             <Card key={r.id} className="p-5">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm text-[--color-muted]">{formatDateTime(r.createdAt)}</span>
+                <span className="text-sm text-muted">{formatDateTime(r.createdAt)}</span>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-[--color-muted]">Chẩn đoán</p>
-                <p className="mt-0.5 font-medium text-[--color-text]">{r.diagnosis || '—'}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted">Chẩn đoán</p>
+                <p className="mt-0.5 font-medium text-text">{r.diagnosis || '—'}</p>
               </div>
               {r.notes && (
                 <div className="mt-3">
-                  <p className="text-xs font-medium uppercase tracking-wide text-[--color-muted]">Ghi chú</p>
-                  <p className="mt-0.5 text-sm text-[--color-text]">{r.notes}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted">Ghi chú</p>
+                  <p className="mt-0.5 text-sm text-text">{r.notes}</p>
                 </div>
               )}
               {r.prescriptionItems?.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-[--color-muted]">
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted">
                     <Pill className="h-3.5 w-3.5" /> Đơn thuốc
                   </p>
-                  <div className="overflow-hidden rounded-lg border border-[--color-border]">
+                  <div className="overflow-hidden rounded-lg border border-border">
                     <table className="w-full text-sm">
-                      <thead className="bg-slate-50 text-left text-xs text-[--color-muted]">
+                      <thead className="bg-slate-50 text-left text-xs text-muted">
                         <tr>
                           <th className="px-3 py-2 font-medium">Thuốc</th>
                           <th className="px-3 py-2 font-medium">Liều</th>
@@ -57,13 +57,13 @@ export default function MyRecordsPage() {
                           <th className="px-3 py-2 font-medium">Cách dùng</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[--color-border]">
+                      <tbody className="divide-y divide-border">
                         {r.prescriptionItems.map((p, i) => (
                           <tr key={i}>
-                            <td className="px-3 py-2 font-medium text-[--color-text]">{p.medicineName}</td>
-                            <td className="px-3 py-2 text-[--color-muted]">{p.dosage}</td>
-                            <td className="px-3 py-2 tabular-nums text-[--color-muted]">{p.quantity}</td>
-                            <td className="px-3 py-2 text-[--color-muted]">{p.instruction}</td>
+                            <td className="px-3 py-2 font-medium text-text">{p.medicineName}</td>
+                            <td className="px-3 py-2 text-muted">{p.dosage}</td>
+                            <td className="px-3 py-2 tabular-nums text-muted">{p.quantity}</td>
+                            <td className="px-3 py-2 text-muted">{p.instruction}</td>
                           </tr>
                         ))}
                       </tbody>

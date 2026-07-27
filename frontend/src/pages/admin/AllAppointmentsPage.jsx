@@ -72,7 +72,7 @@ export default function AllAppointmentsPage() {
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-[--color-border] bg-slate-50 text-left text-xs text-[--color-muted]">
+              <thead className="border-b border-border bg-slate-50 text-left text-xs text-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Thời gian</th>
                   <th className="px-4 py-3 font-medium">Bệnh nhân</th>
@@ -81,16 +81,16 @@ export default function AllAppointmentsPage() {
                   <th className="px-4 py-3 font-medium">Trạng thái</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[--color-border]">
+              <tbody className="divide-y divide-border">
                 {filtered.map((a) => (
                   <tr key={a.id}>
-                    <td className="whitespace-nowrap px-4 py-3 tabular-nums text-[--color-text]">{formatDateTime(a.appointmentTime)}</td>
-                    <td className="px-4 py-3 text-[--color-text]">{patients[a.patientId]?.fullName || '—'}</td>
-                    <td className="px-4 py-3 text-[--color-muted]">
+                    <td className="whitespace-nowrap px-4 py-3 tabular-nums text-text">{formatDateTime(a.appointmentTime)}</td>
+                    <td className="px-4 py-3 text-text">{patients[a.patientId]?.fullName || '—'}</td>
+                    <td className="px-4 py-3 text-muted">
                       {doctors[a.doctorId]?.fullName || '—'}
                       <span className="block text-xs text-slate-400">{doctors[a.doctorId]?.specialization}</span>
                     </td>
-                    <td className="max-w-[16rem] truncate px-4 py-3 text-[--color-muted]">{a.reason || '—'}</td>
+                    <td className="max-w-[16rem] truncate px-4 py-3 text-muted">{a.reason || '—'}</td>
                     <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
                   </tr>
                 ))}

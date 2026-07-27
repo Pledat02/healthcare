@@ -60,12 +60,12 @@ export default function MyAppointmentsPage() {
             const canCancel = a.status !== 'COMPLETED' && a.status !== 'CANCELLED'
             return (
               <Card key={a.id} className="flex flex-wrap items-center gap-4 p-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[--color-primary-soft] text-[--color-primary]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-primary">
                   <Stethoscope className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-[--color-text]">{d?.fullName || 'Bác sĩ'}</p>
-                  <p className="text-sm text-[--color-muted]">
+                  <p className="font-semibold text-text">{d?.fullName || 'Bác sĩ'}</p>
+                  <p className="text-sm text-muted">
                     {d?.specialization} · {formatDateTime(a.appointmentTime)}
                   </p>
                   {a.reason && <p className="mt-0.5 truncate text-sm text-slate-400">Lý do: {a.reason}</p>}
@@ -74,7 +74,7 @@ export default function MyAppointmentsPage() {
                 {canCancel && (
                   <Button
                     variant="ghost"
-                    className="text-[--color-danger]"
+                    className="text-danger"
                     loading={cancelling === a.id}
                     onClick={() => cancel(a.id)}
                   >

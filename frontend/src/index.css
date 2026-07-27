@@ -39,6 +39,88 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Motion system: short, calm transitions suitable for a healthcare product. */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: translateY(10px) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -14px, 0); }
+}
+
+.page-transition { animation: fade-up 360ms cubic-bezier(.22, 1, .36, 1) both; }
+.page-header { animation: fade-down 320ms cubic-bezier(.22, 1, .36, 1) both; }
+.motion-fade-up { animation: fade-up 520ms cubic-bezier(.22, 1, .36, 1) both; }
+.motion-fade-down { animation: fade-down 480ms cubic-bezier(.22, 1, .36, 1) both; }
+.motion-delay-1 { animation-delay: 80ms; }
+.motion-delay-2 { animation-delay: 150ms; }
+.motion-delay-3 { animation-delay: 220ms; }
+.motion-auth-card { animation: scale-in 560ms cubic-bezier(.22, 1, .36, 1) 80ms both; }
+
+.motion-button {
+  transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease,
+    box-shadow 220ms ease, transform 180ms cubic-bezier(.22, 1, .36, 1);
+}
+.motion-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgb(15 23 42 / .08); }
+.motion-button:active:not(:disabled) { transform: translateY(0) scale(.98); }
+
+.motion-card {
+  animation: fade-up 380ms cubic-bezier(.22, 1, .36, 1) both;
+  transition: border-color 220ms ease, box-shadow 260ms ease, transform 260ms cubic-bezier(.22, 1, .36, 1);
+}
+.motion-card:hover { border-color: rgb(13 148 136 / .28); box-shadow: 0 12px 30px rgb(15 23 42 / .07); transform: translateY(-2px); }
+
+input, select, textarea { transition: border-color 180ms ease, box-shadow 220ms ease, background-color 180ms ease; }
+tbody tr { transition: background-color 180ms ease; }
+tbody tr:hover { background: rgb(248 250 252 / .9); }
+
+.modal-backdrop { animation: backdrop-in 180ms ease-out both; backdrop-filter: blur(3px); }
+.modal-panel { animation: scale-in 260ms cubic-bezier(.22, 1, .36, 1) both; }
+.toast-enter { animation: scale-in 280ms cubic-bezier(.22, 1, .36, 1) both; }
+.app-sidebar { animation: fade-down 420ms cubic-bezier(.22, 1, .36, 1) both; }
+
+.login-brand { background-image: linear-gradient(145deg, #0f766e 0%, #0d9488 52%, #0891b2 100%); }
+.login-orb { position: absolute; border-radius: 9999px; background: rgb(255 255 255 / .1); filter: blur(1px); }
+.login-orb-one { width: 22rem; height: 22rem; right: -8rem; top: -7rem; animation: float-soft 8s ease-in-out infinite; }
+.login-orb-two { width: 14rem; height: 14rem; left: -6rem; bottom: 8%; animation: float-soft 10s ease-in-out 1s infinite reverse; }
+.feature-row { opacity: 0; animation: fade-up 460ms cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(240ms + var(--item-index) * 90ms); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+  .motion-card:hover, .motion-button:hover:not(:disabled) { transform: none; }
+}
+
 /* Visible focus ring for accessibility (§1 focus-states) */
 :focus-visible {
   outline: 2px solid var(--color-primary);

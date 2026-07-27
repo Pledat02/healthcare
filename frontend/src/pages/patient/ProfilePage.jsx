@@ -15,12 +15,12 @@ export default function ProfilePage() {
       <PageHeader title="Hồ sơ" subtitle="Thông tin tài khoản" />
       <Card className="max-w-md p-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[--color-primary-soft] text-[--color-primary]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">
             <UserCircle className="h-6 w-6" />
           </div>
           <div>
-            <p className="font-semibold text-[--color-text]">{name}</p>
-            <p className="text-sm text-[--color-muted]">@{username} · Quản trị viên</p>
+            <p className="font-semibold text-text">{name}</p>
+            <p className="text-sm text-muted">@{username} · Quản trị viên</p>
           </div>
         </div>
       </Card>
@@ -32,7 +32,8 @@ const EMPTY = { fullName: '', phone: '', gender: 'MALE', dateOfBirth: '', email:
 
 function PatientProfile() {
   const toast = useToast()
-  const [form, setForm] = useState(EMPTY)
+  const { email: accountEmail } = useAuth()
+  const [form, setForm] = useState(() => ({ ...EMPTY, email: accountEmail || '' }))
   const [existing, setExisting] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -99,8 +100,8 @@ function PatientProfile() {
           <Field label="Ngày sinh">
             <Input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} />
           </Field>
-          <Field label="Email">
-            <Input type="email" value={form.email} onChange={set('email')} placeholder="email@example.com" />
+          <Field label="Email" required hint="Dùng để nhận xác nhận và nhắc lịch khám">
+            <Input type="email" value={form.email} onChange={set('email')} placeholder="email@example.com" required />
           </Field>
           <Field label="Địa chỉ">
             <Input value={form.address} onChange={set('address')} placeholder="Quận, Thành phố" />
@@ -136,12 +137,12 @@ function DoctorProfile() {
       <PageHeader title="Hồ sơ bác sĩ" subtitle="Thông tin và giờ làm việc của bạn" />
       <Card className="max-w-md p-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[--color-primary-soft] text-[--color-primary]">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft text-primary">
             <Stethoscope className="h-7 w-7" />
           </div>
           <div>
-            <p className="text-lg font-semibold text-[--color-text]">{doc?.fullName}</p>
-            <p className="text-sm text-[--color-primary]">{doc?.specialization}</p>
+            <p className="text-lg font-semibold text-text">{doc?.fullName}</p>
+            <p className="text-sm text-primary">{doc?.specialization}</p>
           </div>
         </div>
         <dl className="mt-5 space-y-3 text-sm">
@@ -156,9 +157,9 @@ function DoctorProfile() {
 
 function Row({ label, value }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-[--color-border] pb-2 last:border-0">
-      <dt className="text-[--color-muted]">{label}</dt>
-      <dd className="font-medium text-[--color-text]">{value}</dd>
+    <div className="flex justify-between gap-4 border-b border-border pb-2 last:border-0">
+      <dt className="text-muted">{label}</dt>
+      <dd className="font-medium text-text">{value}</dd>
     </div>
   )
 }

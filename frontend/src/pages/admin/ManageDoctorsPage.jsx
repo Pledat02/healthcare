@@ -55,7 +55,7 @@ export default function ManageDoctorsPage() {
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-[--color-border] bg-slate-50 text-left text-xs text-[--color-muted]">
+              <thead className="border-b border-border bg-slate-50 text-left text-xs text-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Bác sĩ</th>
                   <th className="px-4 py-3 font-medium">Chuyên khoa</th>
@@ -64,24 +64,24 @@ export default function ManageDoctorsPage() {
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[--color-border]">
+              <tbody className="divide-y divide-border">
                 {doctors.map((d) => (
                   <tr key={d.id}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[--color-primary-soft] text-[--color-primary]">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-primary">
                           <Stethoscope className="h-4 w-4" />
                         </div>
-                        <span className="font-medium text-[--color-text]">{d.fullName}</span>
+                        <span className="font-medium text-text">{d.fullName}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[--color-muted]">{d.specialization}</td>
-                    <td className="px-4 py-3 tabular-nums text-[--color-muted]">
+                    <td className="px-4 py-3 text-muted">{d.specialization}</td>
+                    <td className="px-4 py-3 tabular-nums text-muted">
                       {formatWorkTime(d.workStartTime)}–{formatWorkTime(d.workEndTime)}
                     </td>
-                    <td className="px-4 py-3 text-[--color-muted]">{d.phone || d.email || '—'}</td>
+                    <td className="px-4 py-3 text-muted">{d.phone || d.email || '—'}</td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => remove(d.id)} className="text-slate-400 hover:text-[--color-danger]" aria-label="Xóa bác sĩ">
+                      <button onClick={() => remove(d.id)} className="text-slate-400 hover:text-danger" aria-label="Xóa bác sĩ">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </td>
@@ -125,7 +125,7 @@ function AddDoctorModal({ onClose, onSaved, toast }) {
   return (
     <Modal open onClose={onClose} title="Thêm bác sĩ">
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2 rounded-lg bg-[--color-primary-soft] p-3 text-sm text-[--color-text]">
+        <div className="sm:col-span-2 rounded-lg bg-primary-soft p-3 text-sm text-text">
           Tài khoản đăng nhập sẽ được tạo tự động cho bác sĩ.
         </div>
         <Field label="Tên đăng nhập" required hint="3-30 ký tự: chữ, số, . _ -">

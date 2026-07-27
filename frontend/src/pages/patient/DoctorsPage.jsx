@@ -67,15 +67,15 @@ export default function DoctorsPage() {
           {filtered.map((d) => (
             <Card key={d.id} className="flex flex-col p-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[--color-primary-soft] text-[--color-primary]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">
                   <Stethoscope className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate font-semibold text-[--color-text]">{d.fullName}</p>
-                  <p className="truncate text-sm text-[--color-primary]">{d.specialization}</p>
+                  <p className="truncate font-semibold text-text">{d.fullName}</p>
+                  <p className="truncate text-sm text-primary">{d.specialization}</p>
                 </div>
               </div>
-              <div className="mt-4 flex items-center gap-1.5 text-sm text-[--color-muted]">
+              <div className="mt-4 flex items-center gap-1.5 text-sm text-muted">
                 <Clock className="h-4 w-4" />
                 {formatWorkTime(d.workStartTime)} – {formatWorkTime(d.workEndTime)}
               </div>
@@ -127,7 +127,7 @@ function BookingModal({ doctor, onClose, toast }) {
   return (
     <Modal open onClose={onClose} title={`Đặt lịch với ${doctor.fullName}`}>
       <form onSubmit={submit} className="space-y-4">
-        <div className="rounded-lg bg-[--color-primary-soft] p-3 text-sm text-[--color-text]">
+        <div className="rounded-lg bg-primary-soft p-3 text-sm text-text">
           <span className="font-medium">{doctor.specialization}</span> · Giờ làm việc{' '}
           {formatWorkTime(doctor.workStartTime)}–{formatWorkTime(doctor.workEndTime)}
         </div>
@@ -142,7 +142,7 @@ function BookingModal({ doctor, onClose, toast }) {
         <Field label="Lý do khám">
           <Textarea placeholder="Mô tả triệu chứng hoặc lý do khám…" value={reason} onChange={(e) => setReason(e.target.value)} />
         </Field>
-        {error && <p className="text-sm text-[--color-danger]" role="alert">{error}</p>}
+        {error && <p className="text-sm text-danger" role="alert">{error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" type="button" onClick={onClose}>Hủy</Button>
           <Button type="submit" loading={saving}>Xác nhận đặt lịch</Button>

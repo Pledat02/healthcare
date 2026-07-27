@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import keycloak, { getRoles, hasRole, primaryRole } from '../keycloak'
+import keycloak, { authConfig, getRoles, hasRole, primaryRole } from '../keycloak'
 
 const AuthContext = createContext(null)
 
@@ -9,11 +9,17 @@ export function AuthProvider({ children }) {
     authenticated: keycloak.authenticated,
     username: keycloak.tokenParsed?.preferred_username,
     name: keycloak.tokenParsed?.name || keycloak.tokenParsed?.preferred_username,
+    email: keycloak.tokenParsed?.email,
     keycloakId: keycloak.tokenParsed?.sub,
     roles: getRoles(),
     role: primaryRole(),
     hasRole,
-    login: () => keycloak.login(),
+    login: () => keycloak.login({ redirectUri: window.location.origin }),
+    loginWithGoogle: () =>
+      keycloak.login({
+        idpHint: authConfig.googleIdpAlias,
+        redirectUri: window.location.origin,
+      }),
     logout: () => keycloak.logout({ redirectUri: window.location.origin }),
     register: () => keycloak.register(),
   }

@@ -1,10 +1,17 @@
 import Keycloak from 'keycloak-js'
 
-// Ket noi toi Keycloak realm healthcare (client public: healthcare-app)
+export const authConfig = {
+  url: import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080',
+  realm: import.meta.env.VITE_KEYCLOAK_REALM || 'healthcare',
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'healthcare-app',
+  googleIdpAlias: import.meta.env.VITE_GOOGLE_IDP_ALIAS || 'google',
+}
+
+// Kết nối tới Keycloak; các giá trị có thể được thay bằng biến môi trường Vite.
 const keycloak = new Keycloak({
-  url: 'http://localhost:8080',
-  realm: 'healthcare',
-  clientId: 'healthcare-app',
+  url: authConfig.url,
+  realm: authConfig.realm,
+  clientId: authConfig.clientId,
 })
 
 export default keycloak

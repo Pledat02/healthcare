@@ -4,9 +4,9 @@ import { CheckCircle2, XCircle, Info, X } from 'lucide-react'
 const ToastContext = createContext(null)
 
 const ICONS = {
-  success: { icon: CheckCircle2, cls: 'text-[--color-success]' },
-  error: { icon: XCircle, cls: 'text-[--color-danger]' },
-  info: { icon: Info, cls: 'text-[--color-info]' },
+  success: { icon: CheckCircle2, cls: 'text-success' },
+  error: { icon: XCircle, cls: 'text-danger' },
+  info: { icon: Info, cls: 'text-info' },
 }
 
 export function ToastProvider({ children }) {
@@ -44,10 +44,10 @@ export function ToastProvider({ children }) {
           return (
             <div
               key={t.id}
-              className="flex w-80 max-w-[90vw] items-start gap-3 rounded-lg border border-[--color-border] bg-white p-3.5 shadow-lg"
+              className="toast-enter flex w-80 max-w-[90vw] items-start gap-3 rounded-lg border border-border bg-white p-3.5 shadow-lg"
             >
               <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${cls}`} />
-              <p className="flex-1 text-sm text-[--color-text]">{t.message}</p>
+              <p className="flex-1 text-sm text-text">{t.message}</p>
               <button
                 onClick={() => dismiss(t.id)}
                 className="text-slate-400 hover:text-slate-600"

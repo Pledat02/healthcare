@@ -17,17 +17,17 @@ export default function Modal({ open, onClose, title, children }) {
 
   return (
     <div
-      className="fixed inset-0 z-[900] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4"
+      className="modal-backdrop fixed inset-0 z-[900] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className="w-full max-w-lg rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+        className="modal-panel w-full max-w-lg rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[--color-border] px-5 py-4">
-          <h3 className="text-lg font-semibold text-[--color-text]">{title}</h3>
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h3 className="text-lg font-semibold text-text">{title}</h3>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600"

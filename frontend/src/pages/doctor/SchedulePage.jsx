@@ -71,15 +71,15 @@ export default function SchedulePage() {
             const p = patients[a.patientId]
             return (
               <Card key={a.id} className="flex flex-wrap items-center gap-4 p-4">
-                <div className="flex flex-col items-center rounded-lg bg-[--color-primary-soft] px-3 py-2 text-[--color-primary]">
+                <div className="flex flex-col items-center rounded-lg bg-primary-soft px-3 py-2 text-primary">
                   <span className="text-lg font-bold tabular-nums leading-none">{formatTime(a.appointmentTime)}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1.5 font-semibold text-[--color-text]">
-                    <User className="h-4 w-4 text-[--color-muted]" />
+                  <p className="flex items-center gap-1.5 font-semibold text-text">
+                    <User className="h-4 w-4 text-muted" />
                     {p?.fullName || 'Bệnh nhân'}
                   </p>
-                  <p className="text-sm text-[--color-muted]">
+                  <p className="text-sm text-muted">
                     {p?.phone} {a.reason && `· ${a.reason}`}
                   </p>
                 </div>
@@ -156,8 +156,8 @@ function RecordModal({ appointment, onClose, onSaved, toast }) {
         </Field>
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-[--color-text]">Đơn thuốc</span>
-            <Button type="button" variant="ghost" onClick={addItem} className="text-[--color-primary]">
+            <span className="text-sm font-medium text-text">Đơn thuốc</span>
+            <Button type="button" variant="ghost" onClick={addItem} className="text-primary">
               <Plus className="h-4 w-4" /> Thêm thuốc
             </Button>
           </div>
@@ -168,7 +168,7 @@ function RecordModal({ appointment, onClose, onSaved, toast }) {
                 <Input className="col-span-3" placeholder="Liều" value={it.dosage} onChange={setItem(i, 'dosage')} />
                 <Input className="col-span-2" type="number" min="1" value={it.quantity} onChange={setItem(i, 'quantity')} aria-label="Số lượng" />
                 <Input className="col-span-2" placeholder="Cách dùng" value={it.instruction} onChange={setItem(i, 'instruction')} />
-                <button type="button" onClick={() => removeItem(i)} className="col-span-1 flex items-center justify-center text-slate-400 hover:text-[--color-danger]" aria-label="Xóa">
+                <button type="button" onClick={() => removeItem(i)} className="col-span-1 flex items-center justify-center text-slate-400 hover:text-danger" aria-label="Xóa">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
