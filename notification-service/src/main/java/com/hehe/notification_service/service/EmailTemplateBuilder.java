@@ -31,6 +31,11 @@ public class EmailTemplateBuilder {
                     "Cảm ơn bạn đã đến khám", "#6a1b9a",
                     "Buổi khám đã hoàn tất:",
                     "Bạn có thể xem kết quả khám và đơn thuốc trên hệ thống.");
+            // US-09: mail nhac truoc 24h do job tu gui
+            case REMINDER -> card(e,
+                    "Nhắc lịch khám ngày mai", "#d97706",
+                    "Bạn có lịch khám vào ngày mai:",
+                    "Vui lòng đến trước giờ hẹn 15 phút. Nếu bận, hãy hủy lịch trên hệ thống để nhường chỗ cho người khác.");
         };
     }
 

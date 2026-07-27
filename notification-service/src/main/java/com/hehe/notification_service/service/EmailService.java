@@ -18,16 +18,24 @@ public class EmailService {
     @Async   // gửi ở luồng riêng - không bắt người đặt lịch phải chờ
     public void sendHtml(String to, String subject, String htmlBody) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);   // true = nội dung là HTML
-            mailSender.send(message);
-            log.info("Đã gửi mail tới {}", to);
+            sendHtmlSync(to, subject, htmlBody);
         } catch (Exception e) {
-            // US mục 6: gửi mail lỗi KHÔNG được làm sập luồng chính -> chỉ log
+            // PRD mục 6: gửi mail lỗi KHÔNG được làm sập luồng chính -> chỉ log
             log.error("Gửi mail tới {} thất bại: {}", to, e.getMessage());
         }
+    }
+
+    /**
+     * Ban dong bo, NEM loi khi that bai.
+     * Job nhac lich (US-09) dung ban nay de biet ma danh dau SENT hay FAILED.
+     */
+    public void sendHtmlSync(String to, String subject, String htmlBody) throws Exception {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(htmlBody, true);   // true = nội dung là HTML
+        mailSender.send(message);
+        log.info("Đã gửi mail tới {}", to);
     }
 }

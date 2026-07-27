@@ -20,6 +20,10 @@ spring:
     url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
     username: postgres.ewxubwczuqljaqbyjnmp
     driver-class-name: org.postgresql.Driver
+    # Supabase free chi cho 15 ket noi/project (session mode), ma 3 service
+    # doctor + appointment + notification dung chung project nay -> gioi han pool.
+    hikari:
+      maximum-pool-size: 4
 
   jpa:
     hibernate:
@@ -49,4 +53,4 @@ spring:
 # Cau hinh nghiep vu
 notification:
   reminder-hours-before: 24     # US-09: nhac truoc 24 gio
-  scan-cron: "0 0 * * * *"      # quet moi gio de tim lich can nhac
+  scan-cron: "0 * * * * *"      # quet moi phut (doi "0 0 * * * *" = moi gio khi len that)
