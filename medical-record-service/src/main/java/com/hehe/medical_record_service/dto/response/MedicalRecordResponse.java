@@ -1,10 +1,10 @@
 package com.hehe.medical_record_service.dto.response;
 
-import com.hehe.medical_record_service.entity.PrescriptionItem;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Set;
+import java.time.Instant;
+import java.util.List;
 
 @Data
 @Builder
@@ -16,13 +16,18 @@ public class MedicalRecordResponse {
 
     String appointmentId;
 
-    DoctorDto doctor;
+    // Soft ref sang service khac -> tra ve id, khong long ca object
+    String doctorId;
 
-     PatientDto patient;
+    String patientId;
 
-   String diagnosis;
+    String diagnosis;
 
-   String notes;
+    String notes;
 
-   Set<PrescriptionItem> prescriptionItems;
+    Instant createdAt;
+
+    // Phai la DTO, KHONG dung entity PrescriptionItem: entity co back-reference
+    // 'medicalRecord' -> Jackson lap vo tan khi serialize.
+    List<PrescriptionItemResponse> prescriptionItems;
 }
