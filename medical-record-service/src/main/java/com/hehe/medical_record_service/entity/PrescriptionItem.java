@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+@Entity
 @Table(name = "prescription_items")
 @Getter
 @Setter

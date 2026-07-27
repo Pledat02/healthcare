@@ -10,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 import java.util.List;
 
+@Entity
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
