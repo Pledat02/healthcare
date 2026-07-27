@@ -133,7 +133,6 @@ export function PageHeader({ title, subtitle, action }) {
 /* ---------- Appointment status badge (mau + chu, khong chi mau) ---------- */
 const STATUS = {
   PENDING: { label: 'Chờ xác nhận', cls: 'bg-amber-50 text-amber-700 ring-amber-200' },
-  CONFIRM: { label: 'Đã xác nhận', cls: 'bg-blue-50 text-blue-700 ring-blue-200' },
   CONFIRMED: { label: 'Đã xác nhận', cls: 'bg-blue-50 text-blue-700 ring-blue-200' },
   COMPLETED: { label: 'Đã khám', cls: 'bg-green-50 text-green-700 ring-green-200' },
   CANCELLED: { label: 'Đã hủy', cls: 'bg-slate-100 text-slate-600 ring-slate-200' },

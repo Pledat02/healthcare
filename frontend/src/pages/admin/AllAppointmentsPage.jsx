@@ -5,7 +5,12 @@ import { useToast } from '../../components/Toast'
 import { Card, Select, Spinner, EmptyState, PageHeader, StatusBadge } from '../../components/ui'
 import { ClipboardList } from 'lucide-react'
 
-const STATUSES = ['PENDING', 'CONFIRM', 'CONFIRMED', 'COMPLETED', 'CANCELLED']
+const STATUS_OPTIONS = [
+  { value: 'PENDING', label: 'Chờ xác nhận' },
+  { value: 'CONFIRMED', label: 'Đã xác nhận' },
+  { value: 'COMPLETED', label: 'Đã khám' },
+  { value: 'CANCELLED', label: 'Đã hủy' },
+]
 
 export default function AllAppointmentsPage() {
   const toast = useToast()
@@ -54,7 +59,7 @@ export default function AllAppointmentsPage() {
         action={
           <Select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-auto" aria-label="Lọc trạng thái">
             <option value="">Tất cả trạng thái</option>
-            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </Select>
         }
       />

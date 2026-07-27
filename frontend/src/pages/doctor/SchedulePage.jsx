@@ -90,7 +90,7 @@ export default function SchedulePage() {
                       <Check className="h-4 w-4" /> Xác nhận
                     </Button>
                   )}
-                  {(a.status === 'CONFIRM' || a.status === 'CONFIRMED') && (
+                  {a.status === 'CONFIRMED' && (
                     <Button loading={acting === a.id + 'complete'} onClick={() => act(a.id, 'complete', 'Đã hoàn thành buổi khám')}>
                       <ClipboardCheck className="h-4 w-4" /> Hoàn thành
                     </Button>
