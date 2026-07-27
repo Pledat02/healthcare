@@ -6,7 +6,11 @@ import { Button, Card, Field, Input, Spinner, EmptyState, PageHeader } from '../
 import Modal from '../../components/Modal'
 import { Users, Plus, Trash2, Stethoscope } from 'lucide-react'
 
-const EMPTY = { fullName: '', specialization: '', phone: '', email: '', workStartTime: '08:00', workEndTime: '17:00' }
+const EMPTY = {
+  username: '', password: '',
+  fullName: '', specialization: '', phone: '', email: '',
+  workStartTime: '08:00', workEndTime: '17:00',
+}
 
 export default function ManageDoctorsPage() {
   const toast = useToast()
@@ -121,6 +125,15 @@ function AddDoctorModal({ onClose, onSaved, toast }) {
   return (
     <Modal open onClose={onClose} title="Thêm bác sĩ">
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2 rounded-lg bg-[--color-primary-soft] p-3 text-sm text-[--color-text]">
+          Tài khoản đăng nhập sẽ được tạo tự động cho bác sĩ.
+        </div>
+        <Field label="Tên đăng nhập" required hint="3-30 ký tự: chữ, số, . _ -">
+          <Input value={form.username} onChange={set('username')} required placeholder="bacsi02" autoComplete="off" />
+        </Field>
+        <Field label="Mật khẩu" required hint="Tối thiểu 6 ký tự">
+          <Input type="password" value={form.password} onChange={set('password')} required placeholder="••••••" autoComplete="new-password" />
+        </Field>
         <Field label="Họ và tên" required>
           <Input value={form.fullName} onChange={set('fullName')} required placeholder="BS. Nguyễn Văn A" />
         </Field>

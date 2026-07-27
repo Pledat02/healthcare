@@ -24,10 +24,12 @@ function HomeRedirect() {
   return <Navigate to="/profile" replace />
 }
 
-// Chan theo vai tro
+// Chan theo vai tro CHINH (ADMIN > DOCTOR > PATIENT).
+// Dung vai tro chinh thay vi hasRole: tai khoan co the mang kem role phu
+// (vd PATIENT la default role), khong nen vi the ma vao duoc trang khac.
 function RequireRole({ role, children }) {
-  const auth = useAuth()
-  if (!auth.hasRole(role)) return <Navigate to="/" replace />
+  const { role: primary } = useAuth()
+  if (primary !== role) return <Navigate to="/" replace />
   return children
 }
 
