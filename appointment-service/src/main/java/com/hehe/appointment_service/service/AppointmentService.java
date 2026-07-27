@@ -188,10 +188,15 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
-        // BR-06: chi chu lich hoac ADMIN
-        if (!SecurityUtils.hasRole("ADMIN")) {
-            PatientDto me = patientClient.getPatient();
-            if (!appointment.getPatientId().equals(me.getId())) {
+        // BR-06: ADMIN xem tat ca; DOCTOR xem lich cua minh; PATIENT xem lich cua minh
+        if (SecurityUtils.hasRole("ADMIN")) {
+            // xem tat ca
+        } else if (SecurityUtils.hasRole("DOCTOR")) {
+            if (!appointment.getDoctorId().equals(doctorClient.getMe().getId())) {
+                throw new AppException(ErrorCode.FORBIDDEN);
+            }
+        } else {
+            if (!appointment.getPatientId().equals(patientClient.getPatient().getId())) {
                 throw new AppException(ErrorCode.FORBIDDEN);
             }
         }
