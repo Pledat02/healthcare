@@ -27,3 +27,10 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/healthcare
+
+# US-03: tao tai khoan dang nhap cho bac si qua Keycloak Admin API.
+# admin-client-secret nam trong secrets.yaml (da gitignore).
+keycloak:
+  server-url: http://localhost:8080
+  realm: healthcare
+  admin-client-id: healthcare-admin-cli

@@ -5,7 +5,11 @@ import lombok.Getter;
 @Getter
 public enum ErrorCode {
     FORBIDDEN(403, "Bạn không có quyền truy cập dữ liệu này"),
-     DOCTOR_NOT_FOUND(404,"Không tìm thấy bác sĩ");
+    DOCTOR_NOT_FOUND(404, "Không tìm thấy bác sĩ"),
+
+    // US-03: tao tai khoan dang nhap cho bac si tren Keycloak
+    USERNAME_ALREADY_EXISTS(409, "Tên đăng nhập đã tồn tại"),
+    KEYCLOAK_UNAVAILABLE(503, "Không kết nối được hệ thống tài khoản (Keycloak)");
 
 
     private final int code;
