@@ -12,6 +12,7 @@ import java.time.Instant;
 @Builder
 public class AppointmentNotificationEvent {
     NotificationType type;
+    String appointmentId;   // de notification-service len lich nhac / huy nhac
     String patientName;
     String patientEmail;
     String doctorName;

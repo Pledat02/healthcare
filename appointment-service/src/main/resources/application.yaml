@@ -23,6 +23,9 @@ spring:
     url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
     username: postgres.ewxubwczuqljaqbyjnmp
     driver-class-name: org.postgresql.Driver
+    # Supabase free: 15 ket noi/project. 3 service dung chung project Mumbai.
+    hikari:
+      maximum-pool-size: 5
 
   jpa:
     hibernate:

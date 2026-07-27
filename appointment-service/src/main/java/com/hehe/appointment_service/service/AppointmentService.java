@@ -69,12 +69,14 @@ public class AppointmentService {
         }
         Appointment appointment = appointmentMapper.toEntity(request);
 
-        // TODO: gan patientId lay tu token (goi patient-service /me)
+        // patientId lay tu token (goi patient-service /me), khong nhan tu client
         PatientDto patientDto= patientClient.getPatient();
         appointment.setPatientId(patientDto.getId());
         appointment.setDurationMinutes(durationMinutes);
 
-        return appointmentMapper.toResponse(appointmentRepository.save(appointment));
+        Appointment saved = appointmentRepository.save(appointment);
+        notify(NotificationType.APPOINTMENT_CREATED, saved);   // US-08 + len lich nhac US-09
+        return appointmentMapper.toResponse(saved);
     }
 
     public AppointmentResponse update(String id,UpdateAppointmentRequest request) {
@@ -128,6 +130,7 @@ public class AppointmentService {
         }
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointmentRepository.save(appointment);
+        notify(NotificationType.APPOINTMENT_CANCELLED, appointment);   // + huy lich nhac
         return true;
     }
     public boolean confirm(String id){
@@ -144,6 +147,7 @@ public class AppointmentService {
 
             appointment.setStatus(AppointmentStatus.CONFIRMED);
             appointmentRepository.save(appointment);
+            notify(NotificationType.APPOINTMENT_CONFIRMED, appointment);
             return true;
         }
         throw new AppException(ErrorCode.FORBIDDEN);
@@ -162,6 +166,7 @@ public class AppointmentService {
 
             appointment.setStatus(AppointmentStatus.COMPLETED);
             appointmentRepository.save(appointment);
+            notify(NotificationType.APPOINTMENT_COMPLETED, appointment);
             return true;
         }
         throw new AppException(ErrorCode.FORBIDDEN);
@@ -212,6 +217,7 @@ public class AppointmentService {
 
         notificationClient.send(AppointmentNotificationEvent.builder()
                 .type(type)
+                .appointmentId(appt.getId())
                 .patientName(p.getFullName()).patientEmail(p.getEmail())
                 .doctorName(d.getFullName()).specialization(d.getSpecialization())
                 .appointmentTime(appt.getAppointmentTime())
