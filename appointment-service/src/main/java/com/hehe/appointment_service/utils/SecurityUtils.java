@@ -9,18 +9,28 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.Objects;
 
 public class SecurityUtils {
-    static Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    // Phai doc theo TUNG REQUEST. Neu cache vao static field, moi request sau
+    // se dung nham danh tinh cua nguoi goi dau tien.
+    private static Authentication auth() {
+        return SecurityContextHolder.getContext().getAuthentication();
+    }
+
     // Lấy token của người đang gọi để chuyển tiếp
     public static String currentToken() {
-
-        if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
+        Authentication a = auth();
+        if (a != null && a.getPrincipal() instanceof Jwt jwt) {
             return jwt.getTokenValue();
         }
         throw new AppException(ErrorCode.FORBIDDEN);
     }
-    public static boolean hasRole(String role){
-        return auth.getAuthorities().stream().anyMatch(
-                g -> Objects.requireNonNull(g.getAuthority()).equalsIgnoreCase(role)
+
+    // Spring luu role duoi dang "ROLE_<ten>" (do KeycloakRoleConverter them tien to)
+    public static boolean hasRole(String role) {
+        Authentication a = auth();
+        if (a == null) return false;
+        return a.getAuthorities().stream().anyMatch(
+                g -> Objects.equals(g.getAuthority(), "ROLE_" + role)
         );
     }
 }
