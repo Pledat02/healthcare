@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 
 @Entity
+@Table(name = "doctors")   // ERD dat ten bang so nhieu; khong khai thi Hibernate dung "doctor"
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -20,6 +21,7 @@ public class Doctor {
     @Id
     String id;
 
+    @Column(unique = true)
     String keycloakId;
 
     String fullName;
