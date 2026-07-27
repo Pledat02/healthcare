@@ -3,9 +3,9 @@ package com.hehe.notification_service.service;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,23 +15,14 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Async   // gửi ở luồng riêng - không bắt người đặt lịch phải chờ
-    public void sendHtml(String to, String subject, String htmlBody) {
-        try {
-            sendHtmlSync(to, subject, htmlBody);
-        } catch (Exception e) {
-            // PRD mục 6: gửi mail lỗi KHÔNG được làm sập luồng chính -> chỉ log
-            log.error("Gửi mail tới {} thất bại: {}", to, e.getMessage());
-        }
-    }
+    @Value("${notification.mail-from}")
+    private String mailFrom;
 
-    /**
-     * Ban dong bo, NEM loi khi that bai.
-     * Job nhac lich (US-09) dung ban nay de biet ma danh dau SENT hay FAILED.
-     */
-    public void sendHtmlSync(String to, String subject, String htmlBody) throws Exception {
+    /** Gửi đồng bộ để lớp gọi có thể ghi nhận chính xác SENT hoặc FAILED. */
+    public void sendHtml(String to, String subject, String htmlBody) throws Exception {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setFrom(mailFrom, "MediBook");
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(htmlBody, true);   // true = nội dung là HTML

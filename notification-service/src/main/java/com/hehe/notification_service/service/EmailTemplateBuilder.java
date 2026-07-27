@@ -2,6 +2,7 @@ package com.hehe.notification_service.service;
 
 import com.hehe.notification_service.dto.event.AppointmentNotificationEvent;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.HtmlUtils;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +20,10 @@ public class EmailTemplateBuilder {
                     "Đặt lịch khám thành công", "#2a7ae2",
                     "Lịch khám của bạn đã được ghi nhận:",
                     "Vui lòng đến trước giờ hẹn 15 phút. Nếu cần hủy, hãy thao tác trên hệ thống.");
+            case APPOINTMENT_RESCHEDULED -> card(e,
+                    "Lịch khám đã được thay đổi", "#0d9488",
+                    "Thông tin lịch khám mới của bạn:",
+                    "Email nhắc lịch sẽ được gửi theo thời gian mới.");
             case APPOINTMENT_CONFIRMED -> card(e,
                     "Lịch khám đã được xác nhận", "#2e7d32",
                     "Bác sĩ đã xác nhận lịch khám của bạn:",
@@ -41,7 +46,7 @@ public class EmailTemplateBuilder {
 
     private String card(AppointmentNotificationEvent e, String title, String color,
                         String intro, String footerNote) {
-        String time = FMT.format(e.getAppointmentTime());
+        String time = e.getAppointmentTime() == null ? "—" : FMT.format(e.getAppointmentTime());
         return """
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;
                     border: 1px solid #e0e0e0; border-radius: 8px; padding: 24px;">
@@ -58,7 +63,12 @@ public class EmailTemplateBuilder {
           <hr style="border:none; border-top:1px solid #eee;">
           <p style="font-size:12px; color:#999;">Email tự động — vui lòng không trả lời.</p>
         </div>
-        """.formatted(color, title, e.getPatientName(), intro,
-                e.getDoctorName(), e.getSpecialization(), time, e.getReason(), footerNote);
+        """.formatted(color, escape(title), escape(e.getPatientName()), escape(intro),
+                escape(e.getDoctorName()), escape(e.getSpecialization()), escape(time),
+                escape(e.getReason()), escape(footerNote));
+    }
+
+    private String escape(String value) {
+        return HtmlUtils.htmlEscape(value == null || value.isBlank() ? "—" : value);
     }
 }

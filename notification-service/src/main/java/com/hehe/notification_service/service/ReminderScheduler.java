@@ -31,14 +31,15 @@ public class ReminderScheduler {
     @Scheduled(cron = "${notification.scan-cron}")
     public void sendDueReminders() {
         List<Notification> due = notificationRepository
-                .findByStatusAndScheduledAtLessThanEqual(NotificationStatus.PENDING, Instant.now());
+                .findByTypeAndStatusAndScheduledAtLessThanEqual(
+                        NotificationType.REMINDER, NotificationStatus.PENDING, Instant.now());
 
         if (due.isEmpty()) return;
         log.info("US-09: co {} mail nhac lich den han", due.size());
 
         for (Notification n : due) {
             try {
-                emailService.sendHtmlSync(
+                emailService.sendHtml(
                         n.getRecipientEmail(),
                         "Nhắc lịch khám ngày mai",
                         templateBuilder.build(toEvent(n)));

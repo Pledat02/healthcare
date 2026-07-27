@@ -41,16 +41,24 @@ spring:
 
   # US-08/US-09: gui email. Username/password nam trong secrets.yaml
   mail:
-    host: smtp.gmail.com
-    port: 587
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    default-encoding: UTF-8
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 # Cau hinh nghiep vu
 notification:
+  mail-from: ${MAIL_FROM:${MAIL_USERNAME:no-reply@medibook.local}}
   reminder-hours-before: 24     # US-09: nhac truoc 24 gio
   scan-cron: "0 * * * * *"      # quet moi phut (doi "0 0 * * * *" = moi gio khi len that)

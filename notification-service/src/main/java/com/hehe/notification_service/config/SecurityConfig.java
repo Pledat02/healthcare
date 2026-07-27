@@ -20,9 +20,10 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers(HttpMethod.POST, "/api/notifications/appointment-created").authenticated()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .anyRequest().authenticated()
+                                .requestMatchers(HttpMethod.POST, "/api/notifications/appointments").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/api/notifications/**").hasRole("ADMIN")
+                                .anyRequest().denyAll()
 
                 )
                 .oauth2ResourceServer(

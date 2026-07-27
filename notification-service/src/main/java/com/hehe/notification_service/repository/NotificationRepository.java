@@ -11,10 +11,12 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, String> {
 
     /** US-09: cac mail den han gui ma chua gui */
-    List<Notification> findByStatusAndScheduledAtLessThanEqual(NotificationStatus status, Instant now);
+    List<Notification> findByTypeAndStatusAndScheduledAtLessThanEqual(
+            NotificationType type, NotificationStatus status, Instant now);
 
     /** Tranh len lich nhac 2 lan cho cung 1 lich hen */
-    boolean existsByAppointmentIdAndType(String appointmentId, NotificationType type);
+    boolean existsByAppointmentIdAndTypeAndStatus(
+            String appointmentId, NotificationType type, NotificationStatus status);
 
     /** Huy cac mail nhac dang cho khi lich hen bi huy */
     List<Notification> findByAppointmentIdAndTypeAndStatus(
