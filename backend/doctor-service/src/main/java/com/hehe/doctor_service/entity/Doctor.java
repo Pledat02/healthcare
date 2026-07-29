@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "doctors")   // ERD dat ten bang so nhieu; khong khai thi Hibernate dung "doctor"
+@Table(name = "doctors")
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)

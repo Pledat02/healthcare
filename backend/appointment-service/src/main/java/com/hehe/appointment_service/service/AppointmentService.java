@@ -17,6 +17,7 @@ import com.hehe.appointment_service.mapper.AppointmentMapper;
 import com.hehe.appointment_service.repository.AppointmentRepository;
 import com.hehe.appointment_service.utils.AppointmentStatus;
 import com.hehe.appointment_service.utils.SecurityUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -74,7 +75,15 @@ public class AppointmentService {
         appointment.setPatientId(patientDto.getId());
         appointment.setDurationMinutes(durationMinutes);
 
-        Appointment saved = appointmentRepository.save(appointment);
+        // Luoi chan CUOI cho race condition: unique index uq_doctor_slot (doctor_id, appointment_time)
+        // WHERE status<>'CANCELLED'. saveAndFlush de vi pham no NGAY, bat truoc khi gui mail.
+        Appointment saved;
+        try {
+            saved = appointmentRepository.saveAndFlush(appointment);
+        } catch (DataIntegrityViolationException e) {
+            // 2 nguoi dat cung slot cung luc -> DB tu choi cai sau
+            throw new AppException(ErrorCode.APPOINTMENT_CONFLICT);
+        }
         notify(NotificationType.APPOINTMENT_CREATED, saved);   // US-08 + len lich nhac US-09
         return appointmentMapper.toResponse(saved);
     }
@@ -113,7 +122,13 @@ public class AppointmentService {
         }
 
         appointment = appointmentMapper.updateEntity(appointment,request);
-        Appointment saved = appointmentRepository.save(appointment);
+        // Cung luoi chan unique index khi doi gio hen (race condition luc dOi lich)
+        Appointment saved;
+        try {
+            saved = appointmentRepository.saveAndFlush(appointment);
+        } catch (DataIntegrityViolationException e) {
+            throw new AppException(ErrorCode.APPOINTMENT_CONFLICT);
+        }
         notify(NotificationType.APPOINTMENT_RESCHEDULED, saved);
         return appointmentMapper.toResponse(saved);
     }
