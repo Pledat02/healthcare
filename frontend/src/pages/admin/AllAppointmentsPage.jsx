@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import api, { unwrap, apiMessage } from '../../lib/api'
+import api, { unwrap, apiMessage, fetchByIdsMap } from '../../lib/api'
 import { formatDateTime } from '../../lib/format'
 import { useToast } from '../../components/Toast'
 import { Card, Select, Spinner, EmptyState, PageHeader, StatusBadge } from '../../components/ui'
@@ -23,20 +23,16 @@ export default function AllAppointmentsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [appts, docs] = await Promise.all([
-          api.get('/appointments'),
-          api.get('/doctors'),
-        ])
+        const appts = await api.get('/appointments')
         const list = (unwrap(appts) || []).slice().sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime))
         setItems(list)
-        const dmap = {}
-        ;(unwrap(docs) || []).forEach((d) => (dmap[d.id] = d))
+        // Batch: lay bac si + benh nhan xuat hien trong lich, moi loai 1 request (bo N+1)
+        const [dmap, pmap] = await Promise.all([
+          fetchByIdsMap('doctors', list.map((a) => a.doctorId)),
+          fetchByIdsMap('patients', list.map((a) => a.patientId)),
+        ])
         setDoctors(dmap)
-        const ids = [...new Set(list.map((a) => a.patientId))]
-        const entries = await Promise.all(
-          ids.map((id) => api.get(`/patients/${id}`).then((r) => [id, unwrap(r)]).catch(() => [id, null])),
-        )
-        setPatients(Object.fromEntries(entries))
+        setPatients(pmap)
       } catch (e) {
         toast.error(apiMessage(e))
       } finally {

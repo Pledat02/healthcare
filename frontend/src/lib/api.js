@@ -28,8 +28,26 @@ export function unwrap(res) {
   return res?.data?.data
 }
 
+// Chuan hoa endpoint tra mang truc tiep va endpoint tra PageResponse ve cung mot kieu.
+export function unwrapList(res) {
+  const data = unwrap(res)
+  if (Array.isArray(data)) return data
+  return Array.isArray(data?.content) ? data.content : []
+}
+
 export function apiMessage(err) {
   return err?.response?.data?.message || err?.message || 'Đã có lỗi xảy ra'
+}
+
+// Lay nhieu ban ghi theo id trong 1 request (endpoint /batch) -> map {id: obj}.
+// Thay cho viec goi GET /{resource}/{id} lap tung cai (fix N+1).
+export async function fetchByIdsMap(resource, ids) {
+  const unique = [...new Set(ids)].filter(Boolean)
+  if (unique.length === 0) return {}
+  const res = await api.get(`/${resource}/batch`, { params: { ids: unique.join(',') } })
+  const map = {}
+  ;(unwrap(res) || []).forEach((o) => (map[o.id] = o))
+  return map
 }
 
 export default api

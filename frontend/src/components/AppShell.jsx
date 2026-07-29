@@ -9,6 +9,8 @@ import {
   LogOut,
   ClipboardList,
   CalendarCheck,
+  ChartNoAxesColumnIncreasing,
+  UserRoundCog,
 } from 'lucide-react'
 
 // Menu theo tung vai tro
@@ -24,7 +26,9 @@ const NAV = {
     { to: '/profile', label: 'Hồ sơ', icon: UserCircle },
   ],
   ADMIN: [
+    { to: '/admin/analytics', label: 'Thống kê', icon: ChartNoAxesColumnIncreasing },
     { to: '/admin/doctors', label: 'Bác sĩ', icon: Users },
+    { to: '/admin/patients', label: 'Bệnh nhân', icon: UserRoundCog },
     { to: '/admin/appointments', label: 'Lịch hẹn', icon: ClipboardList },
   ],
 }

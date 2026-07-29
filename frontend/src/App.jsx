@@ -1,6 +1,10 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
-import { ToastProvider } from './components/Toast'
+import { PatientProfileProvider, usePatientProfile } from './auth/PatientProfile'
+import { ToastProvider, useToast } from './components/Toast'
+import { ConfirmProvider } from './components/Confirm'
+import { Spinner } from './components/ui'
 import AppShell from './components/AppShell'
 import LoginPage from './pages/LoginPage'
 
@@ -14,11 +18,13 @@ import SchedulePage from './pages/doctor/SchedulePage'
 // Admin
 import ManageDoctorsPage from './pages/admin/ManageDoctorsPage'
 import AllAppointmentsPage from './pages/admin/AllAppointmentsPage'
+import ManagePatientsPage from './pages/admin/ManagePatientsPage'
+import AnalyticsPage from './pages/admin/AnalyticsPage'
 
 // Trang mac dinh theo vai tro
 function HomeRedirect() {
   const { role } = useAuth()
-  if (role === 'ADMIN') return <Navigate to="/admin/doctors" replace />
+  if (role === 'ADMIN') return <Navigate to="/admin/analytics" replace />
   if (role === 'DOCTOR') return <Navigate to="/schedule" replace />
   if (role === 'PATIENT') return <Navigate to="/doctors" replace />
   return <Navigate to="/profile" replace />
@@ -33,6 +39,21 @@ function RequireRole({ role, children }) {
   return children
 }
 
+// US-02b: chan cac chuc nang can ho so benh nhan (dat lich, lich cua toi,
+// ho so kham). Chua co ho so -> nhac va day ve trang Ho so de hoan thien.
+function RequirePatientProfile({ children }) {
+  const { loading, hasProfile } = usePatientProfile()
+  const toast = useToast()
+  useEffect(() => {
+    if (!loading && !hasProfile) {
+      toast.info('Vui lòng hoàn thiện hồ sơ trước khi đặt lịch')
+    }
+  }, [loading, hasProfile]) // eslint-disable-line
+  if (loading) return <Spinner />
+  if (!hasProfile) return <Navigate to="/profile" replace />
+  return children
+}
+
 export default function App() {
   const { authenticated } = useAuth()
 
@@ -40,26 +61,33 @@ export default function App() {
 
   return (
     <ToastProvider>
-      <AppShell>
-        <Routes>
-          <Route path="/" element={<HomeRedirect />} />
+      <ConfirmProvider>
+       <PatientProfileProvider>
+        <AppShell>
+          <Routes>
+            <Route path="/" element={<HomeRedirect />} />
 
-          {/* Patient */}
-          <Route path="/doctors" element={<RequireRole role="PATIENT"><DoctorsPage /></RequireRole>} />
-          <Route path="/appointments" element={<RequireRole role="PATIENT"><MyAppointmentsPage /></RequireRole>} />
-          <Route path="/records" element={<RequireRole role="PATIENT"><MyRecordsPage /></RequireRole>} />
-          <Route path="/profile" element={<ProfilePage />} />
+            {/* Patient — can ho so benh nhan truoc khi dung (US-02b) */}
+            <Route path="/doctors" element={<RequireRole role="PATIENT"><RequirePatientProfile><DoctorsPage /></RequirePatientProfile></RequireRole>} />
+            <Route path="/appointments" element={<RequireRole role="PATIENT"><RequirePatientProfile><MyAppointmentsPage /></RequirePatientProfile></RequireRole>} />
+            <Route path="/records" element={<RequireRole role="PATIENT"><RequirePatientProfile><MyRecordsPage /></RequirePatientProfile></RequireRole>} />
+            {/* Trang Ho so KHONG bi chan — day la noi hoan thien ho so */}
+            <Route path="/profile" element={<ProfilePage />} />
 
-          {/* Doctor */}
-          <Route path="/schedule" element={<RequireRole role="DOCTOR"><SchedulePage /></RequireRole>} />
+            {/* Doctor */}
+            <Route path="/schedule" element={<RequireRole role="DOCTOR"><SchedulePage /></RequireRole>} />
 
-          {/* Admin */}
-          <Route path="/admin/doctors" element={<RequireRole role="ADMIN"><ManageDoctorsPage /></RequireRole>} />
-          <Route path="/admin/appointments" element={<RequireRole role="ADMIN"><AllAppointmentsPage /></RequireRole>} />
+            {/* Admin */}
+            <Route path="/admin/analytics" element={<RequireRole role="ADMIN"><AnalyticsPage /></RequireRole>} />
+            <Route path="/admin/doctors" element={<RequireRole role="ADMIN"><ManageDoctorsPage /></RequireRole>} />
+            <Route path="/admin/patients" element={<RequireRole role="ADMIN"><ManagePatientsPage /></RequireRole>} />
+            <Route path="/admin/appointments" element={<RequireRole role="ADMIN"><AllAppointmentsPage /></RequireRole>} />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AppShell>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AppShell>
+       </PatientProfileProvider>
+      </ConfirmProvider>
     </ToastProvider>
   )
 }

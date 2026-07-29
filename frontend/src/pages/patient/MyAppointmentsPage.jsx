@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import api, { unwrap, apiMessage } from '../../lib/api'
+import api, { unwrap, apiMessage, fetchByIdsMap } from '../../lib/api'
 import { formatDateTime } from '../../lib/format'
 import { useToast } from '../../components/Toast'
+import { useConfirm } from '../../components/Confirm'
 import { Button, Card, Spinner, EmptyState, PageHeader, StatusBadge } from '../../components/ui'
 import { CalendarDays, Stethoscope, XCircle } from 'lucide-react'
 
 export default function MyAppointmentsPage() {
   const toast = useToast()
+  const confirm = useConfirm()
   const [items, setItems] = useState([])
   const [doctors, setDoctors] = useState({})
   const [loading, setLoading] = useState(true)
@@ -15,14 +17,11 @@ export default function MyAppointmentsPage() {
   async function load() {
     setLoading(true)
     try {
-      const [appts, docs] = await Promise.all([
-        api.get('/appointments/patients/me'),
-        api.get('/doctors'),
-      ])
-      setItems((unwrap(appts) || []).slice().sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime)))
-      const map = {}
-      ;(unwrap(docs) || []).forEach((d) => (map[d.id] = d))
-      setDoctors(map)
+      const appts = await api.get('/appointments/patients/me')
+      const list = (unwrap(appts) || []).slice().sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime))
+      setItems(list)
+      // Chi lay dung nhung bac si xuat hien trong lich (batch, khong tai het)
+      setDoctors(await fetchByIdsMap('doctors', list.map((a) => a.doctorId)))
     } catch (e) {
       toast.error(apiMessage(e))
     } finally {
@@ -33,7 +32,14 @@ export default function MyAppointmentsPage() {
   useEffect(() => { load() }, []) // eslint-disable-line
 
   async function cancel(id) {
-    if (!window.confirm('Bạn chắc chắn muốn hủy lịch hẹn này?')) return
+    const ok = await confirm({
+      title: 'Hủy lịch hẹn',
+      message: 'Bạn chắc chắn muốn hủy lịch hẹn này? Thao tác không thể hoàn tác.',
+      confirmText: 'Hủy lịch hẹn',
+      cancelText: 'Giữ lại',
+      danger: true,
+    })
+    if (!ok) return
     setCancelling(id)
     try {
       await api.patch(`/appointments/${id}/cancel`)

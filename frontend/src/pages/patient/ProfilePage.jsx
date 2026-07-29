@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import api, { unwrap, apiMessage } from '../../lib/api'
 import { useAuth } from '../../auth/AuthContext'
+import { usePatientProfile } from '../../auth/PatientProfile'
 import { formatWorkTime } from '../../lib/format'
 import { useToast } from '../../components/Toast'
 import { Button, Card, Field, Input, Select, Spinner, PageHeader } from '../../components/ui'
-import { UserCircle, Stethoscope } from 'lucide-react'
+import { UserCircle, Stethoscope, Info } from 'lucide-react'
 
 export default function ProfilePage() {
   const { role, name, username } = useAuth()
@@ -32,26 +33,25 @@ const EMPTY = { fullName: '', phone: '', gender: 'MALE', dateOfBirth: '', email:
 
 function PatientProfile() {
   const toast = useToast()
-  const { email: accountEmail } = useAuth()
-  const [form, setForm] = useState(() => ({ ...EMPTY, email: accountEmail || '' }))
-  const [existing, setExisting] = useState(null)
-  const [loading, setLoading] = useState(true)
+  // US-02b: prefill ho ten + email tu token Keycloak (dang nhap Google khong co san ho so)
+  const { name: accountName, email: accountEmail } = useAuth()
+  const { profile: existing, loading, setProfile } = usePatientProfile()
+  const [form, setForm] = useState(() => ({
+    ...EMPTY,
+    fullName: accountName || '',
+    email: accountEmail || '',
+  }))
   const [saving, setSaving] = useState(false)
 
+  // Khi context nap xong ho so -> do vao form de sua. Chua co -> giu prefill tu token.
   useEffect(() => {
-    api
-      .get('/patients/me')
-      .then((res) => {
-        const p = unwrap(res)
-        setExisting(p)
-        setForm({
-          fullName: p.fullName || '', phone: p.phone || '', gender: p.gender || 'MALE',
-          dateOfBirth: p.dateOfBirth || '', email: p.email || '', address: p.address || '',
-        })
+    if (existing) {
+      setForm({
+        fullName: existing.fullName || '', phone: existing.phone || '', gender: existing.gender || 'MALE',
+        dateOfBirth: existing.dateOfBirth || '', email: existing.email || '', address: existing.address || '',
       })
-      .catch((e) => { if (e?.response?.status !== 404) toast.error(apiMessage(e)) })
-      .finally(() => setLoading(false))
-  }, []) // eslint-disable-line
+    }
+  }, [existing])
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
@@ -60,12 +60,13 @@ function PatientProfile() {
     setSaving(true)
     try {
       if (existing) {
-        await api.put(`/patients/${existing.id}`, form)
+        const res = await api.put(`/patients/${existing.id}`, form)
+        setProfile(unwrap(res)) // dong bo context
         toast.success('Đã cập nhật hồ sơ')
       } else {
         const res = await api.post('/patients/', form)
-        setExisting(unwrap(res))
-        toast.success('Đã tạo hồ sơ bệnh nhân')
+        setProfile(unwrap(res)) // "mo cong" -> cac chuc nang can ho so dung duoc ngay
+        toast.success('Đã tạo hồ sơ, giờ bạn có thể đặt lịch khám')
       }
     } catch (err) {
       toast.error(apiMessage(err))
@@ -82,6 +83,15 @@ function PatientProfile() {
         title="Hồ sơ bệnh nhân"
         subtitle={existing ? 'Cập nhật thông tin cá nhân của bạn' : 'Tạo hồ sơ để bắt đầu đặt lịch khám'}
       />
+      {!existing && (
+        <div className="mb-4 flex max-w-2xl items-start gap-3 rounded-lg border border-info/30 bg-info/10 p-4 text-sm text-text">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-info" />
+          <p>
+            Bạn cần hoàn thiện hồ sơ (bắt buộc <strong>họ tên</strong> và <strong>số điện thoại</strong>)
+            trước khi đặt lịch khám, xem lịch hẹn hay hồ sơ khám.
+          </p>
+        </div>
+      )}
       <Card className="max-w-2xl p-6">
         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
           <Field label="Họ và tên" required>

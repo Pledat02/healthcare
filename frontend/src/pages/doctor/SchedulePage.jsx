@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import api, { unwrap, apiMessage } from '../../lib/api'
+import api, { unwrap, apiMessage, fetchByIdsMap } from '../../lib/api'
 import { formatTime, toDateInput } from '../../lib/format'
 import { useToast } from '../../components/Toast'
 import {
@@ -23,12 +23,8 @@ export default function SchedulePage() {
       const res = await api.get('/appointments/doctors/me', { params: { date } })
       const list = (unwrap(res) || []).slice().sort((a, b) => new Date(a.appointmentTime) - new Date(b.appointmentTime))
       setItems(list)
-      // lay ten benh nhan
-      const ids = [...new Set(list.map((a) => a.patientId))]
-      const entries = await Promise.all(
-        ids.map((id) => api.get(`/patients/${id}`).then((r) => [id, unwrap(r)]).catch(() => [id, null])),
-      )
-      setPatients(Object.fromEntries(entries))
+      // Batch: lay ten benh nhan trong 1 request (bo N+1)
+      setPatients(await fetchByIdsMap('patients', list.map((a) => a.patientId)))
     } catch (e) {
       toast.error(apiMessage(e))
     } finally {
