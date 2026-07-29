@@ -1,6 +1,6 @@
 # PRD — Hệ thống Đặt lịch khám bệnh (Healthcare Booking System)
 
-**Phiên bản:** 1.1 | **Ngày:** 23/07/2026 | **Người viết:** BA + Dev
+**Phiên bản:** 1.2 | **Ngày:** 28/07/2026 | **Người viết:** BA + Dev
 **Đối tượng đọc:** Đội phát triển (fresher/junior fullstack)
 
 ---
@@ -94,6 +94,16 @@ Viết theo dạng **User Story**: *"Là [vai trò], tôi muốn [làm gì], đ�
 > - Các service con (patient/doctor/...) **không tự kiểm tra mật khẩu**, chỉ tin thông tin gateway đã xác thực để áp quyền (BR-06).
 > - Mỗi hồ sơ `patient`/`doctor` lưu `keycloak_id` để nối user Keycloak với hồ sơ nghiệp vụ.
 
+**US-01b** — Là **bệnh nhân**, tôi muốn **đăng nhập bằng Google (một chạm)**, để **không phải tạo/nhớ thêm mật khẩu riêng**.
+- ✅ Bấm "Tiếp tục với Google" → chuyển sang Google đăng nhập → quay về hệ thống ở trạng thái đã đăng nhập.
+- ✅ Lần đầu đăng nhập Google → tự tạo **user Keycloak** mới, gán **default role PATIENT**.
+- ✅ Cùng một email Google, các lần sau đăng nhập vào **đúng một user** (không tạo trùng).
+- ✅ Sau khi đăng nhập, gọi API vẫn kèm **JWT** như US-01 (không có luồng riêng cho service con).
+
+> 🔑 *Ai lo việc này?* Google **không** nói chuyện trực tiếp với frontend. Google là một **Identity Provider được cấu hình BÊN TRONG Keycloak** (cơ chế *identity brokering*). Luồng: *Client → Keycloak (kèm `kc_idp_hint=google`) → Google xác thực → trả về Keycloak → Keycloak tạo/liên kết user, phát JWT → Client.* Xem cấu hình ở **mục 18**.
+>
+> ⚠️ **Ranh giới quan trọng:** đăng nhập Google (US-01b) — giống hệt đăng ký thường (US-01) — **chỉ tạo user xác thực bên Keycloak, KHÔNG tạo hồ sơ bệnh nhân** trong patient-service. Hồ sơ nghiệp vụ chỉ ra đời khi làm **US-02**. Vì vậy user vừa đăng nhập lần đầu **chưa đặt lịch được** cho tới khi hoàn thiện hồ sơ — xem **US-02b**.
+
 ### 4.2. Hồ sơ bệnh nhân (Patient)
 
 **US-02** — Là **bệnh nhân**, tôi muốn **tạo/cập nhật hồ sơ cá nhân**, để **bác sĩ biết thông tin của tôi**.
@@ -101,6 +111,20 @@ Viết theo dạng **User Story**: *"Là [vai trò], tôi muốn [làm gì], đ�
 - ✅ Thiếu Họ tên hoặc SĐT → báo lỗi **400**, không lưu.
 - ✅ Email sai định dạng → báo lỗi.
 - ✅ Bệnh nhân chỉ sửa được hồ sơ của mình.
+
+**US-02b** — Là **bệnh nhân vừa đăng nhập lần đầu** (bằng Google hoặc tài khoản mới), tôi muốn **được nhắc hoàn thiện hồ sơ trước khi dùng chức năng cần hồ sơ**, để **không gặp lỗi "không tìm thấy bệnh nhân" khó hiểu**.
+
+**Bối cảnh vấn đề:** đăng nhập chỉ tạo user Keycloak, chưa có bản ghi `patients`. Trong khi đó **đặt lịch (US-05)**, **xem "Lịch của tôi" (US-07)** và **xem lịch sử khám (US-11)** đều cần server gọi `GET /patients/me` để lấy `patientId` (mục 16, bước 4). Chưa có hồ sơ → trả `PATIENT_NOT_FOUND` (404).
+
+**Tiêu chí chấp nhận:**
+- ✅ Ngay sau đăng nhập, hệ thống kiểm tra `GET /patients/me`. Nếu **404 (chưa có hồ sơ)** → điều hướng người dùng tới trang **Hồ sơ** kèm thông báo *"Vui lòng hoàn thiện hồ sơ trước khi đặt lịch"*.
+- ✅ Form hồ sơ được **prefill** sẵn `họ tên` và `email` lấy từ token Keycloak (claim `name`, `email`); người dùng chỉ cần bổ sung SĐT, giới tính, ngày sinh, địa chỉ.
+- ✅ Người dùng lưu → gọi `POST /patients/` (US-02) → tạo bản ghi gắn `keycloak_id` → từ đó các chức năng trên hoạt động bình thường.
+- ✅ Chừng nào chưa có hồ sơ, nút/trang **Đặt lịch bị chặn** (hoặc bấm vào thì tự chuyển về trang Hồ sơ), không để người dùng chạm tới lỗi 404 thô.
+
+> 💡 **Đây là bước chốt chặn ở FRONTEND**, không đổi hợp đồng API backend: backend vẫn giữ nguyên `POST /patients/` (US-02) và `PATIENT_NOT_FOUND` (US-05). Chỉ thêm việc frontend chủ động điều hướng thay vì để người dùng đâm vào lỗi.
+>
+> **Phương án thay thế (auto-provision):** thay vì ép người dùng điền, có thể để **frontend tự gọi `POST /patients/`** với `họ tên`/`email` từ token ngay khi phát hiện 404, tạo hồ sơ tối thiểu rồi cho bổ sung sau. Nhược điểm: US-02 bắt buộc **SĐT** (thiếu → 400) mà token Google **không có SĐT**, nên hoặc phải nới lỏng validation, hoặc tạo hồ sơ với SĐT rỗng rồi bắt cập nhật — kém sạch hơn phương án chốt chặn ở trên. **Khuyến nghị dùng phương án chốt chặn (ép hoàn thiện).**
 
 ### 4.3. Hồ sơ & Lịch làm việc bác sĩ (Doctor)
 
@@ -605,9 +629,31 @@ AND a.id <> :currentId
 
 | Vai trò | Cách tạo | Ghi chú |
 |---|---|---|
-| PATIENT | **Tự đăng ký** trên trang Keycloak | Bật *User registration*; `PATIENT` là **default role** nên user mới tự có |
+| PATIENT | **Tự đăng ký** trên trang Keycloak, **hoặc đăng nhập Google** (US-01b) | Bật *User registration*; `PATIENT` là **default role** nên user mới tự có |
 | DOCTOR | **ADMIN tạo** qua Keycloak Admin API | US-03 — bác sĩ không tự đăng ký |
 | ADMIN | Tạo tay trong Keycloak Console | |
+
+**Đăng nhập Google — cấu hình Identity Provider (US-01b):**
+
+Google được khai báo là một **Identity Provider trong realm `healthcare`** (KHÔNG phải realm `master`). Sai realm → nút Google báo *"Provider not found or not enabled"*.
+
+| Mục | Giá trị |
+|---|---|
+| Alias | `google` (phải khớp `VITE_GOOGLE_IDP_ALIAS` bên frontend) |
+| Provider | Google (OpenID Connect) |
+| Client ID / Secret | Lấy từ **Google Cloud Console → Credentials → OAuth client (Web application)** |
+| Authorized redirect URI (khai bên Google) | `http://localhost:8080/realms/healthcare/broker/google/endpoint` |
+| Default role gán cho user mới | `PATIENT` (default-role của realm) |
+
+**Luồng đăng nhập Google (identity brokering):**
+```
+Client ──login(kc_idp_hint=google)──▶ Keycloak ──redirect──▶ Google
+                                          ▲                      │
+                                          └──── code + profile ──┘
+Keycloak: tạo/liên kết user (role PATIENT) ──phát JWT──▶ Client
+```
+
+> ⚠️ **Đăng nhập KHÔNG tạo hồ sơ bệnh nhân.** Cả tự đăng ký lẫn đăng nhập Google chỉ tạo **user Keycloak**. Bản ghi `patients` chỉ ra đời khi làm **US-02** (`POST /patients/`). Frontend phải xử lý bước chuyển tiếp theo **US-02b** (chốt chặn hoàn thiện hồ sơ) trước khi cho đặt lịch.
 
 **Đọc role trong Spring:** Keycloak đặt role tại claim `realm_access.roles`. Spring **không tự đọc chỗ này** — bắt buộc viết `KeycloakRoleConverter` để map sang `ROLE_*`:
 ```java
@@ -618,4 +664,7 @@ Thiếu bước này thì `hasRole()` **luôn trả 403** dù token hoàn toàn 
 
 ---
 
-*Hết PRD v1.1. Phần A (nghiệp vụ) giữ nguyên từ v1.0; Phần B (kỹ thuật) bổ sung ngày 23/07/2026 từ các quyết định phát sinh trong quá trình cài đặt.*
+*Hết PRD v1.2.*
+*- v1.0: Phần A (nghiệp vụ).*
+*- v1.1 (23/07/2026): bổ sung Phần B (đặc tả kỹ thuật) từ các quyết định phát sinh khi cài đặt.*
+*- v1.2 (28/07/2026): bổ sung US-01b (đăng nhập Google qua Keycloak identity brokering) và US-02b (chốt chặn hoàn thiện hồ sơ lần đầu), cập nhật mục 18 với cấu hình Google Identity Provider. Làm rõ: đăng nhập chỉ tạo user Keycloak, hồ sơ bệnh nhân chỉ tạo qua US-02.*
