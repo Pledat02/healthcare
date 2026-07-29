@@ -13,6 +13,9 @@ import com.hehe.doctor_service.utils.SecurityUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +30,8 @@ public class DoctorService {
 
     // US-03: admin them bac si -> tao luon tai khoan Keycloak (role DOCTOR)
     // va noi voi ho so qua keycloakId, de bac si dang nhap duoc ngay.
+    // Them bac si moi -> danh sach cu trong cache khong con dung -> xoa cache "doctors".
+    @CacheEvict(value = "doctors", allEntries = true)
     public DoctorResponse create(CreationDoctorRequest request){
         String keycloakId = keycloakAdminClient.createDoctorUser(
                 request.getUsername(), request.getPassword(),
@@ -41,6 +46,7 @@ public class DoctorService {
             throw e;
         }
     }
+    @Cacheable(value = "doctor", key = "#id")
     public DoctorResponse getOne(String id){
 
         Doctor doctor = doctorRepository.findById(id).orElseThrow(
@@ -50,6 +56,7 @@ public class DoctorService {
         return doctorMapper.toResponse(doctor);
     }
 
+    @Cacheable(value = "doctors", key = "'all'")
     public List<DoctorResponse> getAll(){
         // check admin
 
@@ -57,6 +64,11 @@ public class DoctorService {
         map(doctorMapper::toResponse).toList();
     }
 
+    // Sua bac si -> xoa ca cache chi tiet (dung id) va danh sach.
+    @Caching(evict = {
+            @CacheEvict(value = "doctor", key = "#id"),
+            @CacheEvict(value = "doctors", allEntries = true)
+    })
     public DoctorResponse update(String id, UpdateDoctorRequest request){
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(
@@ -73,6 +85,10 @@ public class DoctorService {
                 new AppException(ErrorCode.DOCTOR_NOT_FOUND)));
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "doctor", key = "#id"),
+            @CacheEvict(value = "doctors", allEntries = true)
+    })
     public void delete(String id){
         // Xoa ca tai khoan Keycloak de khong con user mo coi khong ai dung
         doctorRepository.findById(id)
