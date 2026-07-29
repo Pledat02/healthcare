@@ -187,6 +187,18 @@ public class AppointmentService {
         return appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(me.getId(), start, end).stream()
                 .map(appointmentMapper::toResponse).toList();
     }
+    // GET /api/appointments/doctors/{doctorId}/booked?date=...
+    // Tra ve cac gio ĐA co lich (chua huy) cua bac si trong 1 ngay, de FE lam mo slot da dat.
+    // Chi tra thoi gian (khong lo thong tin benh nhan) nen benh nhan khac xem duoc.
+    public List<Instant> getBookedTimes(String doctorId, LocalDate date) {
+        Instant start = date.atStartOfDay(CLINIC_ZONE).toInstant();
+        Instant end = date.plusDays(1).atStartOfDay(CLINIC_ZONE).toInstant();
+        return appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(doctorId, start, end).stream()
+                .filter(a -> a.getStatus() != AppointmentStatus.CANCELLED)
+                .map(Appointment::getAppointmentTime)
+                .toList();
+    }
+
     private boolean isConflictCalendar(String doctorId, Instant appointmentTime) {
         return appointmentRepository.isConflict(doctorId, appointmentTime, durationMinutes);
     }

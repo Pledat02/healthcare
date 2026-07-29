@@ -27,6 +27,7 @@ public class SecurityConfig {
                                         "/swagger-ui.html",
                                         "/v3/api-docs/**"
                                 ).permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/appointments/statistics").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/appointments").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET,"/api/appointments/patients/me").hasRole("PATIENT")
                                 .requestMatchers(HttpMethod.GET,"/api/appointments/doctors/me").hasRole("DOCTOR")

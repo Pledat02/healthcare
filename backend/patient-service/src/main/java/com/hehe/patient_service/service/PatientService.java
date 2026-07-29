@@ -60,6 +60,15 @@ public class PatientService {
 
     }
 
+    // Batch: admin/bac si lay nhieu benh nhan theo id trong 1 request (fix N+1
+    // thay cho viec goi GET /patients/{id} lap tung cai o trang lich hen).
+    public List<PatientResponse> getByIds(List<String> ids) {
+        if (!SecurityUtil.isAdmin() && !SecurityUtil.hasRole("DOCTOR"))
+            throw new AppException(ErrorCode.FORBIDDEN);
+        return patientRepository.findAllById(ids).stream()
+                .map(patientMapper::toResponse).toList();
+    }
+
     public void delete(String id) {
         patientRepository.deleteById(id);
 

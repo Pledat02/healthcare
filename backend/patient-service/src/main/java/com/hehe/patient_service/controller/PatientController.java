@@ -35,6 +35,16 @@ public class PatientController {
                 .build();
     }
 
+    // Batch: lay nhieu benh nhan theo id (fix N+1 o trang lich hen admin/bac si)
+    @GetMapping("/batch")
+    public ApiResponse<List<PatientResponse>> getByIds(@RequestParam List<String> ids) {
+        return ApiResponse.<List<PatientResponse>>builder()
+                .code(200)
+                .data(patientService.getByIds(ids))
+                .message("Lấy bệnh nhân theo id thành công")
+                .build();
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<PatientResponse> getOne( @PathVariable
                                                String id) {

@@ -8,6 +8,7 @@ public enum ErrorCode {
     // --- Chung ---
     APPOINTMENT_NOT_FOUND(404, "Không tìm thấy lịch hẹn"),
     INVALID_INPUT(400, "Dữ liệu không hợp lệ"),
+    INVALID_DATE_RANGE(400, "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc"),
     INTERNAL_ERROR(500, "Lỗi hệ thống"),
 
     // --- US-05: đặt lịch ---

@@ -4,7 +4,9 @@ import com.hehe.appointment_service.dto.request.CreationAppointmentRequest;
 import com.hehe.appointment_service.dto.request.UpdateAppointmentRequest;
 import com.hehe.appointment_service.dto.response.ApiResponse;
 import com.hehe.appointment_service.dto.response.AppointmentResponse;
+import com.hehe.appointment_service.dto.response.AppointmentStatisticsResponse;
 import com.hehe.appointment_service.service.AppointmentService;
+import com.hehe.appointment_service.service.AppointmentStatisticsService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -22,6 +25,7 @@ import java.util.List;
 public class AppointmentController {
 
     AppointmentService appointmentService;
+    AppointmentStatisticsService appointmentStatisticsService;
 
     // US-05: benh nhan dat lich
     @PostMapping
@@ -92,6 +96,33 @@ public class AppointmentController {
                 .code(200)
                 .data(appointmentService.getMyDoctorAppointments(date))
                 .message("Lấy danh sách lịch hẹn thành công")
+                .build();
+    }
+
+    // Dashboard ADMIN: tong hop tai backend, chi tra top ID de frontend batch-load ten.
+    @GetMapping("/statistics")
+    public ApiResponse<AppointmentStatisticsResponse> statistics(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(defaultValue = "10") int limit) {
+        return ApiResponse.<AppointmentStatisticsResponse>builder()
+                .code(200)
+                .data(appointmentStatisticsService.getStatistics(from, to, limit))
+                .message("Lấy thống kê lịch hẹn thành công")
+                .build();
+    }
+
+    // Cac gio da co lich (chua huy) cua 1 bac si trong ngay -> FE lam mo slot da dat khi dat lich.
+    @GetMapping("/doctors/{doctorId}/booked")
+    public ApiResponse<List<Instant>> getBookedTimes(
+            @PathVariable String doctorId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ApiResponse.<List<Instant>>builder()
+                .code(200)
+                .data(appointmentService.getBookedTimes(doctorId, date))
+                .message("Lấy khung giờ đã đặt thành công")
                 .build();
     }
 

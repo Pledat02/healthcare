@@ -40,4 +40,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment,String>
     // Lay lich cua bac si trong 1 ngay: appointmentTime nam trong [dau ngay, dau ngay hom sau)
     List<Appointment> findByDoctorIdAndAppointmentTimeBetween(String doctorId, Instant start, Instant end);
     List<Appointment> findByPatientId(String patientId);
+
+    // Cac truy van theo khoang thoi gian cho dashboard thong ke admin.
+    // Mong ket thuc la exclusive de loc tron ngay ma khong phu thuoc do chinh xac timestamp.
+    List<Appointment> findByAppointmentTimeGreaterThanEqualAndAppointmentTimeLessThan(Instant start, Instant end);
+    List<Appointment> findByAppointmentTimeGreaterThanEqual(Instant start);
+    List<Appointment> findByAppointmentTimeLessThan(Instant end);
 }
