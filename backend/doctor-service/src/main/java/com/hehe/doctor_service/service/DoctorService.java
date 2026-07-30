@@ -24,6 +24,10 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 @RequiredArgsConstructor
 public class DoctorService {
+
+    // Thong nhat voi patient-service: batch toi da 100 ID
+    private static final int MAX_BATCH_IDS = 100;
+
     DoctorMapper doctorMapper ;
     DoctorRepository doctorRepository;
     KeycloakAdminClient keycloakAdminClient;
@@ -52,7 +56,8 @@ public class DoctorService {
         Doctor doctor = doctorRepository.findById(id).orElseThrow(
                 ()-> new AppException(ErrorCode.DOCTOR_NOT_FOUND)
         );
-//        if (!SecurityUtils.isAccessed(doctor)) throw new AppException(ErrorCode.FORBIDDEN);
+        // Ho so bac si cho MOI user da dang nhap xem (PRD: benh nhan can xem bac si de dat lich)
+        // -> khong kiem chu so huu o day.
         return doctorMapper.toResponse(doctor);
     }
 
@@ -62,6 +67,15 @@ public class DoctorService {
 
         return doctorRepository.findAll().stream().
         map(doctorMapper::toResponse).toList();
+    }
+
+    // Batch: lay nhieu bac si theo id. THONG NHAT voi patient-service - cung dung findAllById
+    // (truy van IN theo khoa chinh, co index). Cache van phuc vu endpoint danh sach/phan trang (getAll).
+    public List<DoctorResponse> getByIds(List<String> ids) {
+        if (ids == null || ids.size() > MAX_BATCH_IDS)
+            throw new AppException(ErrorCode.TOO_MANY_IDS);
+        return doctorRepository.findAllById(ids).stream()
+                .map(doctorMapper::toResponse).toList();
     }
 
     // Sua bac si -> xoa ca cache chi tiet (dung id) va danh sach.
@@ -74,7 +88,9 @@ public class DoctorService {
                 .orElseThrow(
                         () -> new AppException(ErrorCode.DOCTOR_NOT_FOUND)
                 );
-//        if (!SecurityUtils.isAccessed(doctor)) throw new AppException(ErrorCode.FORBIDDEN);
+        // Hien tai SUA ho so bac si chi cho ADMIN (SecurityConfig chan PUT /api/doctors/** = ADMIN).
+        // Neu sau nay mo cho "bac si chinh chu tu sua" (PRD): them PUT cho role DOCTOR o SecurityConfig
+        // va bat lai kiem chu so huu: if (!SecurityUtils.isAccessed(doctor)) throw FORBIDDEN;
          doctor = doctorMapper.updateEntity(doctor,request);
         doctorRepository.save(doctor);
         return doctorMapper.toResponse(doctor);

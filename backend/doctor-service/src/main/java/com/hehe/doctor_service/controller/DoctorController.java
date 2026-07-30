@@ -12,9 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/doctors")
@@ -71,12 +69,8 @@ public class DoctorController {
     // Batch: lay nhieu bac si theo danh sach id trong 1 request (thay cho N+1 goi tung cai).
     @GetMapping("/batch")
     public ApiResponse<List<DoctorResponse>> getByIds(@RequestParam List<String> ids) {
-        Set<String> want = new HashSet<>(ids);
-        List<DoctorResponse> result = doctorService.getAll().stream()
-                .filter(d -> want.contains(d.getId()))
-                .toList();
         return ApiResponse.<List<DoctorResponse>>builder()
-                .data(result)
+                .data(doctorService.getByIds(ids))
                 .code(200)
                 .message("Lấy bác sĩ theo id thành công")
                 .build();

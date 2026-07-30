@@ -40,11 +40,11 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/healthcare
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/healthcare}
 
 # US-03: tao tai khoan dang nhap cho bac si qua Keycloak Admin API.
 # admin-client-secret nam trong secrets.yaml (da gitignore).
 keycloak:
-  server-url: http://localhost:8080
-  realm: healthcare
-  admin-client-id: healthcare-admin-cli
+  server-url: ${KEYCLOAK_SERVER_URL:http://localhost:8080}
+  realm: ${KEYCLOAK_REALM:healthcare}
+  admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:healthcare-admin-cli}
