@@ -2,75 +2,73 @@ package com.hehe.notification_service.service;
 
 import com.hehe.notification_service.dto.event.AppointmentNotificationEvent;
 import com.hehe.notification_service.dto.event.NotificationType;
-import com.hehe.notification_service.entity.Notification;
-import com.hehe.notification_service.entity.NotificationStatus;
-import com.hehe.notification_service.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
-/**
- * US-09: he thong TU quet va gui mail nhac lich, khong can ai bam nut.
- *
- * Chi doc bang notifications cua chinh service nay (da co ban sao gio hen,
- * ten bac si...) nen job van chay dung ke ca khi appointment-service dang chet.
- */
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class ReminderScheduler {
 
-    private final NotificationRepository notificationRepository;
+    private final ReminderClaimService reminderClaimService;
     private final EmailService emailService;
     private final EmailTemplateBuilder templateBuilder;
 
+    @Value("${notification.claim-timeout:PT20M}")
+    private Duration claimTimeout;
+
+    @Value("${notification.batch-size:50}")
+    private int batchSize;
+
     @Scheduled(cron = "${notification.scan-cron}")
+    @SchedulerLock(
+            name = "notification-send-due-reminders",
+            lockAtMostFor = "${notification.scheduler-lock-at-most:PT15M}",
+            lockAtLeastFor = "${notification.scheduler-lock-at-least:PT5S}")
     public void sendDueReminders() {
-        List<Notification> due = notificationRepository
-                .findByTypeAndStatusAndScheduledAtLessThanEqual(
-                        NotificationType.REMINDER, NotificationStatus.PENDING, Instant.now());
+        Instant now = Instant.now();
+        List<ClaimedReminder> due = reminderClaimService.claimDueReminders(
+                now, now.minus(claimTimeout), batchSize);
 
         if (due.isEmpty()) return;
-        log.info("US-09: co {} mail nhac lich den han", due.size());
+        log.info("Co {} mail nhac lich den han", due.size());
 
-        for (Notification n : due) {
+        for (ClaimedReminder reminder : due) {
             try {
                 emailService.sendHtml(
-                        n.getRecipientEmail(),
+                        reminder.recipientEmail(),
                         "Nhắc lịch khám ngày mai",
-                        templateBuilder.build(toEvent(n)));
-                n.setStatus(NotificationStatus.SENT);
-                n.setSentAt(Instant.now());
+                        templateBuilder.build(toEvent(reminder)));
+                if (!reminderClaimService.markSent(
+                        reminder.id(), reminder.claimToken(), Instant.now())) {
+                    log.warn("Reminder {} khong con thuoc claim nay", reminder.id());
+                }
             } catch (Exception ex) {
-                // Mot mail loi khong duoc lam dung ca lo con lai
-                n.setStatus(NotificationStatus.FAILED);
-                n.setErrorMessage(truncate(ex.getMessage()));
-                log.error("Gui mail nhac lich {} that bai: {}", n.getId(), ex.getMessage());
+                reminderClaimService.markFailed(
+                        reminder.id(), reminder.claimToken(), ex.getMessage());
+                log.error("Gui mail nhac lich {} that bai: {}", reminder.id(), ex.getMessage());
             }
-            notificationRepository.save(n);
         }
     }
 
-    /** Dung lai ban sao trong DB de dung noi dung mail, khong goi service khac */
-    private AppointmentNotificationEvent toEvent(Notification n) {
+    private AppointmentNotificationEvent toEvent(ClaimedReminder reminder) {
         return AppointmentNotificationEvent.builder()
                 .type(NotificationType.REMINDER)
-                .appointmentId(n.getAppointmentId())
-                .patientName(n.getPatientName())
-                .patientEmail(n.getRecipientEmail())
-                .doctorName(n.getDoctorName())
-                .specialization(n.getSpecialization())
-                .appointmentTime(n.getAppointmentTime())
-                .reason(n.getReason())
+                .appointmentId(reminder.appointmentId())
+                .patientName(reminder.patientName())
+                .patientEmail(reminder.recipientEmail())
+                .doctorName(reminder.doctorName())
+                .specialization(reminder.specialization())
+                .appointmentTime(reminder.appointmentTime())
+                .reason(reminder.reason())
                 .build();
-    }
-
-    private String truncate(String s) {
-        if (s == null) return null;
-        return s.length() > 500 ? s.substring(0, 500) : s;
     }
 }

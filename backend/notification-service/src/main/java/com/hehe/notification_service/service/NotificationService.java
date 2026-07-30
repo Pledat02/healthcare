@@ -8,11 +8,13 @@ import com.hehe.notification_service.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -86,37 +88,82 @@ public class NotificationService {
                     e.getAppointmentId(), reminderHoursBefore);
             return;
         }
-        if (notificationRepository.existsByAppointmentIdAndTypeAndStatus(
-                e.getAppointmentId(), NotificationType.REMINDER, NotificationStatus.PENDING)) {
+        String reminderKey = reminderKey(e.getAppointmentId());
+        Optional<Notification> existing = notificationRepository.findByReminderKey(reminderKey);
+        if (existing.isPresent()) {
+            updateReminder(existing.get(), e, remindAt);
+            notificationRepository.save(existing.get());
+            log.info("Da cap nhat lich nhac cho {} luc {}", e.getAppointmentId(), remindAt);
             return;
         }
-        save(e, NotificationType.REMINDER, remindAt, NotificationStatus.PENDING);
-        log.info("Da len lich nhac cho {} luc {}", e.getAppointmentId(), remindAt);
+
+        try {
+            notificationRepository.saveAndFlush(buildNotification(
+                    e, NotificationType.REMINDER, remindAt, NotificationStatus.PENDING));
+            log.info("Da len lich nhac cho {} luc {}", e.getAppointmentId(), remindAt);
+        } catch (DataIntegrityViolationException duplicateReminder) {
+            if (notificationRepository.findByReminderKey(reminderKey).isEmpty()) {
+                throw duplicateReminder;
+            }
+            log.info("Reminder cua lich {} da duoc instance khac tao", e.getAppointmentId());
+        }
     }
 
     private void cancelReminders(String appointmentId) {
         if (appointmentId == null) return;
-        List<Notification> pending = notificationRepository.findByAppointmentIdAndTypeAndStatus(
-                appointmentId, NotificationType.REMINDER, NotificationStatus.PENDING);
-        pending.forEach(n -> n.setStatus(NotificationStatus.CANCELLED));
-        notificationRepository.saveAll(pending);
+        List<Notification> active = notificationRepository.findByAppointmentIdAndTypeAndStatusIn(
+                appointmentId,
+                NotificationType.REMINDER,
+                List.of(NotificationStatus.PENDING, NotificationStatus.PROCESSING));
+        active.forEach(n -> {
+            n.setStatus(NotificationStatus.CANCELLED);
+            n.setClaimToken(null);
+            n.setProcessingStartedAt(null);
+        });
+        notificationRepository.saveAll(active);
     }
 
     private Notification save(AppointmentNotificationEvent e, NotificationType type,
                               Instant scheduledAt, NotificationStatus status) {
-        return notificationRepository.save(Notification.builder()
+        return notificationRepository.save(buildNotification(e, type, scheduledAt, status));
+    }
+
+    private Notification buildNotification(AppointmentNotificationEvent e, NotificationType type,
+                                           Instant scheduledAt, NotificationStatus status) {
+        return Notification.builder()
                 .appointmentId(e.getAppointmentId())
                 .recipientEmail(e.getPatientEmail())
                 .type(type)
                 .status(status)
                 .scheduledAt(scheduledAt)
+                .reminderKey(type == NotificationType.REMINDER
+                        ? reminderKey(e.getAppointmentId()) : null)
                 .sentAt(status == NotificationStatus.SENT ? Instant.now() : null)
                 .appointmentTime(e.getAppointmentTime())
                 .patientName(e.getPatientName())
                 .doctorName(e.getDoctorName())
                 .specialization(e.getSpecialization())
                 .reason(e.getReason())
-                .build());
+                .build();
+    }
+
+    private void updateReminder(Notification reminder, AppointmentNotificationEvent e, Instant remindAt) {
+        reminder.setRecipientEmail(e.getPatientEmail());
+        reminder.setScheduledAt(remindAt);
+        reminder.setAppointmentTime(e.getAppointmentTime());
+        reminder.setPatientName(e.getPatientName());
+        reminder.setDoctorName(e.getDoctorName());
+        reminder.setSpecialization(e.getSpecialization());
+        reminder.setReason(e.getReason());
+        reminder.setStatus(NotificationStatus.PENDING);
+        reminder.setSentAt(null);
+        reminder.setErrorMessage(null);
+        reminder.setProcessingStartedAt(null);
+        reminder.setClaimToken(null);
+    }
+
+    private String reminderKey(String appointmentId) {
+        return "REMINDER:" + appointmentId;
     }
 
     public List<Notification> findAll(NotificationStatus status) {

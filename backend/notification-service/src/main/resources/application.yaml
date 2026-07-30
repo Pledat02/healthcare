@@ -3,9 +3,9 @@ server:
 
 services:
   appointment:
-    url: http://localhost:8083
+    url: ${APPOINTMENT_SERVICE_URL:http://localhost:8083}
   patient:
-    url: http://localhost:8081
+    url: ${PATIENT_SERVICE_URL:http://localhost:8081}
 
 spring:
   # Mat khau DB + mat khau email nam trong secrets.yaml (da gitignore)
@@ -14,6 +14,10 @@ spring:
 
   application:
     name: notification-service
+
+  sql:
+    init:
+      mode: always
 
   # Dung chung Supabase project voi doctor-service + appointment-service (Mumbai / ap-south-1)
   datasource:
@@ -37,7 +41,19 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/healthcare
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/healthcare}
+
+  # Kafka consumer: nhan su kien lich hen. Producer tat type-header nen phai khai type mac dinh.
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.value.default.type: com.hehe.notification_service.dto.event.AppointmentNotificationEvent
+        spring.json.trusted.packages: "*"
 
   # US-08/US-09: gui email. Username/password nam trong secrets.yaml
   mail:
@@ -62,3 +78,10 @@ notification:
   mail-from: ${MAIL_FROM:${MAIL_USERNAME:no-reply@medibook.local}}
   reminder-hours-before: 24     # US-09: nhac truoc 24 gio
   scan-cron: "0 * * * * *"      # quet moi phut (doi "0 0 * * * *" = moi gio khi len that)
+  batch-size: 50
+  claim-timeout: PT20M
+  scheduler-lock-at-most: PT15M
+  scheduler-lock-at-least: PT5S
+
+# Topic Kafka lang nghe (khop voi appointment-service)
+notification-topic: appointment-events
