@@ -18,6 +18,10 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PatientService {
+
+    // BR-06 / chong lam dung: batch toi da 100 ID moi request
+    private static final int MAX_BATCH_IDS = 100;
+
     private final PatientMapper patientMapper;
     private final PatientRepository patientRepository;
 
@@ -60,18 +64,24 @@ public class PatientService {
 
     }
 
-    // Batch: admin/bac si lay nhieu benh nhan theo id trong 1 request (fix N+1
-    // thay cho viec goi GET /patients/{id} lap tung cai o trang lich hen).
+    // Batch la API NOI BO: chi ADMIN / service-account (BR-06). Bac si KHONG goi thang nua -
+    // appointment-service lam giau ten benh nhan ho, chi tra BN thuoc lich cua bac si do.
+    // Toi da 100 ID moi request.
     public List<PatientResponse> getByIds(List<String> ids) {
-        if (!SecurityUtil.isAdmin() && !SecurityUtil.hasRole("DOCTOR"))
+        // 1) Kiem quyen truoc: chi ADMIN (token service-account cung mang role ADMIN)
+        if (!SecurityUtil.isAdmin())
             throw new AppException(ErrorCode.FORBIDDEN);
+        // 2) Gioi han kich thuoc batch -> tranh IN (...) khong lo / URL qua dai / lam dung
+        if (ids == null || ids.size() > MAX_BATCH_IDS)
+            throw new AppException(ErrorCode.TOO_MANY_IDS);
         return patientRepository.findAllById(ids).stream()
                 .map(patientMapper::toResponse).toList();
     }
 
+    // Xoa: chi ADMIN. Kiem o service (defense-in-depth) chu khong chi dua vao SecurityConfig URL.
     public void delete(String id) {
+        if (!SecurityUtil.isAdmin()) throw new AppException(ErrorCode.FORBIDDEN);
         patientRepository.deleteById(id);
-
     }
 
     // ĐỌC: ADMIN hoặc DOCTOR (bác sĩ điều trị cần xem thông tin bệnh nhân) hoặc chính chủ

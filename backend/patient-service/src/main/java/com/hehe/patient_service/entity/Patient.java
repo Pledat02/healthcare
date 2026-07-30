@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 
-@Entity
+@Entity(name = "patients")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Patient {
     @GeneratedValue(strategy = GenerationType.UUID)

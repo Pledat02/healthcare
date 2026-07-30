@@ -7,6 +7,7 @@ public enum ErrorCode {
 
     PATIENT_NOT_FOUND(404, "Không tìm thấy bệnh nhân"),
     INVALID_INPUT(400, "Dữ liệu không hợp lệ"),
+    TOO_MANY_IDS(400, "Số lượng ID vượt giới hạn cho phép (tối đa 100)"),
     PHONE_ALREADY_EXISTS(409, "Số điện thoại đã tồn tại"),
     FORBIDDEN(403, "Bạn không có quyền truy cập dữ liệu này"),
     PATIENT_ALREADY_EXISTS(409, "Hồ sơ bệnh nhân đã tồn tại"),
