@@ -3,11 +3,11 @@ server:
 
 services:
   appointment:
-    url: http://localhost:8083
+    url: ${APPOINTMENT_SERVICE_URL:http://localhost:8083}
   patient:
-    url: http://localhost:8081
+    url: ${PATIENT_SERVICE_URL:http://localhost:8081}
   doctor:
-    url: http://localhost:8082
+    url: ${DOCTOR_SERVICE_URL:http://localhost:8082}
 
 spring:
   # Mat khau DB nam trong secrets.yaml (da gitignore)
@@ -33,9 +33,17 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        generate_statistics: true   # in "Session Metrics { N JDBC statements }" moi request -> bat N+1
 
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/healthcare
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/healthcare}
+
+# CHI DUNG DEV: bat log thong ke + gia tri tham so de soi query. Production phai TAT.
+logging:
+  level:
+    # Hibernate 7 (Spring Boot 4.1) doi namespace logger -> org.hibernate.orm.*
+    org.hibernate.orm.stat: DEBUG      # in dong "Session Metrics { ... N JDBC statements }"
+    org.hibernate.orm.jdbc.bind: TRACE # in gia tri thuc cua cac dau ? trong SQL
