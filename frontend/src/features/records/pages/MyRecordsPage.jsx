@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import api, { unwrap, apiMessage } from '../../lib/api'
-import { formatDateTime } from '../../lib/format'
-import { useToast } from '../../components/Toast'
-import { Card, Spinner, EmptyState, PageHeader } from '../../components/ui'
+import api, { unwrap, apiMessage } from '@/shared/lib/api'
+import { formatDateTime } from '@/shared/lib/format'
+import { useToast } from '@/shared/components/Toast'
+import { Card, Spinner, EmptyState, PageHeader } from '@/shared/ui'
 import { FileText, Pill } from 'lucide-react'
 
 export default function MyRecordsPage() {

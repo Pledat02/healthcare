@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import keycloak, { authConfig, getRoles, hasRole, primaryRole } from '../keycloak'
+import keycloak, { authConfig, getRoles, hasRole, primaryRole } from '@/auth/keycloak'
 
 const AuthContext = createContext(null)
 

@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from 'react'
-import api, { unwrap, apiMessage } from '../../lib/api'
-import { formatTime, toDateInput } from '../../lib/format'
-import { useToast } from '../../components/Toast'
+import api, { unwrap, apiMessage } from '@/shared/lib/api'
+import { formatTime, toDateInput } from '@/shared/lib/format'
+import { useToast } from '@/shared/components/Toast'
 import {
   Button, Card, Field, Input, Textarea, Spinner, EmptyState, PageHeader, StatusBadge,
-} from '../../components/ui'
-import Modal from '../../components/Modal'
+} from '@/shared/ui'
+import Modal from '@/shared/components/Modal'
 import { CalendarCheck, User, Check, ClipboardCheck, FileText, Plus, Trash2 } from 'lucide-react'
 
 export default function SchedulePage() {

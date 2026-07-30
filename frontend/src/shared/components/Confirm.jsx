@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import Modal from './Modal'
-import { Button } from './ui'
+import { Button } from '@/shared/ui'
 
 // Hop thoai xac nhan trong app, thay cho window.confirm() xau xi cua trinh duyet.
 // Dung: const confirm = useConfirm(); if (!(await confirm({ ... }))) return

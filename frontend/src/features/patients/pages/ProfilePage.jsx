@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import api, { unwrap, apiMessage } from '../../lib/api'
-import { useAuth } from '../../auth/AuthContext'
-import { usePatientProfile } from '../../auth/PatientProfile'
-import { formatWorkTime } from '../../lib/format'
-import { useToast } from '../../components/Toast'
-import { Button, Card, Field, Input, Select, Spinner, PageHeader } from '../../components/ui'
+import api, { unwrap, apiMessage } from '@/shared/lib/api'
+import { useAuth } from '@/auth/AuthContext'
+import { usePatientProfile } from '@/auth/PatientProfile'
+import { formatWorkTime } from '@/shared/lib/format'
+import { useToast } from '@/shared/components/Toast'
+import { Button, Card, Field, Input, Select, Spinner, PageHeader } from '@/shared/ui'
 import { UserCircle, Stethoscope, Info } from 'lucide-react'
 
 export default function ProfilePage() {

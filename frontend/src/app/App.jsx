@@ -1,25 +1,25 @@
 import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from './auth/AuthContext'
-import { PatientProfileProvider, usePatientProfile } from './auth/PatientProfile'
-import { ToastProvider, useToast } from './components/Toast'
-import { ConfirmProvider } from './components/Confirm'
-import { Spinner } from './components/ui'
-import AppShell from './components/AppShell'
-import LoginPage from './pages/LoginPage'
+import { useAuth } from '@/auth/AuthContext'
+import { PatientProfileProvider, usePatientProfile } from '@/auth/PatientProfile'
+import { ToastProvider, useToast } from '@/shared/components/Toast'
+import { ConfirmProvider } from '@/shared/components/Confirm'
+import { Spinner } from '@/shared/ui'
+import AppShell from '@/shared/components/AppShell'
+import LoginPage from '@/auth/LoginPage'
 
 // Patient
-import DoctorsPage from './pages/patient/DoctorsPage'
-import MyAppointmentsPage from './pages/patient/MyAppointmentsPage'
-import MyRecordsPage from './pages/patient/MyRecordsPage'
-import ProfilePage from './pages/patient/ProfilePage'
+import DoctorsPage from '@/features/doctors/pages/DoctorsPage'
+import MyAppointmentsPage from '@/features/appointments/pages/MyAppointmentsPage'
+import MyRecordsPage from '@/features/records/pages/MyRecordsPage'
+import ProfilePage from '@/features/patients/pages/ProfilePage'
 // Doctor
-import SchedulePage from './pages/doctor/SchedulePage'
+import SchedulePage from '@/features/appointments/pages/SchedulePage'
 // Admin
-import ManageDoctorsPage from './pages/admin/ManageDoctorsPage'
-import AllAppointmentsPage from './pages/admin/AllAppointmentsPage'
-import ManagePatientsPage from './pages/admin/ManagePatientsPage'
-import AnalyticsPage from './pages/admin/AnalyticsPage'
+import ManageDoctorsPage from '@/features/doctors/pages/ManageDoctorsPage'
+import AllAppointmentsPage from '@/features/appointments/pages/AllAppointmentsPage'
+import ManagePatientsPage from '@/features/patients/pages/ManagePatientsPage'
+import AnalyticsPage from '@/features/dashboard/pages/AnalyticsPage'
 
 // Trang mac dinh theo vai tro
 function HomeRedirect() {

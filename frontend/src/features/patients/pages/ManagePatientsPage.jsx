@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import api, { unwrap, apiMessage } from '../../lib/api'
-import { useToast } from '../../components/Toast'
-import { useConfirm } from '../../components/Confirm'
-import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } from '../../components/ui'
-import Modal from '../../components/Modal'
+import api, { unwrap, apiMessage } from '@/shared/lib/api'
+import { useToast } from '@/shared/components/Toast'
+import { useConfirm } from '@/shared/components/Confirm'
+import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } from '@/shared/ui'
+import Modal from '@/shared/components/Modal'
 import { CalendarCheck, Pencil, Search, Trash2, UsersRound } from 'lucide-react'
 
 const GENDERS = {

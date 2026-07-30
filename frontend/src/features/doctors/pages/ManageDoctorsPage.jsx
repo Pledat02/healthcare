@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import api, { unwrap, apiMessage } from '../../lib/api'
-import { formatWorkTime } from '../../lib/format'
-import { useToast } from '../../components/Toast'
-import { useConfirm } from '../../components/Confirm'
-import { Button, Card, Field, Input, Spinner, EmptyState, PageHeader } from '../../components/ui'
-import Modal from '../../components/Modal'
+import api, { unwrap, apiMessage } from '@/shared/lib/api'
+import { formatWorkTime } from '@/shared/lib/format'
+import { useToast } from '@/shared/components/Toast'
+import { useConfirm } from '@/shared/components/Confirm'
+import { Button, Card, Field, Input, Spinner, EmptyState, PageHeader } from '@/shared/ui'
+import Modal from '@/shared/components/Modal'
 import {
   Users, Plus, Trash2, Stethoscope, ChevronLeft, ChevronRight, Pencil, Search,
 } from 'lucide-react'

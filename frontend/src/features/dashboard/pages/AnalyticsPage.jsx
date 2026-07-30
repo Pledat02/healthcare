@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import api, { unwrap, fetchByIdsMap, apiMessage } from '../../lib/api'
-import { useToast } from '../../components/Toast'
-import { Button, Card, EmptyState, Field, Input, PageHeader, Spinner } from '../../components/ui'
+import api, { unwrap, fetchByIdsMap, apiMessage } from '@/shared/lib/api'
+import { useToast } from '@/shared/components/Toast'
+import { Button, Card, EmptyState, Field, Input, PageHeader, Spinner } from '@/shared/ui'
 import {
   CalendarDays, ChartNoAxesColumnIncreasing, CircleCheckBig, RefreshCcw,
   Repeat2, Stethoscope, TrendingUp, UserRoundCheck, UsersRound, PieChart,

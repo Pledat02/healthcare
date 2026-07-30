@@ -1,5 +1,5 @@
-import { useAuth } from '../auth/AuthContext'
-import { Button } from '../components/ui'
+import { useAuth } from '@/auth/AuthContext'
+import { Button } from '@/shared/ui'
 import { Stethoscope, CalendarCheck, ShieldCheck, Clock, ArrowRight } from 'lucide-react'
 
 const FEATURES = [

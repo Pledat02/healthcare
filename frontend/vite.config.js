@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -5,6 +6,12 @@ import tailwindcss from '@tailwindcss/vite'
 // Frontend chay o cong 3000; goi API qua proxy -> api-gateway (8090) de tranh CORS
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    // Import tuyet doi: '@/shared/lib/api' thay vi '../../shared/lib/api'
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   server: {
     port: 3000,
     proxy: {

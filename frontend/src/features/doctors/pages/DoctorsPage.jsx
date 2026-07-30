@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import api, { unwrap, apiMessage } from '../../lib/api'
-import { formatWorkTime, todayInClinic, clinicDateTimeToIso, instantToClinicHHMM } from '../../lib/format'
-import { useToast } from '../../components/Toast'
+import api, { unwrap, apiMessage } from '@/shared/lib/api'
+import { formatWorkTime, todayInClinic, clinicDateTimeToIso, instantToClinicHHMM } from '@/shared/lib/format'
+import { useToast } from '@/shared/components/Toast'
 import {
   Button, Card, Field, Input, Select, Textarea, Spinner, EmptyState, PageHeader,
-} from '../../components/ui'
-import Modal from '../../components/Modal'
+} from '@/shared/ui'
+import Modal from '@/shared/components/Modal'
 import { Stethoscope, Clock, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const PAGE_SIZE = 6

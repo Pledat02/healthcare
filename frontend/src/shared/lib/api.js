@@ -1,5 +1,5 @@
 import axios from 'axios'
-import keycloak from '../keycloak'
+import keycloak from '@/auth/keycloak'
 
 // Goi API qua proxy '/api' -> api-gateway (8090). Gateway verify JWT roi route.
 const api = axios.create({ baseURL: '/api' })

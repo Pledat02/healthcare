@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import api, { unwrap } from '../lib/api'
+import api, { unwrap } from '@/shared/lib/api'
 import { useAuth } from './AuthContext'
 
 // US-02b: dang nhap chi tao user Keycloak, chua co ho so benh nhan.

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import api, { unwrap, apiMessage, fetchByIdsMap } from '../../lib/api'
-import { formatDateTime } from '../../lib/format'
-import { useToast } from '../../components/Toast'
-import { Button, Card, Select, Spinner, EmptyState, PageHeader, StatusBadge } from '../../components/ui'
+import api, { unwrap, apiMessage, fetchByIdsMap } from '@/shared/lib/api'
+import { formatDateTime } from '@/shared/lib/format'
+import { useToast } from '@/shared/components/Toast'
+import { Button, Card, Select, Spinner, EmptyState, PageHeader, StatusBadge } from '@/shared/ui'
 import { ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const STATUS_OPTIONS = [
