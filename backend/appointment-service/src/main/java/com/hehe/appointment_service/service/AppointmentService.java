@@ -17,10 +17,16 @@ import com.hehe.appointment_service.mapper.AppointmentMapper;
 import com.hehe.appointment_service.repository.AppointmentRepository;
 import com.hehe.appointment_service.utils.AppointmentStatus;
 import com.hehe.appointment_service.utils.SecurityUtils;
+import com.hehe.appointment_service.dto.response.PageResponse;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import lombok.experimental.NonFinal;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +37,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AppointmentService {
@@ -199,8 +206,10 @@ public class AppointmentService {
         DoctorDto me = doctorClient.getMe();
         Instant start = date.atStartOfDay(CLINIC_ZONE).toInstant();
         Instant end = date.plusDays(1).atStartOfDay(CLINIC_ZONE).toInstant();
-        return appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(me.getId(), start, end).stream()
+        List<AppointmentResponse> list = appointmentRepository
+                .findByDoctorIdAndAppointmentTimeBetween(me.getId(), start, end).stream()
                 .map(appointmentMapper::toResponse).toList();
+        return withPatientNames(list);   // lam giau ten benh nhan (bac si chi thay BN cua chinh minh)
     }
     // GET /api/appointments/doctors/{doctorId}/booked?date=...
     // Tra ve cac gio ĐA co lich (chua huy) cua bac si trong 1 ngay, de FE lam mo slot da dat.
@@ -235,9 +244,43 @@ public class AppointmentService {
         }
         return appointmentMapper.toResponse(appointment);
     }
-    public List<AppointmentResponse> getAll(){
-        return appointmentRepository.findAll().stream()
-                .map(appointmentMapper::toResponse).toList();
+    // ADMIN xem toan bo lich hen - PHAN TRANG DB (khong tai toan bang), loc theo trang thai.
+    public PageResponse<AppointmentResponse> getAll(int page, int size, AppointmentStatus status) {
+        int safeSize = Math.min(Math.max(size, 1), 100);   // page size toi da 100
+        Pageable pageable = PageRequest.of(Math.max(page, 0), safeSize,
+                Sort.by(Sort.Direction.DESC, "appointmentTime"));
+        Page<Appointment> pg = (status == null)
+                ? appointmentRepository.findAll(pageable)
+                : appointmentRepository.findByStatus(status, pageable);
+        // Chi lam giau ten cho content cua TRANG hien tai (<= 100 ban ghi) -> khong N+1, id it
+        List<AppointmentResponse> content = withPatientNames(
+                pg.getContent().stream().map(appointmentMapper::toResponse).toList());
+        return new PageResponse<>(content, pg.getNumber(), pg.getSize(),
+                pg.getTotalPages(), pg.getTotalElements());
+    }
+
+    // Lam giau ten benh nhan qua batch (token service-account). Loi lam giau KHONG lam hong
+    // danh sach lich -> chi de patientName null. Day cung la cho enforce BR-06: bac si/admin
+    // khong con goi thang /patients/batch nua.
+    private List<AppointmentResponse> withPatientNames(List<AppointmentResponse> list) {
+        if (list.isEmpty()) return list;
+        try {
+            List<String> ids = list.stream()
+                    .map(AppointmentResponse::getPatientId)
+                    .filter(java.util.Objects::nonNull).distinct().toList();
+            java.util.Map<String, PatientDto> byId = patientClient.getPatients(ids).stream()
+                    .collect(java.util.stream.Collectors.toMap(PatientDto::getId, p -> p, (a, b) -> a));
+            list.forEach(r -> {
+                PatientDto p = byId.get(r.getPatientId());
+                if (p != null) {
+                    r.setPatientName(p.getFullName());
+                    r.setPatientPhone(p.getPhone());
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Khong lam giau duoc ten benh nhan: {}", e.getMessage());
+        }
+        return list;
     }
     private void notify(NotificationType type, Appointment appt) {
         PatientDto p = patientClient.getPatient(appt.getPatientId());

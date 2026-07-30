@@ -3,11 +3,11 @@ server:
 
 services:
   doctor:
-    url: http://localhost:8082
+    url: ${DOCTOR_SERVICE_URL:http://localhost:8082}
   patient:
-    url: http://localhost:8081
+    url: ${PATIENT_SERVICE_URL:http://localhost:8081}
   notification:
-    url: http://localhost:8084
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
 
 spring:
   # Mat khau DB nam trong secrets.yaml (da gitignore, khong day len GitHub)
@@ -39,8 +39,27 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/healthcare
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/healthcare}
+
+  # Kafka producer: ban su kien dat lich (JSON). Tat type-header de consumer (khac package) doc duoc.
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+        max.block.ms: 3000   # Kafka chet -> send() fail nhanh, khong treo dat lich (PRD muc 6)
+
+# Service-account de goi API noi bo cua service khac (secret trong secrets.yaml)
+keycloak:
+  server-url: ${KEYCLOAK_SERVER_URL:http://localhost:8080}
+  realm: ${KEYCLOAK_REALM:healthcare}
+  internal-client-id: ${KEYCLOAK_INTERNAL_CLIENT_ID:healthcare-admin-cli}
 
 # Cau hinh nghiep vu (PRD BR-01: moi buoi kham mac dinh 30 phut)
 appointment:
   duration-minutes: 30
+
+# Ten topic Kafka cho su kien lich hen
+notification-topic: appointment-events

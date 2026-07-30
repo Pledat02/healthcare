@@ -5,8 +5,10 @@ import com.hehe.appointment_service.dto.request.UpdateAppointmentRequest;
 import com.hehe.appointment_service.dto.response.ApiResponse;
 import com.hehe.appointment_service.dto.response.AppointmentResponse;
 import com.hehe.appointment_service.dto.response.AppointmentStatisticsResponse;
+import com.hehe.appointment_service.dto.response.PageResponse;
 import com.hehe.appointment_service.service.AppointmentService;
 import com.hehe.appointment_service.service.AppointmentStatisticsService;
+import com.hehe.appointment_service.utils.AppointmentStatus;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -136,12 +138,15 @@ public class AppointmentController {
                 .build();
     }
 
-    // ADMIN xem toan bo lich hen
+    // ADMIN xem toan bo lich hen - PHAN TRANG (page/size toi da 100) + loc trang thai
     @GetMapping
-    public ApiResponse<List<AppointmentResponse>> getAll() {
-        return ApiResponse.<List<AppointmentResponse>>builder()
+    public ApiResponse<PageResponse<AppointmentResponse>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) AppointmentStatus status) {
+        return ApiResponse.<PageResponse<AppointmentResponse>>builder()
                 .code(200)
-                .data(appointmentService.getAll())
+                .data(appointmentService.getAll(page, size, status))
                 .message("Lấy danh sách lịch hẹn thành công")
                 .build();
     }

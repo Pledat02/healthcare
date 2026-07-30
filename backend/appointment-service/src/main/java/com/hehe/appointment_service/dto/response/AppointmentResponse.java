@@ -16,6 +16,8 @@ public class AppointmentResponse {
     String id;
     String patientId;
     String doctorId;
+    String patientName;   // lam giau tu patient-service (batch, service-account) cho trang bac si/admin
+    String patientPhone;
     Instant appointmentTime;
     int durationMinutes;
     String reason;
