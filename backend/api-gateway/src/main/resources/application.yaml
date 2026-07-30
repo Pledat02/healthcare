@@ -14,7 +14,7 @@ spring:
             cors-configurations:
               '[/**]':
                 allowed-origins:
-                  - "http://localhost:3000"    # URL frontend (doi theo du an cua ban)
+                  - "${FRONTEND_URL:http://localhost:3000}"    # prod: dat FRONTEND_URL
                 allowed-methods:
                   - GET
                   - POST
@@ -26,27 +26,27 @@ spring:
                 allow-credentials: true
           routes:
             - id: patient-service
-              uri: http://localhost:8081
+              uri: ${PATIENT_SERVICE_URI:http://localhost:8081}
               predicates:
                 - Path=/api/patients/**
 
             - id: doctor-service
-              uri: http://localhost:8082
+              uri: ${DOCTOR_SERVICE_URI:http://localhost:8082}
               predicates:
                 - Path=/api/doctors/**
 
             - id: appointment-service
-              uri: http://localhost:8083
+              uri: ${APPOINTMENT_SERVICE_URI:http://localhost:8083}
               predicates:
                 - Path=/api/appointments/**
 
             - id: notification-service
-              uri: http://localhost:8084
+              uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8084}
               predicates:
                 - Path=/api/notifications/**
 
             - id: medical-record-service
-              uri: http://localhost:8085
+              uri: ${MEDICAL_RECORD_SERVICE_URI:http://localhost:8085}
               predicates:
                 - Path=/api/medical-records/**
 
@@ -55,4 +55,4 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/healthcare
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/healthcare}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      POM AGGREGATOR (reactor) cho toan bo backend healthcare.
+      Muc dich: build/test CA CUM bang 1 lenh, va IntelliJ import 1 project duy nhat
+      (khac voi truoc: 6 project Maven roi, moi lan di chuyen thu muc lai vo IntelliJ).
+
+      Vi day chi la aggregator, moi service VAN giu spring-boot-starter-parent rieng
+      -> khong doi cach build cua tung service, rui ro thap.
+
+      Dung:
+        mvn -f backend/pom.xml clean install     # build tat ca
+        mvn -f backend/pom.xml test               # chay test tat ca
+        mvn -f backend/pom.xml -pl doctor-service test   # chi 1 module
+
+      (Buoc nang cap tiep theo neu muon go version lap: bien pom nay thanh PARENT that
+       - moi service doi <parent> tro vao day + gom version mapstruct/springdoc/... vao
+       dependencyManagement. Day la refactor lon hon, nen lam rieng co kiem thu ky.)
+    -->
+    <groupId>com.hehe</groupId>
+    <artifactId>healthcare-backend</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>healthcare-backend</name>
+    <description>Aggregator build cho toan bo microservice healthcare</description>
+
+    <modules>
+        <module>api-gateway</module>
+        <module>patient-service</module>
+        <module>doctor-service</module>
+        <module>appointment-service</module>
+        <module>medical-record-service</module>
+        <module>notification-service</module>
+    </modules>
+</project>
