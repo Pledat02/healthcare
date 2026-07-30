@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import api, { unwrap, apiMessage, fetchByIdsMap } from '../../lib/api'
 import { formatDateTime } from '../../lib/format'
 import { useToast } from '../../components/Toast'
-import { Card, Select, Spinner, EmptyState, PageHeader, StatusBadge } from '../../components/ui'
-import { ClipboardList } from 'lucide-react'
+import { Button, Card, Select, Spinner, EmptyState, PageHeader, StatusBadge } from '../../components/ui'
+import { ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const STATUS_OPTIONS = [
   { value: 'PENDING', label: 'Chờ xác nhận' },
@@ -12,46 +12,53 @@ const STATUS_OPTIONS = [
   { value: 'CANCELLED', label: 'Đã hủy' },
 ]
 
+const PAGE_SIZE = 20
+
 export default function AllAppointmentsPage() {
   const toast = useToast()
   const [items, setItems] = useState([])
   const [doctors, setDoctors] = useState({})
-  const [patients, setPatients] = useState({})
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
 
+  // Doi bo loc -> ve trang dau
+  useEffect(() => { setPage(0) }, [filter])
+
+  // Phan trang phia SERVER: khong tai toan bang, loc trang thai o backend
   useEffect(() => {
+    let cancelled = false
     async function load() {
+      setLoading(true)
       try {
-        const appts = await api.get('/appointments')
-        const list = (unwrap(appts) || []).slice().sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime))
+        const res = await api.get('/appointments', {
+          params: { page, size: PAGE_SIZE, status: filter || undefined },
+        })
+        const d = unwrap(res) || {}
+        const list = d.content || []
+        if (cancelled) return
         setItems(list)
-        // Batch: lay bac si + benh nhan xuat hien trong lich, moi loai 1 request (bo N+1)
-        const [dmap, pmap] = await Promise.all([
-          fetchByIdsMap('doctors', list.map((a) => a.doctorId)),
-          fetchByIdsMap('patients', list.map((a) => a.patientId)),
-        ])
-        setDoctors(dmap)
-        setPatients(pmap)
+        setTotalPages(d.totalPages || 0)
+        setTotalElements(d.totalElements || 0)
+        // Ten benh nhan da co san (appointment-service lam giau); chi batch ten bac si
+        setDoctors(await fetchByIdsMap('doctors', list.map((a) => a.doctorId)))
       } catch (e) {
-        toast.error(apiMessage(e))
+        if (!cancelled) toast.error(apiMessage(e))
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
     load()
-  }, []) // eslint-disable-line
-
-  const filtered = useMemo(
-    () => (filter ? items.filter((a) => a.status === filter) : items),
-    [items, filter],
-  )
+    return () => { cancelled = true }
+  }, [page, filter]) // eslint-disable-line
 
   return (
     <>
       <PageHeader
         title="Tất cả lịch hẹn"
-        subtitle={`Tổng ${items.length} lịch hẹn trong hệ thống`}
+        subtitle={`Tổng ${totalElements} lịch hẹn trong hệ thống`}
         action={
           <Select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-auto" aria-label="Lọc trạng thái">
             <option value="">Tất cả trạng thái</option>
@@ -62,38 +69,52 @@ export default function AllAppointmentsPage() {
 
       {loading ? (
         <Spinner />
-      ) : filtered.length === 0 ? (
+      ) : items.length === 0 ? (
         <EmptyState icon={ClipboardList} title="Không có lịch hẹn" subtitle="Chưa có lịch hẹn nào khớp bộ lọc" />
       ) : (
-        <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-border bg-slate-50 text-left text-xs text-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Thời gian</th>
-                  <th className="px-4 py-3 font-medium">Bệnh nhân</th>
-                  <th className="px-4 py-3 font-medium">Bác sĩ</th>
-                  <th className="px-4 py-3 font-medium">Lý do</th>
-                  <th className="px-4 py-3 font-medium">Trạng thái</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filtered.map((a) => (
-                  <tr key={a.id}>
-                    <td className="whitespace-nowrap px-4 py-3 tabular-nums text-text">{formatDateTime(a.appointmentTime)}</td>
-                    <td className="px-4 py-3 text-text">{patients[a.patientId]?.fullName || '—'}</td>
-                    <td className="px-4 py-3 text-muted">
-                      {doctors[a.doctorId]?.fullName || '—'}
-                      <span className="block text-xs text-slate-400">{doctors[a.doctorId]?.specialization}</span>
-                    </td>
-                    <td className="max-w-[16rem] truncate px-4 py-3 text-muted">{a.reason || '—'}</td>
-                    <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
+        <>
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b border-border bg-slate-50 text-left text-xs text-muted">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Thời gian</th>
+                    <th className="px-4 py-3 font-medium">Bệnh nhân</th>
+                    <th className="px-4 py-3 font-medium">Bác sĩ</th>
+                    <th className="px-4 py-3 font-medium">Lý do</th>
+                    <th className="px-4 py-3 font-medium">Trạng thái</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {items.map((a) => (
+                    <tr key={a.id}>
+                      <td className="whitespace-nowrap px-4 py-3 tabular-nums text-text">{formatDateTime(a.appointmentTime)}</td>
+                      <td className="px-4 py-3 text-text">{a.patientName || '—'}</td>
+                      <td className="px-4 py-3 text-muted">
+                        {doctors[a.doctorId]?.fullName || '—'}
+                        <span className="block text-xs text-slate-400">{doctors[a.doctorId]?.specialization}</span>
+                      </td>
+                      <td className="max-w-[16rem] truncate px-4 py-3 text-muted">{a.reason || '—'}</td>
+                      <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button variant="secondary" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                <ChevronLeft className="h-4 w-4" /> Trước
+              </Button>
+              <span className="text-sm text-muted">Trang {page + 1}/{totalPages} · {totalElements} lịch hẹn</span>
+              <Button variant="secondary" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+                Sau <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </>
   )

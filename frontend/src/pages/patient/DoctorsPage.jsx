@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import api, { unwrap, apiMessage } from '../../lib/api'
-import { formatWorkTime } from '../../lib/format'
+import { formatWorkTime, todayInClinic, clinicDateTimeToIso, instantToClinicHHMM } from '../../lib/format'
 import { useToast } from '../../components/Toast'
 import {
   Button, Card, Field, Input, Select, Textarea, Spinner, EmptyState, PageHeader,
@@ -124,7 +124,7 @@ export default function DoctorsPage() {
 }
 
 function BookingModal({ doctor, onClose, toast }) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayInClinic()   // hom nay theo gio phong kham (khong theo mui gio trinh duyet)
   const [date, setDate] = useState(today)
   const [time, setTime] = useState('')            // slot da chon "HH:MM"
   const [reason, setReason] = useState('')
@@ -142,10 +142,8 @@ function BookingModal({ doctor, onClose, toast }) {
     setLoadingSlots(true)
     api.get(`/appointments/doctors/${doctor.id}/booked`, { params: { date } })
       .then((res) => {
-        const set = new Set(
-          (unwrap(res) || []).map((iso) =>
-            new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false })),
-        )
+        // Doi Instant -> "HH:MM" theo GIO PHONG KHAM de khop voi slot (khong dung gio trinh duyet)
+        const set = new Set((unwrap(res) || []).map(instantToClinicHHMM))
         setBooked(set)
       })
       .catch(() => setBooked(new Set()))
@@ -153,13 +151,15 @@ function BookingModal({ doctor, onClose, toast }) {
   }, [date, doctor.id]) // eslint-disable-line
 
   const now = new Date()
-  const isPast = (slot) => new Date(`${date}T${slot}:00`) <= now
+  // slot da qua = mốc tuyet doi (gio phong kham) <= bay gio -> so sanh dung bat ke mui gio
+  const isPast = (slot) => new Date(clinicDateTimeToIso(date, slot)) <= now
 
   async function submit(e) {
     e.preventDefault()
     setError('')
     if (!time) { setError('Vui lòng chọn một khung giờ'); return }
-    const appointmentTime = new Date(`${date}T${time}:00`).toISOString()
+    // Ghi nhan gio da chon la GIO PHONG KHAM -> Instant UTG dung, du user o mui gio khac
+    const appointmentTime = clinicDateTimeToIso(date, time)
     setSaving(true)
     try {
       await api.post('/appointments', { doctorId: doctor.id, appointmentTime, reason })

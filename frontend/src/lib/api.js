@@ -44,9 +44,15 @@ export function apiMessage(err) {
 export async function fetchByIdsMap(resource, ids) {
   const unique = [...new Set(ids)].filter(Boolean)
   if (unique.length === 0) return {}
-  const res = await api.get(`/${resource}/batch`, { params: { ids: unique.join(',') } })
+  // Chia chunk <= 100 id/request: tranh URL qua dai + khop cap 100 cua backend
+  const CHUNK = 100
+  const chunks = []
+  for (let i = 0; i < unique.length; i += CHUNK) chunks.push(unique.slice(i, i + CHUNK))
+  const results = await Promise.all(
+    chunks.map((c) => api.get(`/${resource}/batch`, { params: { ids: c.join(',') } })),
+  )
   const map = {}
-  ;(unwrap(res) || []).forEach((o) => (map[o.id] = o))
+  results.forEach((res) => (unwrap(res) || []).forEach((o) => (map[o.id] = o)))
   return map
 }
 

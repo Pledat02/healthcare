@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import api, { unwrap, apiMessage, fetchByIdsMap } from '../../lib/api'
+import api, { unwrap, apiMessage } from '../../lib/api'
 import { formatTime, toDateInput } from '../../lib/format'
 import { useToast } from '../../components/Toast'
 import {
@@ -12,7 +12,6 @@ export default function SchedulePage() {
   const toast = useToast()
   const [date, setDate] = useState(toDateInput())
   const [items, setItems] = useState([])
-  const [patients, setPatients] = useState({})
   const [loading, setLoading] = useState(true)
   const [acting, setActing] = useState(null)
   const [recording, setRecording] = useState(null) // appointment dang ghi ho so
@@ -22,9 +21,8 @@ export default function SchedulePage() {
     try {
       const res = await api.get('/appointments/doctors/me', { params: { date } })
       const list = (unwrap(res) || []).slice().sort((a, b) => new Date(a.appointmentTime) - new Date(b.appointmentTime))
+      // Ten/SDT benh nhan da duoc appointment-service lam giau san (khong goi /patients/batch nua)
       setItems(list)
-      // Batch: lay ten benh nhan trong 1 request (bo N+1)
-      setPatients(await fetchByIdsMap('patients', list.map((a) => a.patientId)))
     } catch (e) {
       toast.error(apiMessage(e))
     } finally {
@@ -64,7 +62,6 @@ export default function SchedulePage() {
       ) : (
         <div className="space-y-3">
           {items.map((a) => {
-            const p = patients[a.patientId]
             return (
               <Card key={a.id} className="flex flex-wrap items-center gap-4 p-4">
                 <div className="flex flex-col items-center rounded-lg bg-primary-soft px-3 py-2 text-primary">
@@ -73,10 +70,10 @@ export default function SchedulePage() {
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1.5 font-semibold text-text">
                     <User className="h-4 w-4 text-muted" />
-                    {p?.fullName || 'Bệnh nhân'}
+                    {a.patientName || 'Bệnh nhân'}
                   </p>
                   <p className="text-sm text-muted">
-                    {p?.phone} {a.reason && `· ${a.reason}`}
+                    {a.patientPhone} {a.reason && `· ${a.reason}`}
                   </p>
                 </div>
                 <StatusBadge status={a.status} />
