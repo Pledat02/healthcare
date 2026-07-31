@@ -138,15 +138,15 @@
 
 **Công việc**
 
-- [ ] Bật Actuator health, readiness và liveness phù hợp.
-- [ ] Thêm Micrometer và Prometheus metrics.
-- [ ] Chuẩn hóa JSON log.
-- [ ] Truyền `traceId`/`spanId` xuyên gateway và các service.
-- [ ] Bổ sung distributed tracing bằng OpenTelemetry.
-- [ ] Thiết lập Prometheus + Grafana và hệ thống log/tracing phù hợp.
-- [ ] Tạo dashboard cho latency, throughput, error rate và saturation.
-- [ ] Tạo alert cho service down, tỷ lệ lỗi cao, circuit open và backlog notification tăng.
-- [ ] Giới hạn quyền truy cập các endpoint quản trị/metrics.
+- [x] Bật Actuator health, readiness và liveness phù hợp. *(management.endpoint.health.probes.enabled; api-gateway thêm actuator)*
+- [x] Thêm Micrometer và Prometheus metrics. *(micrometer-registry-prometheus, /actuator/prometheus, tag application)*
+- [x] Chuẩn hóa JSON log. *(prod: logging.structured.format.console=ecs — Boot 4.1 native)*
+- [x] Truyền `traceId`/`spanId` xuyên gateway và các service. *(bridge-otel + log pattern [app,traceId,spanId])*
+- [x] Bổ sung distributed tracing bằng OpenTelemetry. *(micrometer-tracing-bridge-otel + OTel SDK; exporter OTLP là bước infra sau)*
+- [ ] Thiết lập Prometheus + Grafana và hệ thống log/tracing phù hợp. *(hạ tầng — cần compose Prometheus/Grafana/collector)*
+- [ ] Tạo dashboard cho latency, throughput, error rate và saturation. *(hạ tầng — sau khi có Grafana)*
+- [ ] Tạo alert cho service down, tỷ lệ lỗi cao, circuit open và backlog notification tăng. *(hạ tầng)*
+- [ ] Giới hạn quyền truy cập các endpoint quản trị/metrics. *(code Java: permit /actuator/health trong 6 SecurityConfig, /prometheus hạn chế ADMIN — hướng dẫn)*
 
 **Definition of Done**
 
