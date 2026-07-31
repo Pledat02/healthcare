@@ -1,0 +1,173 @@
+name: healthcare-backend
+
+# =============================================================================
+#  Compose local/staging cho 6 microservice + Redis + Kafka.
+#
+#  Chay:   docker compose -f backend/compose.yaml --env-file backend/.env up -d --build
+#  Dung:   docker compose -f backend/compose.yaml down
+#
+#  DATABASE: dung Supabase (external) -> KHONG co postgres o day; moi service
+#            nhan SPRING_DATASOURCE_* rieng tu .env (xem .env.example).
+#  KEYCLOAK: chay o stack rieng (infrastructure/keycloak/compose.yaml). Service
+#            xac thuc JWT qua KEYCLOAK_ISSUER_URI trong .env (tro toi host that).
+#  SECRET:   tat ca doc tu .env (da .gitignore) - khong hardcode trong file nay.
+# =============================================================================
+
+x-service-base: &service-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  env_file:
+    - .env
+  networks:
+    - backend
+  depends_on:
+    redis:
+      condition: service_healthy
+    kafka:
+      condition: service_healthy
+
+services:
+  # ---- Dependencies -----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - backend
+
+  kafka:
+    image: apache/kafka:3.8.0
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+    networks:
+      - backend
+
+  # ---- Microservices ----------------------------------------------------------
+  api-gateway:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: api-gateway
+        APP_PORT: "8090"
+    image: healthcare/api-gateway:latest
+    ports:
+      - "8090:8090"    # diem vao duy nhat tu ben ngoai
+    depends_on:
+      patient-service:
+        condition: service_started
+      doctor-service:
+        condition: service_started
+      appointment-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      medical-record-service:
+        condition: service_started
+
+  patient-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: patient-service
+        APP_PORT: "8081"
+    image: healthcare/patient-service:latest
+    environment:
+      SPRING_DATASOURCE_URL: ${PATIENT_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${PATIENT_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${PATIENT_DB_PASSWORD}
+
+  doctor-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: doctor-service
+        APP_PORT: "8082"
+    image: healthcare/doctor-service:latest
+    environment:
+      SPRING_DATASOURCE_URL: ${DOCTOR_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DOCTOR_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DOCTOR_DB_PASSWORD}
+
+  appointment-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: appointment-service
+        APP_PORT: "8083"
+    image: healthcare/appointment-service:latest
+    environment:
+      SPRING_DATASOURCE_URL: ${APPOINTMENT_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${APPOINTMENT_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${APPOINTMENT_DB_PASSWORD}
+
+  notification-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: notification-service
+        APP_PORT: "8084"
+    image: healthcare/notification-service:latest
+    environment:
+      SPRING_DATASOURCE_URL: ${NOTIFICATION_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${NOTIFICATION_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+
+  medical-record-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: medical-record-service
+        APP_PORT: "8085"
+    image: healthcare/medical-record-service:latest
+    environment:
+      SPRING_DATASOURCE_URL: ${MEDICALRECORD_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${MEDICALRECORD_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MEDICALRECORD_DB_PASSWORD}
+
+volumes:
+  redis_data:
+  kafka_data:
+
+networks:
+  backend:

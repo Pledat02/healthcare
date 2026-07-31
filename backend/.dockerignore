@@ -1,0 +1,12 @@
+# Khong copy build output / IDE / secret vao build context (nhanh + tranh lo secret)
+**/target/
+**/*.class
+**/.idea/
+**/*.iml
+**/.vscode/
+.env
+**/.env
+**/secrets*.yaml
+**/secrets*.yml
+**/*.log
+.git/
