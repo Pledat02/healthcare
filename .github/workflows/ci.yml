@@ -75,7 +75,7 @@ jobs:
 
       # Image scan (CVE) - khong fail build o muc nay, chi bao cao.
       - name: Trivy image scan
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: healthcare/${{ matrix.service.name }}:${{ github.sha }}
           format: table
