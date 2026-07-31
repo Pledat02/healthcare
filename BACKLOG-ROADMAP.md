@@ -181,13 +181,13 @@
 
 **Công việc**
 
-- [ ] Tạo Maven parent/aggregator ở thư mục backend.
-- [ ] Gom version Spring Boot, Java, plugin và dependency dùng chung.
-- [ ] Thống nhất cách build/test toàn bộ service.
-- [ ] Xóa hoặc khôi phục có chủ đích phần phân quyền đang bị comment trong DoctorService.
-- [ ] Thống nhất chiến lược batch giữa doctor và patient.
-- [ ] Thêm `@Table(name = "patients")` cho Patient và migration tương ứng nếu cần.
-- [ ] Dọn import thừa, dead code và comment lỗi thời.
+- [x] Tạo Maven parent/aggregator ở thư mục backend. *(backend/pom.xml = parent thật, kế thừa Boot parent)*
+- [x] Gom version Spring Boot, Java, plugin và dependency dùng chung. *(properties + dependencyManagement; hết version lặp)*
+- [x] Thống nhất cách build/test toàn bộ service. *(mvn -f backend/pom.xml clean test = 1 lệnh, SUCCESS cả 6)*
+- [x] Xóa hoặc khôi phục có chủ đích phần phân quyền đang bị comment trong DoctorService. *(session trước: refactor doctor, dọn dead code)*
+- [x] Thống nhất chiến lược batch giữa doctor và patient. *(session trước: cả 2 dùng findAllById + cap 100; ADR-0002)*
+- [ ] Thêm `@Table(name = "patients")` cho Patient. *(code Java — hướng dẫn; table đã tên "patients" nên KHÔNG cần migration)*
+- [ ] Dọn import thừa, dead code và comment lỗi thời. *(code Java — hướng dẫn/rà rời)*
 - [x] Bổ sung Architecture Decision Record cho cache, batch và service-to-service auth. *(docs/adr/0001–0003)*
 
 **Definition of Done**
