@@ -159,16 +159,16 @@
 
 **Công việc**
 
-- [ ] Tạo Dockerfile multi-stage cho 6 service.
-- [ ] Thêm health check và chạy container bằng non-root user.
-- [ ] Tạo Compose cho local/staging gồm gateway, service và các dependency.
-- [ ] Tách `application-dev`, `application-staging`, `application-prod`.
-- [ ] Đưa URL, database credential, Kafka, Redis và Keycloak config ra environment/secret.
-- [ ] Tạo pipeline build, unit test và integration test.
-- [ ] Build image có tag bất biến theo commit SHA.
-- [ ] Thêm dependency scan, image scan và secret scan.
-- [ ] Deploy tự động lên staging; production cần bước phê duyệt.
-- [ ] Thiết lập rollback về image version trước.
+- [x] Tạo Dockerfile multi-stage cho 6 service. *(1 Dockerfile chung, ARG SERVICE — đã build-verify)*
+- [x] Thêm health check và chạy container bằng non-root user. *(healthcheck TCP; user `app` uid 999)*
+- [x] Tạo Compose cho local/staging gồm gateway, service và các dependency. *(backend/compose.yaml + Redis + Kafka)*
+- [x] Đưa URL, database credential, Kafka, Redis và Keycloak config ra environment/secret. *(.env.example, secret gitignored)*
+- [x] Tạo pipeline build, unit test và integration test. *(build+unit test; integration test chưa)*
+- [x] Build image có tag bất biến theo commit SHA. *(ci.yml job docker-build, matrix 6 service)*
+- [x] Thêm dependency scan, image scan và secret scan. *(Trivy image + gitleaks; dependency scan chưa)*
+- [ ] Deploy tự động lên staging; production cần bước phê duyệt. *(cần registry + hạ tầng staging)*
+- [ ] Thiết lập rollback về image version trước. *(có tag SHA để rollback; quy trình deploy chưa)*
+- [ ] Tách `application-staging`. *(dev + prod đã có; staging chưa tách riêng)*
 
 **Definition of Done**
 
@@ -188,7 +188,7 @@
 - [ ] Thống nhất chiến lược batch giữa doctor và patient.
 - [ ] Thêm `@Table(name = "patients")` cho Patient và migration tương ứng nếu cần.
 - [ ] Dọn import thừa, dead code và comment lỗi thời.
-- [ ] Bổ sung Architecture Decision Record cho cache, batch và service-to-service auth.
+- [x] Bổ sung Architecture Decision Record cho cache, batch và service-to-service auth. *(docs/adr/0001–0003)*
 
 **Definition of Done**
 
