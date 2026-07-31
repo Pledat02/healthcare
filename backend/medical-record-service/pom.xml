@@ -102,6 +102,11 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-bridge-otel</artifactId>
 		</dependency>
+			<!-- Xuat PDF ho so/don thuoc (BL quick-win) -->
+		<dependency>
+			<groupId>com.github.librepdf</groupId>
+			<artifactId>openpdf</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

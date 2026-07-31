@@ -2,13 +2,33 @@ import { useEffect, useState } from 'react'
 import api, { unwrap, apiMessage } from '@/shared/lib/api'
 import { formatDateTime } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
-import { Card, Spinner, EmptyState, PageHeader } from '@/shared/ui'
-import { FileText, Pill } from 'lucide-react'
+import { Button, Card, Spinner, EmptyState, PageHeader } from '@/shared/ui'
+import { FileText, Pill, Download } from 'lucide-react'
 
 export default function MyRecordsPage() {
   const toast = useToast()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
+  const [downloading, setDownloading] = useState(null)
+
+  async function downloadPdf(id) {
+    setDownloading(id)
+    try {
+      const res = await api.get(`/medical-records/${id}/pdf`, { responseType: 'blob' })
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ho-so-kham-${id}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      toast.error(apiMessage(e))
+    } finally {
+      setDownloading(null)
+    }
+  }
 
   useEffect(() => {
     api
@@ -31,6 +51,14 @@ export default function MyRecordsPage() {
             <Card key={r.id} className="p-5">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-sm text-muted">{formatDateTime(r.createdAt)}</span>
+                <Button
+                  variant="ghost"
+                  loading={downloading === r.id}
+                  onClick={() => downloadPdf(r.id)}
+                  title="Tải hồ sơ khám + đơn thuốc dạng PDF"
+                >
+                  <Download className="h-4 w-4" /> Tải PDF
+                </Button>
               </div>
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted">Chẩn đoán</p>

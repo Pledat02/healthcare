@@ -3,11 +3,15 @@ package com.hehe.medical_record_service.controller;
 import com.hehe.medical_record_service.dto.request.CreationMedicalRecordRequest;
 import com.hehe.medical_record_service.dto.response.ApiResponse;
 import com.hehe.medical_record_service.dto.response.MedicalRecordResponse;
+import com.hehe.medical_record_service.service.MedicalRecordPdfService;
 import com.hehe.medical_record_service.service.MedicalRecordService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +23,7 @@ import java.util.List;
 public class MedicalRecordController {
 
     MedicalRecordService medicalRecordService;
+    MedicalRecordPdfService medicalRecordPdfService;
 
     // US-10: bac si ghi ho so kham (chan doan + don thuoc)
     @PostMapping
@@ -68,5 +73,16 @@ public class MedicalRecordController {
                 .data(medicalRecordService.getOne(id))
                 .message("Lấy hồ sơ khám thành công")
                 .build();
+    }
+
+    // Tai ho so kham + don thuoc duoi dang PDF (quyen giong getOne)
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> exportPdf(@PathVariable String id) {
+        byte[] pdf = medicalRecordPdfService.export(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header("Content-Disposition",
+                        ContentDisposition.attachment().filename("ho-so-kham-" + id + ".pdf").build().toString())
+                .body(pdf);
     }
 }

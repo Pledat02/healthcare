@@ -35,6 +35,11 @@ RUN mvn -B -q -pl "${SERVICE}" clean package -DskipTests \
 FROM eclipse-temurin:21-jre-jammy AS runtime
 WORKDIR /app
 
+# Font Unicode cho medical-record xuat PDF tieng Viet (cac service khac khong dung -> vo hai).
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends fonts-dejavu-core \
+ && rm -rf /var/lib/apt/lists/*
+
 # Non-root user (bao mat: khong chay container bang root).
 RUN groupadd -r app && useradd -r -g app -d /app app
 

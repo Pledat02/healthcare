@@ -27,6 +27,8 @@ public enum ErrorCode {
     // --- BR-06: chỉ truy cập dữ liệu của mình ---
     FORBIDDEN(403, "Bạn không có quyền truy cập hồ sơ khám này"),
 
+    PDF_GENERATION_FAILED(500, "Không tạo được file PDF hồ sơ khám"),
+
     // --- Gọi service khác thất bại ---
     SERVICE_UNAVAILABLE(503, "Không kết nối được service phụ thuộc");
 
