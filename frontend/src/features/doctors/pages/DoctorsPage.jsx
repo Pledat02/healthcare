@@ -129,12 +129,21 @@ function BookingModal({ doctor, onClose, toast }) {
   const [time, setTime] = useState('')            // slot da chon "HH:MM"
   const [reason, setReason] = useState('')
   const [booked, setBooked] = useState(new Set()) // cac gio da co lich (chua huy)
+  const [leaveDates, setLeaveDates] = useState(new Set()) // cac ngay bac si nghi (YYYY-MM-DD)
   const [loadingSlots, setLoadingSlots] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   // Sinh slot 30' trong gio lam viec cua bac si (chi tinh lai khi doi bac si)
   const slots = useMemo(() => genSlots(doctor.workStartTime, doctor.workEndTime, 30), [doctor])
+
+  // Ngay nghi cua bac si (lay 1 lan) -> khoa ngay do
+  useEffect(() => {
+    api.get(`/doctors/${doctor.id}/leaves`)
+      .then((res) => setLeaveDates(new Set((unwrap(res) || []).map((l) => l.leaveDate))))
+      .catch(() => setLeaveDates(new Set()))
+  }, [doctor.id])
+  const onLeave = leaveDates.has(date)
 
   // Doi ngay -> lay cac gio da dat cua bac si de lam mo, va bo chon cu
   useEffect(() => {
@@ -186,7 +195,11 @@ function BookingModal({ doctor, onClose, toast }) {
 
         <div>
           <span className="mb-1.5 block text-sm font-medium text-text">Chọn khung giờ (mỗi buổi 30 phút)</span>
-          {loadingSlots ? (
+          {onLeave ? (
+            <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700 ring-1 ring-amber-200">
+              Bác sĩ nghỉ vào ngày này. Vui lòng chọn ngày khác.
+            </p>
+          ) : loadingSlots ? (
             <Spinner label="Đang tải khung giờ…" />
           ) : slots.length === 0 ? (
             <p className="text-sm text-muted">Bác sĩ chưa khai báo giờ làm việc hợp lệ.</p>
@@ -228,7 +241,7 @@ function BookingModal({ doctor, onClose, toast }) {
         {error && <p className="text-sm text-danger" role="alert">{error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" type="button" onClick={onClose}>Hủy</Button>
-          <Button type="submit" loading={saving} disabled={!time}>Xác nhận đặt lịch</Button>
+          <Button type="submit" loading={saving} disabled={!time || onLeave}>Xác nhận đặt lịch</Button>
         </div>
       </form>
     </Modal>

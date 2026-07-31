@@ -6,7 +6,7 @@ import {
   Button, Card, Field, Input, Textarea, Spinner, EmptyState, PageHeader, StatusBadge,
 } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
-import { CalendarCheck, User, Check, ClipboardCheck, FileText, Plus, Trash2 } from 'lucide-react'
+import { CalendarCheck, User, Check, ClipboardCheck, FileText, Plus, Trash2, CalendarOff } from 'lucide-react'
 
 export default function SchedulePage() {
   const toast = useToast()
@@ -54,6 +54,8 @@ export default function SchedulePage() {
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-auto" aria-label="Chọn ngày" />
         }
       />
+
+      <LeaveManager toast={toast} />
 
       {loading ? (
         <Spinner />
@@ -104,6 +106,107 @@ export default function SchedulePage() {
         <RecordModal appointment={recording} onClose={() => setRecording(null)} onSaved={load} toast={toast} />
       )}
     </>
+  )
+}
+
+// Bac si tu quan ly ngay nghi (ca ngay). Slot picker cua benh nhan se an cac ngay nay.
+function LeaveManager({ toast }) {
+  const [leaves, setLeaves] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [newDate, setNewDate] = useState('')
+  const [reason, setReason] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [removing, setRemoving] = useState(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      setLeaves(unwrap(await api.get('/doctors/me/leaves')) || [])
+    } catch (e) {
+      toast.error(apiMessage(e))
+    } finally {
+      setLoading(false)
+    }
+  }, []) // eslint-disable-line
+
+  useEffect(() => { load() }, [load])
+
+  async function add(e) {
+    e.preventDefault()
+    if (!newDate) return
+    setSaving(true)
+    try {
+      await api.post('/doctors/me/leaves', { leaveDate: newDate, reason })
+      toast.success('Đã đăng ký ngày nghỉ')
+      setNewDate(''); setReason('')
+      load()
+    } catch (err) {
+      toast.error(apiMessage(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function remove(id) {
+    setRemoving(id)
+    try {
+      await api.delete(`/doctors/me/leaves/${id}`)
+      toast.success('Đã xóa ngày nghỉ')
+      load()
+    } catch (err) {
+      toast.error(apiMessage(err))
+    } finally {
+      setRemoving(null)
+    }
+  }
+
+  const fmt = (ymd) => { const [y, m, d] = ymd.split('-'); return `${d}/${m}/${y}` }
+  const today = toDateInput()
+
+  return (
+    <Card className="mb-5 p-4">
+      <div className="mb-3 flex items-center gap-2 font-semibold text-text">
+        <CalendarOff className="h-4 w-4 text-primary" /> Ngày nghỉ của tôi
+      </div>
+
+      {loading ? (
+        <Spinner label="Đang tải…" />
+      ) : leaves.length === 0 ? (
+        <p className="text-sm text-muted">Chưa đăng ký ngày nghỉ nào sắp tới.</p>
+      ) : (
+        <ul className="mb-3 flex flex-wrap gap-2">
+          {leaves.map((l) => (
+            <li key={l.id} className="flex items-center gap-2 rounded-full bg-slate-100 py-1 pl-3 pr-1 text-sm">
+              <span className="font-medium text-text">{fmt(l.leaveDate)}</span>
+              {l.reason && <span className="text-muted">· {l.reason}</span>}
+              <button
+                type="button"
+                onClick={() => remove(l.id)}
+                disabled={removing === l.id}
+                className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 hover:bg-white hover:text-danger disabled:opacity-50"
+                aria-label="Xóa ngày nghỉ"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <form onSubmit={add} className="flex flex-wrap items-end gap-2">
+        <Field label="Nghỉ ngày">
+          <Input type="date" min={today} value={newDate} onChange={(e) => setNewDate(e.target.value)} className="w-auto" required />
+        </Field>
+        <div className="flex-1">
+          <Field label="Lý do (tùy chọn)">
+            <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ví dụ: nghỉ phép, đi hội thảo…" />
+          </Field>
+        </div>
+        <Button type="submit" loading={saving} disabled={!newDate}>
+          <Plus className="h-4 w-4" /> Thêm
+        </Button>
+      </form>
+    </Card>
   )
 }
 

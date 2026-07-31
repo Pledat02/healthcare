@@ -10,7 +10,12 @@ public enum ErrorCode {
 
     // US-03: tao tai khoan dang nhap cho bac si tren Keycloak
     USERNAME_ALREADY_EXISTS(409, "Tên đăng nhập đã tồn tại"),
-    KEYCLOAK_UNAVAILABLE(503, "Không kết nối được hệ thống tài khoản (Keycloak)");
+    KEYCLOAK_UNAVAILABLE(503, "Không kết nối được hệ thống tài khoản (Keycloak)"),
+
+    // Nghi phep bac si
+    LEAVE_DATE_IN_PAST(400, "Không thể đăng ký nghỉ cho ngày trong quá khứ"),
+    LEAVE_ALREADY_EXISTS(409, "Bạn đã đăng ký nghỉ cho ngày này"),
+    LEAVE_NOT_FOUND(404, "Không tìm thấy ngày nghỉ");
 
 
     private final int code;

@@ -71,6 +71,11 @@ public class AppointmentService {
             throw new AppException(ErrorCode.OUTSIDE_WORKING_HOURS);
         }
 
+        // Bac si nghi ngay do?
+        if (isDoctorOnLeave(request.getDoctorId(), appointmentTime)) {
+            throw new AppException(ErrorCode.DOCTOR_ON_LEAVE);
+        }
+
         // BR-01: chong trung lich
         if (isConflictCalendar(request.getDoctorId(), appointmentTime)) {
             throw new AppException(ErrorCode.APPOINTMENT_CONFLICT);
@@ -121,6 +126,11 @@ public class AppointmentService {
 
         if (start.isBefore(doctor.getWorkStartTime()) || end.isAfter(doctor.getWorkEndTime())) {
             throw new AppException(ErrorCode.OUTSIDE_WORKING_HOURS);
+        }
+
+        // Bac si nghi ngay do?
+        if (isDoctorOnLeave(request.getDoctorId(), appointmentTime)) {
+            throw new AppException(ErrorCode.DOCTOR_ON_LEAVE);
         }
 
         // BR-01: chong trung lich
@@ -225,6 +235,12 @@ public class AppointmentService {
 
     private boolean isConflictCalendar(String doctorId, Instant appointmentTime) {
         return appointmentRepository.isConflict(doctorId, appointmentTime, durationMinutes);
+    }
+
+    // Ngay hen (theo gio phong kham) co nam trong ngay nghi cua bac si khong
+    private boolean isDoctorOnLeave(String doctorId, Instant appointmentTime) {
+        LocalDate apptDate = appointmentTime.atZone(CLINIC_ZONE).toLocalDate();
+        return doctorClient.getLeaveDates(doctorId).contains(apptDate);
     }
     public AppointmentResponse getOne(String id){
         Appointment appointment = appointmentRepository.findById(id)

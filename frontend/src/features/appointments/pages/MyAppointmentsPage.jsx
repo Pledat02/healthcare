@@ -127,12 +127,21 @@ function RescheduleModal({ appointment, doctor, onClose, onDone, toast }) {
   const [date, setDate] = useState(curDate >= today ? curDate : today)
   const [time, setTime] = useState('')
   const [booked, setBooked] = useState(new Set())
+  const [leaveDates, setLeaveDates] = useState(new Set())
   const [loadingSlots, setLoadingSlots] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const slots = useMemo(() => genSlots(doctor.workStartTime, doctor.workEndTime, 30), [doctor])
   const curHHMM = instantToClinicHHMM(appointment.appointmentTime)
+
+  // Ngay nghi cua bac si -> khoa ngay do
+  useEffect(() => {
+    api.get(`/doctors/${doctor.id}/leaves`)
+      .then((res) => setLeaveDates(new Set((unwrap(res) || []).map((l) => l.leaveDate))))
+      .catch(() => setLeaveDates(new Set()))
+  }, [doctor.id])
+  const onLeave = leaveDates.has(date)
 
   useEffect(() => {
     setTime('')
@@ -187,7 +196,11 @@ function RescheduleModal({ appointment, doctor, onClose, onDone, toast }) {
 
         <div>
           <span className="mb-1.5 block text-sm font-medium text-text">Chọn khung giờ mới (mỗi buổi 30 phút)</span>
-          {loadingSlots ? (
+          {onLeave ? (
+            <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700 ring-1 ring-amber-200">
+              Bác sĩ nghỉ vào ngày này. Vui lòng chọn ngày khác.
+            </p>
+          ) : loadingSlots ? (
             <Spinner label="Đang tải khung giờ…" />
           ) : slots.length === 0 ? (
             <p className="text-sm text-muted">Bác sĩ chưa khai báo giờ làm việc hợp lệ.</p>
@@ -228,7 +241,7 @@ function RescheduleModal({ appointment, doctor, onClose, onDone, toast }) {
         {error && <p className="text-sm text-danger" role="alert">{error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" type="button" onClick={onClose}>Hủy</Button>
-          <Button type="submit" loading={saving} disabled={!time}>Xác nhận đổi lịch</Button>
+          <Button type="submit" loading={saving} disabled={!time || onLeave}>Xác nhận đổi lịch</Button>
         </div>
       </form>
     </Modal>

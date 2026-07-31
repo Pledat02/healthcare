@@ -21,6 +21,9 @@ public enum ErrorCode {
     // --- BR-03: phải trong giờ làm việc của bác sĩ ---
     OUTSIDE_WORKING_HOURS(400, "Giờ hẹn nằm ngoài giờ làm việc của bác sĩ"),
 
+    // --- Bác sĩ nghỉ phép ngày đó ---
+    DOCTOR_ON_LEAVE(400, "Bác sĩ nghỉ vào ngày này, vui lòng chọn ngày khác"),
+
     // --- BR-01: chống trùng lịch ---
     APPOINTMENT_CONFLICT(409, "Bác sĩ đã có lịch hẹn khác trong khung giờ này"),
 

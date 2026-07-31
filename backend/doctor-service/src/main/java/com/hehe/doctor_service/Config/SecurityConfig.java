@@ -18,6 +18,9 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // Bac si tu quan ly ngay nghi cua minh (khong phai ADMIN)
+                        .requestMatchers(HttpMethod.POST, "/api/doctors/me/leaves").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/doctors/me/leaves/**").hasRole("DOCTOR")
                         .requestMatchers(HttpMethod.GET, "/api/doctors/**").authenticated()
                         .requestMatchers("/api/doctors/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
