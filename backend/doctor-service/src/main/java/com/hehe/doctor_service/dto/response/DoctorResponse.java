@@ -17,6 +17,10 @@ import java.time.LocalTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DoctorResponse implements Serializable {   // Serializable de cache vao Redis (JDK serialization)
 
+    // Doi cau truc class -> flush cache doctor (xem ADR-0001). serialVersionUID tuong minh
+    // giup cac lan them field VE SAU tuong thich hon.
+    private static final long serialVersionUID = 2L;
+
     String id;
 
     @NotBlank(message = "Tên bác sĩ không được để trống")
@@ -36,4 +40,8 @@ public class DoctorResponse implements Serializable {   // Serializable de cache
 
     @NotNull(message = "Giờ kết thúc làm không được để trống")
     LocalTime workEndTime;
+
+    // Danh gia trung binh (null neu chua co luot nao) + so luot danh gia
+    Double avgRating;
+    Integer ratingCount;
 }

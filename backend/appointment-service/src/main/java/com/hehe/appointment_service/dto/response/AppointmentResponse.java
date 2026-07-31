@@ -22,4 +22,5 @@ public class AppointmentResponse {
     int durationMinutes;
     String reason;
     AppointmentStatus status;
+    boolean rated;   // benh nhan da danh gia lich nay chua (chi set o danh sach cua benh nhan)
 }

@@ -5,9 +5,9 @@ import {
 } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
 import { useConfirm } from '@/shared/components/Confirm'
-import { Button, Card, Field, Input, Spinner, EmptyState, PageHeader, StatusBadge } from '@/shared/ui'
+import { Button, Card, Field, Input, Textarea, Spinner, EmptyState, PageHeader, StatusBadge, StarRating } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
-import { CalendarDays, Stethoscope, XCircle, CalendarClock } from 'lucide-react'
+import { CalendarDays, Stethoscope, XCircle, CalendarClock, Star } from 'lucide-react'
 
 export default function MyAppointmentsPage() {
   const toast = useToast()
@@ -17,6 +17,7 @@ export default function MyAppointmentsPage() {
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(null)
   const [rescheduling, setRescheduling] = useState(null) // lich dang doi (appointment)
+  const [rating, setRating] = useState(null)             // lich dang danh gia (appointment)
 
   async function load() {
     setLoading(true)
@@ -101,6 +102,16 @@ export default function MyAppointmentsPage() {
                     </Button>
                   </div>
                 )}
+                {a.status === 'COMPLETED' && !a.rated && (
+                  <Button variant="ghost" className="text-amber-600" onClick={() => setRating(a)}>
+                    <Star className="h-4 w-4" /> Đánh giá
+                  </Button>
+                )}
+                {a.status === 'COMPLETED' && a.rated && (
+                  <span className="inline-flex items-center gap-1 text-xs text-muted">
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> Đã đánh giá
+                  </span>
+                )}
               </Card>
             )
           })}
@@ -116,7 +127,60 @@ export default function MyAppointmentsPage() {
           toast={toast}
         />
       )}
+
+      {rating && (
+        <RatingModal
+          appointment={rating}
+          doctor={doctors[rating.doctorId]}
+          onClose={() => setRating(null)}
+          onDone={() => { setRating(null); load() }}
+          toast={toast}
+        />
+      )}
     </>
+  )
+}
+
+function RatingModal({ appointment, doctor, onClose, onDone, toast }) {
+  const [stars, setStars] = useState(5)
+  const [comment, setComment] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function submit(e) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await api.post(`/appointments/${appointment.id}/rate`, { stars, comment })
+      toast.success('Cảm ơn bạn đã đánh giá!')
+      onDone()
+    } catch (err) {
+      toast.error(apiMessage(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Modal open onClose={onClose} title={`Đánh giá ${doctor?.fullName || 'bác sĩ'}`}>
+      <form onSubmit={submit} className="space-y-4">
+        <div className="flex flex-col items-center gap-2 py-2">
+          <StarRating value={stars} onChange={setStars} size="h-9 w-9" />
+          <span className="text-sm text-muted">{stars}/5 sao</span>
+        </div>
+        <Field label="Nhận xét (tùy chọn)">
+          <Textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            maxLength={1000}
+            placeholder="Chia sẻ trải nghiệm của bạn về buổi khám…"
+          />
+        </Field>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="secondary" type="button" onClick={onClose}>Hủy</Button>
+          <Button type="submit" loading={saving}>Gửi đánh giá</Button>
+        </div>
+      </form>
+    </Modal>
   )
 }
 

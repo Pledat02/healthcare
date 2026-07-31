@@ -6,11 +6,15 @@ import com.hehe.appointment_service.client.PatientClient;
 import com.hehe.appointment_service.dto.event.AppointmentNotificationEvent;
 import com.hehe.appointment_service.dto.event.NotificationType;
 import com.hehe.appointment_service.dto.request.CreationAppointmentRequest;
+import com.hehe.appointment_service.dto.request.RateRequest;
 import com.hehe.appointment_service.dto.request.UpdateAppointmentRequest;
 import com.hehe.appointment_service.dto.response.AppointmentResponse;
 import com.hehe.appointment_service.dto.response.DoctorDto;
 import com.hehe.appointment_service.dto.response.PatientDto;
+import com.hehe.appointment_service.dto.response.RatingResponse;
 import com.hehe.appointment_service.entity.Appointment;
+import com.hehe.appointment_service.entity.Rating;
+import com.hehe.appointment_service.repository.RatingRepository;
 import com.hehe.appointment_service.exception.AppException;
 import com.hehe.appointment_service.exception.ErrorCode;
 import com.hehe.appointment_service.mapper.AppointmentMapper;
@@ -49,6 +53,7 @@ public class AppointmentService {
     DoctorClient doctorClient;
     PatientClient patientClient;
     NotificationClient notificationClient;
+    RatingRepository ratingRepository;
     @Value("${appointment.duration-minutes}")
     @NonFinal
     int durationMinutes;
@@ -207,8 +212,69 @@ public class AppointmentService {
     // GET /api/appointments/patients/me
     public List<AppointmentResponse> getMyPatientAppointments() {
         PatientDto me = patientClient.getPatient();
-        return appointmentRepository.findByPatientId(me.getId()).stream()
-                .map(appointmentMapper::toResponse).toList();
+        List<Appointment> appts = appointmentRepository.findByPatientId(me.getId());
+        List<AppointmentResponse> list = appts.stream().map(appointmentMapper::toResponse).toList();
+        // Danh dau lich nao da danh gia -> FE an nut "Danh gia"
+        java.util.Set<String> ratedIds = ratingRepository
+                .findByAppointmentIdIn(appts.stream().map(Appointment::getId).toList())
+                .stream().map(Rating::getAppointmentId).collect(java.util.stream.Collectors.toSet());
+        list.forEach(r -> r.setRated(ratedIds.contains(r.getId())));
+        return list;
+    }
+
+    // US: benh nhan danh gia bac si sau khi lich COMPLETED
+    public void rate(String appointmentId, RateRequest request) {
+        Appointment appt = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
+
+        PatientDto me = patientClient.getPatient();
+        if (!appt.getPatientId().equals(me.getId())) {
+            throw new AppException(ErrorCode.FORBIDDEN);
+        }
+        if (appt.getStatus() != AppointmentStatus.COMPLETED) {
+            throw new AppException(ErrorCode.RATING_NOT_ALLOWED);
+        }
+        if (ratingRepository.existsByAppointmentId(appointmentId)) {
+            throw new AppException(ErrorCode.ALREADY_RATED);
+        }
+
+        Rating rating = new Rating();
+        rating.setAppointmentId(appointmentId);
+        rating.setDoctorId(appt.getDoctorId());
+        rating.setPatientId(me.getId());
+        rating.setStars(request.getStars());
+        rating.setComment(request.getComment());
+        ratingRepository.save(rating);
+
+        // Cong aggregate ben doctor-service (best-effort: rating la nguon su that, aggregate
+        // co the tinh lai neu lech). Loi bump khong lam hong viec danh gia.
+        try {
+            doctorClient.addRating(appt.getDoctorId(), request.getStars());
+        } catch (Exception e) {
+            log.warn("Khong cong duoc diem cho bac si {}: {}", appt.getDoctorId(), e.getMessage());
+        }
+    }
+
+    // GET /api/appointments/doctors/{doctorId}/ratings - danh sach nhan xet cua 1 bac si
+    public List<RatingResponse> getDoctorRatings(String doctorId) {
+        List<Rating> ratings = ratingRepository.findByDoctorIdOrderByCreatedAtDesc(doctorId);
+        if (ratings.isEmpty()) return List.of();
+        // Lam giau ten benh nhan (batch, service-account); loi lam giau -> de ten null
+        java.util.Map<String, PatientDto> byId = java.util.Map.of();
+        try {
+            List<String> ids = ratings.stream().map(Rating::getPatientId).distinct().toList();
+            byId = patientClient.getPatients(ids).stream()
+                    .collect(java.util.stream.Collectors.toMap(PatientDto::getId, p -> p, (a, b) -> a));
+        } catch (Exception e) {
+            log.warn("Khong lam giau duoc ten benh nhan cho danh gia: {}", e.getMessage());
+        }
+        final java.util.Map<String, PatientDto> names = byId;
+        return ratings.stream().map(r -> RatingResponse.builder()
+                .stars(r.getStars())
+                .comment(r.getComment())
+                .patientName(names.containsKey(r.getPatientId()) ? names.get(r.getPatientId()).getFullName() : "Bệnh nhân")
+                .createdAt(r.getCreatedAt())
+                .build()).toList();
     }
 
     // GET /api/appointments/doctors/me

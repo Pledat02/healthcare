@@ -13,6 +13,7 @@ import com.hehe.appointment_service.exception.AppException;
 import com.hehe.appointment_service.exception.ErrorCode;
 import com.hehe.appointment_service.mapper.AppointmentMapper;
 import com.hehe.appointment_service.repository.AppointmentRepository;
+import com.hehe.appointment_service.repository.RatingRepository;
 import com.hehe.appointment_service.utils.AppointmentStatus;
 import com.hehe.appointment_service.utils.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +62,7 @@ class AppointmentServiceTest {
     @Mock DoctorClient doctorClient;
     @Mock PatientClient patientClient;
     @Mock NotificationClient notificationClient;
+    @Mock RatingRepository ratingRepository;
     @InjectMocks AppointmentService service;
 
     @BeforeEach

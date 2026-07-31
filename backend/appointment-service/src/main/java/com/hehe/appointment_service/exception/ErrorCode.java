@@ -33,6 +33,10 @@ public enum ErrorCode {
     // --- BR-06: chỉ truy cập dữ liệu của mình ---
     FORBIDDEN(403, "Bạn không có quyền truy cập lịch hẹn này"),
 
+    // --- Đánh giá bác sĩ ---
+    RATING_NOT_ALLOWED(400, "Chỉ có thể đánh giá sau khi buổi khám hoàn thành"),
+    ALREADY_RATED(409, "Bạn đã đánh giá lịch hẹn này rồi"),
+
     // --- Trạng thái (mục 14 - vòng đời lịch hẹn) ---
     INVALID_STATUS_TRANSITION(400, "Chuyển trạng thái không hợp lệ"),
     APPOINTMENT_ALREADY_CANCELLED(400, "Lịch hẹn đã bị hủy trước đó"),

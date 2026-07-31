@@ -35,6 +35,15 @@ public class Doctor {
 
     String specialization;
 
+    // Danh gia: luu tong sao + so luot -> tinh trung binh. @ColumnDefault de row cu = 0.
+    @Column(nullable = false)
+    @org.hibernate.annotations.ColumnDefault("0")
+    Integer ratingSum = 0;
+
+    @Column(nullable = false)
+    @org.hibernate.annotations.ColumnDefault("0")
+    Integer ratingCount = 0;
+
     @CreationTimestamp
     Instant createdAt;
 

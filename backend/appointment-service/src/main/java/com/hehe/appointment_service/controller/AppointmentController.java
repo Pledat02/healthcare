@@ -1,11 +1,13 @@
 package com.hehe.appointment_service.controller;
 
 import com.hehe.appointment_service.dto.request.CreationAppointmentRequest;
+import com.hehe.appointment_service.dto.request.RateRequest;
 import com.hehe.appointment_service.dto.request.UpdateAppointmentRequest;
 import com.hehe.appointment_service.dto.response.ApiResponse;
 import com.hehe.appointment_service.dto.response.AppointmentResponse;
 import com.hehe.appointment_service.dto.response.AppointmentStatisticsResponse;
 import com.hehe.appointment_service.dto.response.PageResponse;
+import com.hehe.appointment_service.dto.response.RatingResponse;
 import com.hehe.appointment_service.service.AppointmentService;
 import com.hehe.appointment_service.service.AppointmentStatisticsService;
 import com.hehe.appointment_service.utils.AppointmentStatus;
@@ -77,6 +79,26 @@ public class AppointmentController {
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Đánh dấu hoàn thành lịch hẹn thành công")
+                .build();
+    }
+
+    // Benh nhan danh gia bac si (sau khi lich COMPLETED)
+    @PostMapping("/{id}/rate")
+    public ApiResponse<Void> rate(@PathVariable String id, @Valid @RequestBody RateRequest request) {
+        appointmentService.rate(id, request);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Cảm ơn bạn đã đánh giá")
+                .build();
+    }
+
+    // Danh sach nhan xet cua 1 bac si (ai da dang nhap cung xem duoc)
+    @GetMapping("/doctors/{doctorId}/ratings")
+    public ApiResponse<List<RatingResponse>> getDoctorRatings(@PathVariable String doctorId) {
+        return ApiResponse.<List<RatingResponse>>builder()
+                .code(200)
+                .data(appointmentService.getDoctorRatings(doctorId))
+                .message("Lấy danh sách đánh giá thành công")
                 .build();
     }
 

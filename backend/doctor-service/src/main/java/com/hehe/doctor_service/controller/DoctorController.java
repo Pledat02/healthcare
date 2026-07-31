@@ -1,6 +1,7 @@
 package com.hehe.doctor_service.controller;
 
 import com.hehe.doctor_service.dto.request.CreationDoctorRequest;
+import com.hehe.doctor_service.dto.request.RatingBumpRequest;
 import com.hehe.doctor_service.dto.request.UpdateDoctorRequest;
 import com.hehe.doctor_service.dto.response.ApiResponse;
 import com.hehe.doctor_service.dto.response.DoctorResponse;
@@ -102,6 +103,17 @@ public class DoctorController {
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Xóa bác sĩ thành công")
+                .build();
+    }
+
+    // Noi bo: cong 1 luot danh gia (appointment-service goi bang service-account, gated ADMIN).
+    @PostMapping("/{id}/ratings")
+    public ApiResponse<Void> addRating(@PathVariable String id,
+                                       @Valid @RequestBody RatingBumpRequest request){
+        doctorService.addRating(id, request.getStars());
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Đã ghi nhận đánh giá")
                 .build();
     }
 }

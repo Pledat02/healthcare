@@ -3,7 +3,7 @@ import api, { unwrap, apiMessage } from '@/shared/lib/api'
 import { formatWorkTime, todayInClinic, clinicDateTimeToIso, instantToClinicHHMM } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
 import {
-  Button, Card, Field, Input, Select, Textarea, Spinner, EmptyState, PageHeader,
+  Button, Card, Field, Input, Select, Textarea, Spinner, EmptyState, PageHeader, StarRating,
 } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
 import { Stethoscope, Clock, Search, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -92,6 +92,13 @@ export default function DoctorsPage() {
                 <div className="mt-4 flex items-center gap-1.5 text-sm text-muted">
                   <Clock className="h-4 w-4" />
                   {formatWorkTime(d.workStartTime)} – {formatWorkTime(d.workEndTime)}
+                </div>
+                <div className="mt-2 min-h-[20px]">
+                  {d.ratingCount > 0 ? (
+                    <StarRating value={d.avgRating || 0} count={d.ratingCount} showNumber />
+                  ) : (
+                    <span className="text-xs text-muted">Chưa có đánh giá</span>
+                  )}
                 </div>
                 <Button className="mt-4 w-full" onClick={() => setBooking(d)}>
                   Đặt lịch

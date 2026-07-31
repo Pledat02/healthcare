@@ -101,6 +101,22 @@ public class DoctorService {
                 new AppException(ErrorCode.DOCTOR_NOT_FOUND)));
     }
 
+    // Cong them 1 luot danh gia (goi tu appointment-service bang token service-account).
+    // Evict cache de danh sach/chi tiet bac si hien diem moi.
+    @Caching(evict = {
+            @CacheEvict(value = "doctor", key = "#doctorId"),
+            @CacheEvict(value = "doctors", allEntries = true)
+    })
+    public void addRating(String doctorId, int stars) {
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new AppException(ErrorCode.DOCTOR_NOT_FOUND));
+        int sum = doctor.getRatingSum() == null ? 0 : doctor.getRatingSum();
+        int count = doctor.getRatingCount() == null ? 0 : doctor.getRatingCount();
+        doctor.setRatingSum(sum + stars);
+        doctor.setRatingCount(count + 1);
+        doctorRepository.save(doctor);
+    }
+
     @Caching(evict = {
             @CacheEvict(value = "doctor", key = "#id"),
             @CacheEvict(value = "doctors", allEntries = true)

@@ -9,6 +9,7 @@ import com.hehe.appointment_service.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -23,6 +24,7 @@ import java.util.List;
 public class DoctorClient {
 
     private final RestClient doctorRestClient;
+    private final InternalTokenClient internalTokenClient;
 
     public DoctorDto getDoctor(String doctorId) {
         ApiResponse<DoctorDto> res = doctorRestClient.get()
@@ -59,5 +61,16 @@ public class DoctorClient {
 
         if (res == null || res.getData() == null) return List.of();
         return res.getData().stream().map(DoctorLeaveDto::getLeaveDate).toList();
+    }
+
+    // Cong 1 luot danh gia vao bac si - goi endpoint noi bo (gated ADMIN) bang service-account.
+    public void addRating(String doctorId, int stars) {
+        doctorRestClient.post()
+                .uri("/api/doctors/{id}/ratings", doctorId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + internalTokenClient.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(java.util.Map.of("stars", stars))
+                .retrieve()
+                .toBodilessEntity();
     }
 }
