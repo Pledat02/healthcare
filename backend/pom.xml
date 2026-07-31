@@ -5,28 +5,34 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!--
-      POM AGGREGATOR (reactor) cho toan bo backend healthcare.
-      Muc dich: build/test CA CUM bang 1 lenh, va IntelliJ import 1 project duy nhat
-      (khac voi truoc: 6 project Maven roi, moi lan di chuyen thu muc lai vo IntelliJ).
+      PARENT + AGGREGATOR cho toan bo backend healthcare.
 
-      Vi day chi la aggregator, moi service VAN giu spring-boot-starter-parent rieng
-      -> khong doi cach build cua tung service, rui ro thap.
+      - Ke thua spring-boot-starter-parent (BOM + plugin management cua Spring Boot).
+      - Gom version dung chung (java, mapstruct, springdoc, lombok-mapstruct-binding)
+        vao <properties> + <dependencyManagement> -> 6 service KHONG khai bao lap version nua.
+      - Van la aggregator (<modules>) nen build/test ca cum bang 1 lenh.
 
       Dung:
-        mvn -f backend/pom.xml clean install     # build tat ca
-        mvn -f backend/pom.xml test               # chay test tat ca
+        mvn -f backend/pom.xml clean install            # build tat ca
+        mvn -f backend/pom.xml test                      # test tat ca
         mvn -f backend/pom.xml -pl doctor-service test   # chi 1 module
 
-      (Buoc nang cap tiep theo neu muon go version lap: bien pom nay thanh PARENT that
-       - moi service doi <parent> tro vao day + gom version mapstruct/springdoc/... vao
-       dependencyManagement. Day la refactor lon hon, nen lam rieng co kiem thu ky.)
+      Moi service dat <parent> tro vao day (relativePath ../pom.xml) va bo <version>
+      cho cac dependency da quan ly o duoi.
     -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.0</version>
+        <relativePath/>
+    </parent>
+
     <groupId>com.hehe</groupId>
     <artifactId>healthcare-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>healthcare-backend</name>
-    <description>Aggregator build cho toan bo microservice healthcare</description>
+    <description>Parent + aggregator cho toan bo microservice healthcare</description>
 
     <modules>
         <module>api-gateway</module>
@@ -36,4 +42,38 @@
         <module>medical-record-service</module>
         <module>notification-service</module>
     </modules>
+
+    <!-- Version dung chung: sua 1 cho, ap dung moi service -->
+    <properties>
+        <java.version>21</java.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <springdoc.version>3.0.3</springdoc.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+    </properties>
+
+    <!-- Quan version cho cac dependency KHONG nam trong BOM cua Spring Boot -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-mapstruct-binding</artifactId>
+                <version>${lombok-mapstruct-binding.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
