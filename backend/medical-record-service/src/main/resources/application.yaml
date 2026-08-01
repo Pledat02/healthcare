@@ -47,6 +47,9 @@ logging:
     # Hibernate 7 (Spring Boot 4.1) doi namespace logger -> org.hibernate.orm.*
     org.hibernate.orm.stat: DEBUG      # in dong "Session Metrics { ... N JDBC statements }"
     org.hibernate.orm.jdbc.bind: TRACE # in gia tri thuc cua cac dau ? trong SQL
+  # traceId/spanId vao moi dong log -> tra cuu 1 request xuyen nhieu service
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
 # ----- BL-07 Observability (Actuator + Prometheus + distributed tracing) -----
 management:
@@ -69,11 +72,6 @@ management:
   tracing:
     sampling:
       probability: ${TRACING_SAMPLING:1.0}   # dev 1.0; prod ha thap qua env
-
-# traceId/spanId vao moi dong log -> tra cuu 1 request xuyen nhieu service
-logging:
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
 ---
 # PROD: log JSON (ECS) cho log aggregator (Boot 4.1 structured logging native)
