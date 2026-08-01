@@ -6,6 +6,7 @@ import keycloak from '@/auth/keycloak'
 import { AuthProvider } from '@/auth/AuthContext'
 import { ThemeProvider } from '@/shared/theme/ThemeProvider'
 import { I18nProvider } from '@/shared/i18n/I18nProvider'
+import ErrorBoundary from './ErrorBoundary.jsx'
 import App from './App.jsx'
 
 // Khoi tao Keycloak truoc khi render (check-sso: khong ep dang nhap ngay)
@@ -20,11 +21,13 @@ keycloak
       <StrictMode>
         <ThemeProvider>
           <I18nProvider>
-            <BrowserRouter>
-              <AuthProvider>
-                <App />
-              </AuthProvider>
-            </BrowserRouter>
+            <ErrorBoundary>
+              <BrowserRouter>
+                <AuthProvider>
+                  <App />
+                </AuthProvider>
+              </BrowserRouter>
+            </ErrorBoundary>
           </I18nProvider>
         </ThemeProvider>
       </StrictMode>,
