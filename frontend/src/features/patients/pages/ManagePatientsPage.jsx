@@ -30,10 +30,13 @@ export default function ManagePatientsPage() {
     try {
       const [patientRes, appointmentRes] = await Promise.all([
         api.get('/patients'),
-        api.get('/appointments'),
+        // /appointments tra ve PageResponse (phan trang) -> lay .content. size 100 de
+        // tinh hoat dong kham (gioi han: >100 lich thi thong ke chua day du - can aggregate BE).
+        api.get('/appointments', { params: { size: 100 } }),
       ])
       setPatients(unwrap(patientRes) || [])
-      setAppointments(unwrap(appointmentRes) || [])
+      const appts = unwrap(appointmentRes)
+      setAppointments(Array.isArray(appts) ? appts : (appts?.content || []))
     } catch (e) {
       toast.error(apiMessage(e))
     } finally {
