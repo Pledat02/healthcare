@@ -4,6 +4,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { PatientProfileProvider, usePatientProfile } from '@/auth/PatientProfile'
 import { ToastProvider, useToast } from '@/shared/components/Toast'
 import { ConfirmProvider } from '@/shared/components/Confirm'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import { Spinner } from '@/shared/ui'
 import AppShell from '@/shared/components/AppShell'
 import LoginPage from '@/auth/LoginPage'
@@ -44,9 +45,10 @@ function RequireRole({ role, children }) {
 function RequirePatientProfile({ children }) {
   const { loading, hasProfile } = usePatientProfile()
   const toast = useToast()
+  const { t } = useI18n()
   useEffect(() => {
     if (!loading && !hasProfile) {
-      toast.info('Vui lòng hoàn thiện hồ sơ trước khi đặt lịch')
+      toast.info(t('app.completeProfile'))
     }
   }, [loading, hasProfile]) // eslint-disable-line
   if (loading) return <Spinner />

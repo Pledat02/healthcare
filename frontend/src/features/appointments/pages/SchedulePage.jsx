@@ -23,7 +23,6 @@ export default function SchedulePage() {
     try {
       const res = await api.get('/appointments/doctors/me', { params: { date } })
       const list = (unwrap(res) || []).slice().sort((a, b) => new Date(a.appointmentTime) - new Date(b.appointmentTime))
-      // Ten/SDT benh nhan da duoc appointment-service lam giau san (khong goi /patients/batch nua)
       setItems(list)
     } catch (e) {
       toast.error(apiMessage(e))
@@ -53,7 +52,7 @@ export default function SchedulePage() {
         title={t('page.scheduleTitle')}
         subtitle={t('page.scheduleSubtitle')}
         action={
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-auto" aria-label="Chọn ngày" />
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-auto" aria-label={t('schedule.pickDate')} />
         }
       />
 
@@ -62,7 +61,7 @@ export default function SchedulePage() {
       {loading ? (
         <Spinner />
       ) : items.length === 0 ? (
-        <EmptyState icon={CalendarCheck} title="Không có lịch hẹn" subtitle="Chọn ngày khác để xem lịch khám" />
+        <EmptyState icon={CalendarCheck} title={t('schedule.empty')} subtitle={t('schedule.emptySub')} />
       ) : (
         <div className="space-y-3">
           {items.map((a) => {
@@ -74,7 +73,7 @@ export default function SchedulePage() {
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1.5 font-semibold text-text">
                     <User className="h-4 w-4 text-muted" />
-                    {a.patientName || 'Bệnh nhân'}
+                    {a.patientName || t('schedule.patientFallback')}
                   </p>
                   <p className="text-sm text-muted">
                     {a.patientPhone} {a.reason && `· ${a.reason}`}
@@ -83,18 +82,18 @@ export default function SchedulePage() {
                 <StatusBadge status={a.status} />
                 <div className="flex gap-2">
                   {a.status === 'PENDING' && (
-                    <Button loading={acting === a.id + 'confirm'} onClick={() => act(a.id, 'confirm', 'Đã xác nhận lịch')}>
-                      <Check className="h-4 w-4" /> Xác nhận
+                    <Button loading={acting === a.id + 'confirm'} onClick={() => act(a.id, 'confirm', t('schedule.confirmed'))}>
+                      <Check className="h-4 w-4" /> {t('schedule.confirm')}
                     </Button>
                   )}
                   {a.status === 'CONFIRMED' && (
-                    <Button loading={acting === a.id + 'complete'} onClick={() => act(a.id, 'complete', 'Đã hoàn thành buổi khám')}>
-                      <ClipboardCheck className="h-4 w-4" /> Hoàn thành
+                    <Button loading={acting === a.id + 'complete'} onClick={() => act(a.id, 'complete', t('schedule.completed'))}>
+                      <ClipboardCheck className="h-4 w-4" /> {t('schedule.complete')}
                     </Button>
                   )}
                   {a.status === 'COMPLETED' && (
                     <Button variant="secondary" onClick={() => setRecording(a)}>
-                      <FileText className="h-4 w-4" /> Ghi hồ sơ
+                      <FileText className="h-4 w-4" /> {t('schedule.writeRecord')}
                     </Button>
                   )}
                 </div>
@@ -113,6 +112,7 @@ export default function SchedulePage() {
 
 // Bac si tu quan ly ngay nghi (ca ngay). Slot picker cua benh nhan se an cac ngay nay.
 function LeaveManager({ toast }) {
+  const { t } = useI18n()
   const [leaves, setLeaves] = useState([])
   const [loading, setLoading] = useState(true)
   const [newDate, setNewDate] = useState('')
@@ -139,7 +139,7 @@ function LeaveManager({ toast }) {
     setSaving(true)
     try {
       await api.post('/doctors/me/leaves', { leaveDate: newDate, reason })
-      toast.success('Đã đăng ký ngày nghỉ')
+      toast.success(t('leave.added'))
       setNewDate(''); setReason('')
       load()
     } catch (err) {
@@ -153,7 +153,7 @@ function LeaveManager({ toast }) {
     setRemoving(id)
     try {
       await api.delete(`/doctors/me/leaves/${id}`)
-      toast.success('Đã xóa ngày nghỉ')
+      toast.success(t('leave.removed'))
       load()
     } catch (err) {
       toast.error(apiMessage(err))
@@ -168,13 +168,13 @@ function LeaveManager({ toast }) {
   return (
     <Card className="mb-5 p-4">
       <div className="mb-3 flex items-center gap-2 font-semibold text-text">
-        <CalendarOff className="h-4 w-4 text-primary" /> Ngày nghỉ của tôi
+        <CalendarOff className="h-4 w-4 text-primary" /> {t('leave.title')}
       </div>
 
       {loading ? (
-        <Spinner label="Đang tải…" />
+        <Spinner label={t('common.loading')} />
       ) : leaves.length === 0 ? (
-        <p className="text-sm text-muted">Chưa đăng ký ngày nghỉ nào sắp tới.</p>
+        <p className="text-sm text-muted">{t('leave.none')}</p>
       ) : (
         <ul className="mb-3 flex flex-wrap gap-2">
           {leaves.map((l) => (
@@ -186,7 +186,7 @@ function LeaveManager({ toast }) {
                 onClick={() => remove(l.id)}
                 disabled={removing === l.id}
                 className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 hover:bg-white hover:text-danger disabled:opacity-50"
-                aria-label="Xóa ngày nghỉ"
+                aria-label={t('leave.removeAria')}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -196,16 +196,16 @@ function LeaveManager({ toast }) {
       )}
 
       <form onSubmit={add} className="flex flex-wrap items-end gap-2">
-        <Field label="Nghỉ ngày">
+        <Field label={t('leave.dateLabel')}>
           <Input type="date" min={today} value={newDate} onChange={(e) => setNewDate(e.target.value)} className="w-auto" required />
         </Field>
         <div className="flex-1">
-          <Field label="Lý do (tùy chọn)">
-            <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ví dụ: nghỉ phép, đi hội thảo…" />
+          <Field label={t('leave.reasonLabel')}>
+            <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('leave.reasonPlaceholder')} />
           </Field>
         </div>
         <Button type="submit" loading={saving} disabled={!newDate}>
-          <Plus className="h-4 w-4" /> Thêm
+          <Plus className="h-4 w-4" /> {t('leave.add')}
         </Button>
       </form>
     </Card>
@@ -213,6 +213,7 @@ function LeaveManager({ toast }) {
 }
 
 function RecordModal({ appointment, onClose, onSaved, toast }) {
+  const { t } = useI18n()
   const [diagnosis, setDiagnosis] = useState('')
   const [notes, setNotes] = useState('')
   const [items, setItems] = useState([{ medicineName: '', dosage: '', quantity: 1, instruction: '' }])
@@ -233,7 +234,7 @@ function RecordModal({ appointment, onClose, onSaved, toast }) {
         notes,
         prescriptionItems: items.filter((it) => it.medicineName.trim()),
       })
-      toast.success('Đã lưu hồ sơ khám')
+      toast.success(t('record.saved'))
       onClose()
       onSaved()
     } catch (err) {
@@ -244,29 +245,29 @@ function RecordModal({ appointment, onClose, onSaved, toast }) {
   }
 
   return (
-    <Modal open onClose={onClose} title="Ghi hồ sơ khám">
+    <Modal open onClose={onClose} title={t('record.title')}>
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Chẩn đoán" required>
-          <Textarea value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)} required placeholder="Kết luận chẩn đoán…" />
+        <Field label={t('record.diagnosis')} required>
+          <Textarea value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)} required placeholder={t('record.diagnosisPlaceholder')} />
         </Field>
-        <Field label="Ghi chú">
-          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Dặn dò, lời khuyên…" />
+        <Field label={t('record.notes')}>
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('record.notesPlaceholder')} />
         </Field>
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-text">Đơn thuốc</span>
+            <span className="text-sm font-medium text-text">{t('record.prescription')}</span>
             <Button type="button" variant="ghost" onClick={addItem} className="text-primary">
-              <Plus className="h-4 w-4" /> Thêm thuốc
+              <Plus className="h-4 w-4" /> {t('record.addMedicine')}
             </Button>
           </div>
           <div className="space-y-2">
             {items.map((it, i) => (
               <div key={i} className="grid grid-cols-12 gap-2">
-                <Input className="col-span-4" placeholder="Tên thuốc" value={it.medicineName} onChange={setItem(i, 'medicineName')} />
-                <Input className="col-span-3" placeholder="Liều" value={it.dosage} onChange={setItem(i, 'dosage')} />
-                <Input className="col-span-2" type="number" min="1" value={it.quantity} onChange={setItem(i, 'quantity')} aria-label="Số lượng" />
-                <Input className="col-span-2" placeholder="Cách dùng" value={it.instruction} onChange={setItem(i, 'instruction')} />
-                <button type="button" onClick={() => removeItem(i)} className="col-span-1 flex items-center justify-center text-slate-400 hover:text-danger" aria-label="Xóa">
+                <Input className="col-span-4" placeholder={t('record.medicineName')} value={it.medicineName} onChange={setItem(i, 'medicineName')} />
+                <Input className="col-span-3" placeholder={t('record.dose')} value={it.dosage} onChange={setItem(i, 'dosage')} />
+                <Input className="col-span-2" type="number" min="1" value={it.quantity} onChange={setItem(i, 'quantity')} aria-label={t('record.qtyAria')} />
+                <Input className="col-span-2" placeholder={t('record.usage')} value={it.instruction} onChange={setItem(i, 'instruction')} />
+                <button type="button" onClick={() => removeItem(i)} className="col-span-1 flex items-center justify-center text-slate-400 hover:text-danger" aria-label={t('record.removeAria')}>
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -274,8 +275,8 @@ function RecordModal({ appointment, onClose, onSaved, toast }) {
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
-          <Button variant="secondary" type="button" onClick={onClose}>Hủy</Button>
-          <Button type="submit" loading={saving}>Lưu hồ sơ</Button>
+          <Button variant="secondary" type="button" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" loading={saving}>{t('record.save')}</Button>
         </div>
       </form>
     </Modal>

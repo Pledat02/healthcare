@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 
 export default function Modal({ open, onClose, title, children }) {
+  const { t } = useI18n()
   useEffect(() => {
     if (!open) return
     const onKey = (e) => e.key === 'Escape' && onClose()
@@ -31,7 +33,7 @@ export default function Modal({ open, onClose, title, children }) {
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600"
-            aria-label="Đóng"
+            aria-label={t('common.close')}
           >
             <X className="h-5 w-5" />
           </button>

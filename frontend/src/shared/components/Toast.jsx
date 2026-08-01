@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback } from 'react'
 import { CheckCircle2, XCircle, Info, X } from 'lucide-react'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 
 const ToastContext = createContext(null)
 
@@ -10,6 +11,7 @@ const ICONS = {
 }
 
 export function ToastProvider({ children }) {
+  const { t } = useI18n()
   const [toasts, setToasts] = useState([])
 
   const dismiss = useCallback((id) => {
@@ -51,7 +53,7 @@ export function ToastProvider({ children }) {
               <button
                 onClick={() => dismiss(t.id)}
                 className="text-slate-400 hover:text-slate-600"
-                aria-label="Đóng"
+                aria-label={t('common.close')}
               >
                 <X className="h-4 w-4" />
               </button>

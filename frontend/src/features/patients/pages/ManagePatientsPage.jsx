@@ -7,11 +7,7 @@ import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } f
 import Modal from '@/shared/components/Modal'
 import { CalendarCheck, Pencil, Search, Trash2, UsersRound } from 'lucide-react'
 
-const GENDERS = {
-  MALE: 'Nam',
-  FEMALE: 'Nữ',
-  OTHER: 'Khác',
-}
+const GENDER_VALUES = ['MALE', 'FEMALE', 'OTHER']
 
 function shortDate(value) {
   if (!value) return '—'
@@ -75,18 +71,18 @@ export default function ManagePatientsPage() {
   async function remove(patient) {
     const count = activity[patient.id]?.total || 0
     const ok = await confirm({
-      title: 'Xóa hồ sơ bệnh nhân',
+      title: t('managePatients.deleteTitle'),
       message: count
-        ? `${patient.fullName} có ${count} lịch hẹn. Hồ sơ bệnh nhân sẽ bị xóa, còn dữ liệu lịch hẹn lịch sử vẫn được giữ lại.`
-        : `Xóa hồ sơ của ${patient.fullName} khỏi hệ thống?`,
-      confirmText: 'Xóa hồ sơ',
+        ? t('managePatients.deleteMsgWithAppts', { name: patient.fullName, count })
+        : t('managePatients.deleteMsgNoAppts', { name: patient.fullName }),
+      confirmText: t('managePatients.deleteConfirm'),
       danger: true,
     })
     if (!ok) return
     try {
       await api.delete(`/patients/${patient.id}`)
       setPatients((items) => items.filter((item) => item.id !== patient.id))
-      toast.success('Đã xóa hồ sơ bệnh nhân')
+      toast.success(t('managePatients.deleted'))
     } catch (e) {
       toast.error(apiMessage(e))
     }
@@ -96,7 +92,7 @@ export default function ManagePatientsPage() {
     <>
       <PageHeader
         title={t('page.managePatientsTitle')}
-        subtitle={`${patients.length} hồ sơ bệnh nhân · Xem hoạt động và cập nhật thông tin liên hệ`}
+        subtitle={t('managePatients.subtitle', { count: patients.length })}
       />
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row">
@@ -106,21 +102,21 @@ export default function ManagePatientsPage() {
             className="pl-9"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm theo tên, SĐT, email hoặc địa chỉ…"
-            aria-label="Tìm bệnh nhân"
+            placeholder={t('managePatients.searchPlaceholder')}
+            aria-label={t('managePatients.searchAria')}
           />
         </div>
-        <Select value={gender} onChange={(e) => setGender(e.target.value)} className="sm:w-44" aria-label="Lọc giới tính">
-          <option value="">Mọi giới tính</option>
-          {Object.entries(GENDERS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        <Select value={gender} onChange={(e) => setGender(e.target.value)} className="sm:w-44" aria-label={t('managePatients.genderAria')}>
+          <option value="">{t('managePatients.allGenders')}</option>
+          {GENDER_VALUES.map((v) => <option key={v} value={v}>{t(`gender.${v}`)}</option>)}
         </Select>
       </div>
 
       {loading ? <Spinner /> : filtered.length === 0 ? (
         <EmptyState
           icon={UsersRound}
-          title={patients.length ? 'Không tìm thấy bệnh nhân' : 'Chưa có bệnh nhân'}
-          subtitle={patients.length ? 'Thử thay đổi từ khóa hoặc bộ lọc' : 'Hồ sơ sẽ xuất hiện khi bệnh nhân hoàn tất đăng ký'}
+          title={patients.length ? t('managePatients.notFound') : t('managePatients.none')}
+          subtitle={patients.length ? t('managePatients.tryOther') : t('managePatients.noneSub')}
         />
       ) : (
         <Card className="overflow-hidden">
@@ -128,11 +124,11 @@ export default function ManagePatientsPage() {
             <table className="w-full text-sm">
               <thead className="border-b border-border bg-slate-50 text-left text-xs text-muted">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Bệnh nhân</th>
-                  <th className="px-4 py-3 font-medium">Thông tin cá nhân</th>
-                  <th className="px-4 py-3 font-medium">Liên hệ</th>
-                  <th className="px-4 py-3 font-medium">Hoạt động khám</th>
-                  <th className="px-4 py-3 text-right font-medium">Thao tác</th>
+                  <th className="px-4 py-3 font-medium">{t('common.patient')}</th>
+                  <th className="px-4 py-3 font-medium">{t('managePatients.colPersonal')}</th>
+                  <th className="px-4 py-3 font-medium">{t('managePatients.colContact')}</th>
+                  <th className="px-4 py-3 font-medium">{t('managePatients.colActivity')}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t('managePatients.colActions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -149,23 +145,23 @@ export default function ManagePatientsPage() {
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-muted">
-                        <span>{GENDERS[patient.gender] || '—'}</span>
-                        <span className="block text-xs text-slate-400">Sinh {shortDate(patient.dateOfBirth)}</span>
+                        <span>{patient.gender ? t(`gender.${patient.gender}`) : '—'}</span>
+                        <span className="block text-xs text-slate-400">{t('managePatients.born', { date: shortDate(patient.dateOfBirth) })}</span>
                       </td>
                       <td className="px-4 py-3 text-muted">
                         <span className="block">{patient.phone || '—'}</span>
-                        <span className="block max-w-[15rem] truncate text-xs text-slate-400">{patient.email || patient.address || 'Chưa có thông tin khác'}</span>
+                        <span className="block max-w-[15rem] truncate text-xs text-slate-400">{patient.email || patient.address || t('managePatients.noOtherInfo')}</span>
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-muted">
-                        <span className="inline-flex items-center gap-1 font-medium text-text"><CalendarCheck className="h-4 w-4 text-primary" /> {stats.completed} lần đã khám</span>
-                        <span className="block text-xs text-slate-400">{stats.total} lịch hẹn · Gần nhất {shortDate(stats.lastVisit)}</span>
+                        <span className="inline-flex items-center gap-1 font-medium text-text"><CalendarCheck className="h-4 w-4 text-primary" /> {t('managePatients.visitsCompleted', { n: stats.completed })}</span>
+                        <span className="block text-xs text-slate-400">{t('managePatients.apptSummary', { total: stats.total, last: shortDate(stats.lastVisit) })}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-1">
-                          <button onClick={() => setEditing(patient)} className="rounded-lg p-2 text-slate-400 hover:bg-primary-soft hover:text-primary" aria-label={`Sửa ${patient.fullName}`}>
+                          <button onClick={() => setEditing(patient)} className="rounded-lg p-2 text-slate-400 hover:bg-primary-soft hover:text-primary" aria-label={t('managePatients.editAria', { name: patient.fullName })}>
                             <Pencil className="h-4 w-4" />
                           </button>
-                          <button onClick={() => remove(patient)} className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-danger" aria-label={`Xóa ${patient.fullName}`}>
+                          <button onClick={() => remove(patient)} className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-danger" aria-label={t('managePatients.deleteAria', { name: patient.fullName })}>
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
@@ -185,6 +181,7 @@ export default function ManagePatientsPage() {
 }
 
 function EditPatientModal({ patient, onClose, onSaved, toast }) {
+  const { t } = useI18n()
   const [form, setForm] = useState({
     fullName: patient.fullName || '',
     phone: patient.phone || '',
@@ -205,7 +202,7 @@ function EditPatientModal({ patient, onClose, onSaved, toast }) {
         ...form,
         dateOfBirth: form.dateOfBirth || null,
       })
-      toast.success('Đã cập nhật hồ sơ bệnh nhân')
+      toast.success(t('managePatients.updated'))
       onClose()
       onSaved()
     } catch (err) {
@@ -216,31 +213,31 @@ function EditPatientModal({ patient, onClose, onSaved, toast }) {
   }
 
   return (
-    <Modal open onClose={onClose} title="Chỉnh sửa bệnh nhân">
+    <Modal open onClose={onClose} title={t('managePatients.editTitle')}>
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-        <Field label="Họ và tên" required>
+        <Field label={t('managePatients.fullName')} required>
           <Input value={form.fullName} onChange={set('fullName')} required />
         </Field>
-        <Field label="Số điện thoại" required hint="10 số, bắt đầu bằng 0">
+        <Field label={t('managePatients.phone')} required hint={t('managePatients.phoneHint')}>
           <Input value={form.phone} onChange={set('phone')} required pattern="0[0-9]{9}" inputMode="tel" />
         </Field>
-        <Field label="Ngày sinh">
+        <Field label={t('managePatients.dob')}>
           <Input type="date" max={yesterday} value={form.dateOfBirth} onChange={set('dateOfBirth')} />
         </Field>
-        <Field label="Giới tính" required>
+        <Field label={t('managePatients.gender')} required>
           <Select value={form.gender} onChange={set('gender')} required>
-            {Object.entries(GENDERS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            {GENDER_VALUES.map((v) => <option key={v} value={v}>{t(`gender.${v}`)}</option>)}
           </Select>
         </Field>
         <Field label="Email" required>
           <Input type="email" value={form.email} onChange={set('email')} required />
         </Field>
-        <Field label="Địa chỉ">
+        <Field label={t('managePatients.address')}>
           <Input value={form.address} onChange={set('address')} />
         </Field>
         <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
-          <Button variant="secondary" type="button" onClick={onClose}>Hủy</Button>
-          <Button type="submit" loading={saving}>Lưu thay đổi</Button>
+          <Button variant="secondary" type="button" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" loading={saving}>{t('managePatients.saveChanges')}</Button>
         </div>
       </form>
     </Modal>

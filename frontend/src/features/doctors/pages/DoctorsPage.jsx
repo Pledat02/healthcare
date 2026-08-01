@@ -34,7 +34,7 @@ export default function DoctorsPage() {
 
   // Tai trang hien tai tu server (debounce 250ms cho o tim kiem)
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setLoading(true)
       api
         .get('/doctors', { params: { page, size: PAGE_SIZE, specialization: spec || undefined, q: q || undefined } })
@@ -47,7 +47,7 @@ export default function DoctorsPage() {
         .catch((e) => toast.error(apiMessage(e)))
         .finally(() => setLoading(false))
     }, 250)
-    return () => clearTimeout(t)
+    return () => clearTimeout(timer)
   }, [page, spec, q]) // eslint-disable-line
 
   return (
@@ -59,14 +59,14 @@ export default function DoctorsPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             className="pl-9"
-            placeholder="Tìm theo tên bác sĩ…"
+            placeholder={t('doctors.searchPlaceholder')}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            aria-label="Tìm bác sĩ"
+            aria-label={t('doctors.searchAria')}
           />
         </div>
-        <Select value={spec} onChange={(e) => setSpec(e.target.value)} className="sm:w-56" aria-label="Chuyên khoa">
-          <option value="">Tất cả chuyên khoa</option>
+        <Select value={spec} onChange={(e) => setSpec(e.target.value)} className="sm:w-56" aria-label={t('doctors.specialtyAria')}>
+          <option value="">{t('doctors.allSpecialties')}</option>
           {specializations.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
@@ -76,7 +76,7 @@ export default function DoctorsPage() {
       {loading ? (
         <Spinner />
       ) : doctors.length === 0 ? (
-        <EmptyState icon={Stethoscope} title="Không tìm thấy bác sĩ" subtitle="Thử đổi bộ lọc hoặc từ khóa khác" />
+        <EmptyState icon={Stethoscope} title={t('doctors.notFound')} subtitle={t('doctors.notFoundSub')} />
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -99,11 +99,11 @@ export default function DoctorsPage() {
                   {d.ratingCount > 0 ? (
                     <StarRating value={d.avgRating || 0} count={d.ratingCount} showNumber />
                   ) : (
-                    <span className="text-xs text-muted">Chưa có đánh giá</span>
+                    <span className="text-xs text-muted">{t('doctors.noRating')}</span>
                   )}
                 </div>
                 <Button className="mt-4 w-full" onClick={() => setBooking(d)}>
-                  Đặt lịch
+                  {t('doctors.book')}
                 </Button>
               </Card>
             ))}
@@ -112,13 +112,13 @@ export default function DoctorsPage() {
           {totalPages > 1 && (
             <div className="mt-6 flex items-center justify-center gap-3">
               <Button variant="secondary" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-                <ChevronLeft className="h-4 w-4" /> Trước
+                <ChevronLeft className="h-4 w-4" /> {t('common.prev')}
               </Button>
               <span className="text-sm text-muted">
-                Trang {page + 1}/{totalPages} · {totalElements} bác sĩ
+                {t('doctors.pageInfo', { page: page + 1, total: totalPages, count: totalElements })}
               </span>
               <Button variant="secondary" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
-                Sau <ChevronRight className="h-4 w-4" />
+                {t('common.next')} <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           )}
@@ -133,6 +133,7 @@ export default function DoctorsPage() {
 }
 
 function BookingModal({ doctor, onClose, toast }) {
+  const { t } = useI18n()
   const today = todayInClinic()   // hom nay theo gio phong kham (khong theo mui gio trinh duyet)
   const [date, setDate] = useState(today)
   const [time, setTime] = useState('')            // slot da chon "HH:MM"
@@ -160,7 +161,6 @@ function BookingModal({ doctor, onClose, toast }) {
     setLoadingSlots(true)
     api.get(`/appointments/doctors/${doctor.id}/booked`, { params: { date } })
       .then((res) => {
-        // Doi Instant -> "HH:MM" theo GIO PHONG KHAM de khop voi slot (khong dung gio trinh duyet)
         const set = new Set((unwrap(res) || []).map(instantToClinicHHMM))
         setBooked(set)
       })
@@ -169,19 +169,17 @@ function BookingModal({ doctor, onClose, toast }) {
   }, [date, doctor.id]) // eslint-disable-line
 
   const now = new Date()
-  // slot da qua = mốc tuyet doi (gio phong kham) <= bay gio -> so sanh dung bat ke mui gio
   const isPast = (slot) => new Date(clinicDateTimeToIso(date, slot)) <= now
 
   async function submit(e) {
     e.preventDefault()
     setError('')
-    if (!time) { setError('Vui lòng chọn một khung giờ'); return }
-    // Ghi nhan gio da chon la GIO PHONG KHAM -> Instant UTG dung, du user o mui gio khac
+    if (!time) { setError(t('booking.chooseOne')); return }
     const appointmentTime = clinicDateTimeToIso(date, time)
     setSaving(true)
     try {
       await api.post('/appointments', { doctorId: doctor.id, appointmentTime, reason })
-      toast.success('Đặt lịch thành công! Vui lòng kiểm tra email xác nhận.')
+      toast.success(t('booking.success'))
       onClose()
     } catch (err) {
       toast.error(apiMessage(err))
@@ -191,27 +189,27 @@ function BookingModal({ doctor, onClose, toast }) {
   }
 
   return (
-    <Modal open onClose={onClose} title={`Đặt lịch với ${doctor.fullName}`}>
+    <Modal open onClose={onClose} title={t('booking.title', { name: doctor.fullName })}>
       <form onSubmit={submit} className="space-y-4">
         <div className="rounded-lg bg-primary-soft p-3 text-sm text-text">
-          <span className="font-medium">{doctor.specialization}</span> · Giờ làm việc{' '}
+          <span className="font-medium">{doctor.specialization}</span> · {t('booking.workHours')}{' '}
           {formatWorkTime(doctor.workStartTime)}–{formatWorkTime(doctor.workEndTime)}
         </div>
 
-        <Field label="Ngày khám" required>
+        <Field label={t('booking.date')} required>
           <Input type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)} required />
         </Field>
 
         <div>
-          <span className="mb-1.5 block text-sm font-medium text-text">Chọn khung giờ (mỗi buổi 30 phút)</span>
+          <span className="mb-1.5 block text-sm font-medium text-text">{t('booking.chooseSlot')}</span>
           {onLeave ? (
             <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700 ring-1 ring-amber-200">
-              Bác sĩ nghỉ vào ngày này. Vui lòng chọn ngày khác.
+              {t('booking.onLeave')}
             </p>
           ) : loadingSlots ? (
-            <Spinner label="Đang tải khung giờ…" />
+            <Spinner label={t('common.loadingSlots')} />
           ) : slots.length === 0 ? (
-            <p className="text-sm text-muted">Bác sĩ chưa khai báo giờ làm việc hợp lệ.</p>
+            <p className="text-sm text-muted">{t('booking.noWorkHours')}</p>
           ) : (
             <>
               <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
@@ -224,7 +222,7 @@ function BookingModal({ doctor, onClose, toast }) {
                       type="button"
                       disabled={disabled}
                       onClick={() => setTime(s)}
-                      title={booked.has(s) ? 'Đã có người đặt' : isPast(s) ? 'Đã qua giờ' : ''}
+                      title={booked.has(s) ? t('booking.booked') : isPast(s) ? t('booking.past') : ''}
                       className={[
                         'rounded-lg border px-2 py-2 text-sm font-medium transition',
                         selected
@@ -239,18 +237,18 @@ function BookingModal({ doctor, onClose, toast }) {
                   )
                 })}
               </div>
-              <p className="mt-1.5 text-xs text-muted">Ô mờ gạch ngang = đã có người đặt hoặc đã qua giờ.</p>
+              <p className="mt-1.5 text-xs text-muted">{t('booking.legend')}</p>
             </>
           )}
         </div>
 
-        <Field label="Lý do khám">
-          <Textarea placeholder="Mô tả triệu chứng hoặc lý do khám…" value={reason} onChange={(e) => setReason(e.target.value)} />
+        <Field label={t('booking.reason')}>
+          <Textarea placeholder={t('booking.reasonPlaceholder')} value={reason} onChange={(e) => setReason(e.target.value)} />
         </Field>
         {error && <p className="text-sm text-danger" role="alert">{error}</p>}
         <div className="flex justify-end gap-2 pt-2">
-          <Button variant="secondary" type="button" onClick={onClose}>Hủy</Button>
-          <Button type="submit" loading={saving} disabled={!time || onLeave}>Xác nhận đặt lịch</Button>
+          <Button variant="secondary" type="button" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" loading={saving} disabled={!time || onLeave}>{t('booking.submit')}</Button>
         </div>
       </form>
     </Modal>

@@ -34,9 +34,16 @@ export function I18nProvider({ children }) {
     })
   }, [])
 
-  // t(key): tra chuoi theo ngon ngu hien tai; thieu key -> fallback tieng Viet -> chinh key
+  // t(key, params): tra chuoi theo ngon ngu hien tai; thieu key -> fallback tieng Viet -> chinh key.
+  // params thay the placeholder dang {ten}, vd t('doctors.pageInfo', { page: 1, total: 3 }).
   const t = useCallback(
-    (key) => lookup(dictionaries[lang], key) ?? lookup(dictionaries.vi, key) ?? key,
+    (key, params) => {
+      let s = lookup(dictionaries[lang], key) ?? lookup(dictionaries.vi, key) ?? key
+      if (params && typeof s === 'string') {
+        s = s.replace(/\{(\w+)\}/g, (m, k) => (params[k] != null ? params[k] : m))
+      }
+      return s
+    },
     [lang],
   )
 

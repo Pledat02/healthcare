@@ -23,7 +23,7 @@ export default function ProfilePage() {
           </div>
           <div>
             <p className="font-semibold text-text">{name}</p>
-            <p className="text-sm text-muted">@{username} · Quản trị viên</p>
+            <p className="text-sm text-muted">@{username} · {t('profile.admin')}</p>
           </div>
         </div>
       </Card>
@@ -65,11 +65,11 @@ function PatientProfile() {
       if (existing) {
         const res = await api.put(`/patients/${existing.id}`, form)
         setProfile(unwrap(res)) // dong bo context
-        toast.success('Đã cập nhật hồ sơ')
+        toast.success(t('profile.updated'))
       } else {
         const res = await api.post('/patients/', form)
         setProfile(unwrap(res)) // "mo cong" -> cac chuc nang can ho so dung duoc ngay
-        toast.success('Đã tạo hồ sơ, giờ bạn có thể đặt lịch khám')
+        toast.success(t('profile.created'))
       }
     } catch (err) {
       toast.error(apiMessage(err))
@@ -84,44 +84,41 @@ function PatientProfile() {
     <>
       <PageHeader
         title={t('page.profileTitle')}
-        subtitle={existing ? 'Cập nhật thông tin cá nhân của bạn' : 'Tạo hồ sơ để bắt đầu đặt lịch khám'}
+        subtitle={existing ? t('profile.editSubtitle') : t('profile.createSubtitle')}
       />
       {!existing && (
         <div className="mb-4 flex max-w-2xl items-start gap-3 rounded-lg border border-info/30 bg-info/10 p-4 text-sm text-text">
           <Info className="mt-0.5 h-5 w-5 shrink-0 text-info" />
-          <p>
-            Bạn cần hoàn thiện hồ sơ (bắt buộc <strong>họ tên</strong> và <strong>số điện thoại</strong>)
-            trước khi đặt lịch khám, xem lịch hẹn hay hồ sơ khám.
-          </p>
+          <p>{t('profile.requireNote')}</p>
         </div>
       )}
       <Card className="max-w-2xl p-6">
         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-          <Field label="Họ và tên" required>
-            <Input value={form.fullName} onChange={set('fullName')} required placeholder="Nguyễn Văn A" />
+          <Field label={t('profile.fullName')} required>
+            <Input value={form.fullName} onChange={set('fullName')} required placeholder={t('profile.namePlaceholder')} />
           </Field>
-          <Field label="Số điện thoại" required hint="10 số, bắt đầu bằng 0">
+          <Field label={t('profile.phone')} required hint={t('profile.phoneHint')}>
             <Input value={form.phone} onChange={set('phone')} required placeholder="0901234567" inputMode="tel" />
           </Field>
-          <Field label="Giới tính" required>
+          <Field label={t('profile.gender')} required>
             <Select value={form.gender} onChange={set('gender')}>
-              <option value="MALE">Nam</option>
-              <option value="FEMALE">Nữ</option>
-              <option value="OTHER">Khác</option>
+              <option value="MALE">{t('gender.MALE')}</option>
+              <option value="FEMALE">{t('gender.FEMALE')}</option>
+              <option value="OTHER">{t('gender.OTHER')}</option>
             </Select>
           </Field>
-          <Field label="Ngày sinh">
+          <Field label={t('profile.dob')}>
             <Input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} />
           </Field>
-          <Field label="Email" required hint="Dùng để nhận xác nhận và nhắc lịch khám">
+          <Field label="Email" required hint={t('profile.emailHint')}>
             <Input type="email" value={form.email} onChange={set('email')} placeholder="email@example.com" required />
           </Field>
-          <Field label="Địa chỉ">
-            <Input value={form.address} onChange={set('address')} placeholder="Quận, Thành phố" />
+          <Field label={t('profile.address')}>
+            <Input value={form.address} onChange={set('address')} placeholder={t('profile.addressPlaceholder')} />
           </Field>
           <div className="sm:col-span-2 flex justify-end pt-2">
             <Button type="submit" loading={saving}>
-              {existing ? 'Lưu thay đổi' : 'Tạo hồ sơ'}
+              {existing ? t('profile.save') : t('profile.create')}
             </Button>
           </div>
         </form>
@@ -160,8 +157,8 @@ function DoctorProfile() {
           </div>
         </div>
         <dl className="mt-5 space-y-3 text-sm">
-          <Row label="Giờ làm việc" value={`${formatWorkTime(doc?.workStartTime)} – ${formatWorkTime(doc?.workEndTime)}`} />
-          <Row label="Số điện thoại" value={doc?.phone || '—'} />
+          <Row label={t('profile.workHours')} value={`${formatWorkTime(doc?.workStartTime)} – ${formatWorkTime(doc?.workEndTime)}`} />
+          <Row label={t('profile.phone')} value={doc?.phone || '—'} />
           <Row label="Email" value={doc?.email || '—'} />
         </dl>
       </Card>

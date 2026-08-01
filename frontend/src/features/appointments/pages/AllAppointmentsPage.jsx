@@ -6,12 +6,7 @@ import { useI18n } from '@/shared/i18n/I18nProvider'
 import { Button, Card, Select, Spinner, EmptyState, PageHeader, StatusBadge } from '@/shared/ui'
 import { ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react'
 
-const STATUS_OPTIONS = [
-  { value: 'PENDING', label: 'Chờ xác nhận' },
-  { value: 'CONFIRMED', label: 'Đã xác nhận' },
-  { value: 'COMPLETED', label: 'Đã khám' },
-  { value: 'CANCELLED', label: 'Đã hủy' },
-]
+const STATUS_VALUES = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED']
 
 const PAGE_SIZE = 20
 
@@ -60,11 +55,11 @@ export default function AllAppointmentsPage() {
     <>
       <PageHeader
         title={t('page.allApptTitle')}
-        subtitle={`Tổng ${totalElements} lịch hẹn trong hệ thống`}
+        subtitle={t('allAppt.subtitle', { count: totalElements })}
         action={
-          <Select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-auto" aria-label="Lọc trạng thái">
-            <option value="">Tất cả trạng thái</option>
-            {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+          <Select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-auto" aria-label={t('allAppt.filterAria')}>
+            <option value="">{t('allAppt.allStatus')}</option>
+            {STATUS_VALUES.map((v) => <option key={v} value={v}>{t(`status.${v}`)}</option>)}
           </Select>
         }
       />
@@ -72,7 +67,7 @@ export default function AllAppointmentsPage() {
       {loading ? (
         <Spinner />
       ) : items.length === 0 ? (
-        <EmptyState icon={ClipboardList} title="Không có lịch hẹn" subtitle="Chưa có lịch hẹn nào khớp bộ lọc" />
+        <EmptyState icon={ClipboardList} title={t('allAppt.empty')} subtitle={t('allAppt.emptySub')} />
       ) : (
         <>
           <Card className="overflow-hidden">
@@ -80,11 +75,11 @@ export default function AllAppointmentsPage() {
               <table className="w-full text-sm">
                 <thead className="border-b border-border bg-slate-50 text-left text-xs text-muted">
                   <tr>
-                    <th className="px-4 py-3 font-medium">Thời gian</th>
-                    <th className="px-4 py-3 font-medium">Bệnh nhân</th>
-                    <th className="px-4 py-3 font-medium">Bác sĩ</th>
-                    <th className="px-4 py-3 font-medium">Lý do</th>
-                    <th className="px-4 py-3 font-medium">Trạng thái</th>
+                    <th className="px-4 py-3 font-medium">{t('table.time')}</th>
+                    <th className="px-4 py-3 font-medium">{t('table.patient')}</th>
+                    <th className="px-4 py-3 font-medium">{t('table.doctor')}</th>
+                    <th className="px-4 py-3 font-medium">{t('table.reason')}</th>
+                    <th className="px-4 py-3 font-medium">{t('table.status')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -108,11 +103,11 @@ export default function AllAppointmentsPage() {
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-center gap-3">
               <Button variant="secondary" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-                <ChevronLeft className="h-4 w-4" /> Trước
+                <ChevronLeft className="h-4 w-4" /> {t('common.prev')}
               </Button>
-              <span className="text-sm text-muted">Trang {page + 1}/{totalPages} · {totalElements} lịch hẹn</span>
+              <span className="text-sm text-muted">{t('allAppt.pageInfo', { page: page + 1, total: totalPages, count: totalElements })}</span>
               <Button variant="secondary" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
-                Sau <ChevronRight className="h-4 w-4" />
+                {t('common.next')} <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           )}
