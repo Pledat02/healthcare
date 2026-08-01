@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import api, { unwrap, fetchByIdsMap, apiMessage } from '@/shared/lib/api'
 import { useToast } from '@/shared/components/Toast'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import { Button, Card, EmptyState, Field, Input, PageHeader, Spinner } from '@/shared/ui'
 import {
   CalendarDays, ChartNoAxesColumnIncreasing, CircleCheckBig, RefreshCcw,
@@ -27,6 +28,7 @@ const WEEKDAYS = {
 
 export default function AnalyticsPage() {
   const toast = useToast()
+  const { t } = useI18n()
   const [statistics, setStatistics] = useState(null)
   const [doctors, setDoctors] = useState({})
   const [patients, setPatients] = useState({})
@@ -123,8 +125,8 @@ export default function AnalyticsPage() {
   return (
     <>
       <PageHeader
-        title="Thống kê hoạt động"
-        subtitle="Theo dõi tải khám của bác sĩ và hành vi quay lại của bệnh nhân"
+        title={t('page.analyticsTitle')}
+        subtitle={t('page.analyticsSubtitle')}
         action={(from || to) && <Button variant="secondary" onClick={() => { setFrom(''); setTo('') }}><RefreshCcw className="h-4 w-4" /> Xóa khoảng ngày</Button>}
       />
 

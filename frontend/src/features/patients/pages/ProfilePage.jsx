@@ -4,16 +4,18 @@ import { useAuth } from '@/auth/AuthContext'
 import { usePatientProfile } from '@/auth/PatientProfile'
 import { formatWorkTime } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import { Button, Card, Field, Input, Select, Spinner, PageHeader } from '@/shared/ui'
 import { UserCircle, Stethoscope, Info } from 'lucide-react'
 
 export default function ProfilePage() {
   const { role, name, username } = useAuth()
+  const { t } = useI18n()
   if (role === 'PATIENT') return <PatientProfile />
   if (role === 'DOCTOR') return <DoctorProfile />
   return (
     <>
-      <PageHeader title="Hồ sơ" subtitle="Thông tin tài khoản" />
+      <PageHeader title={t('page.profileTitle')} subtitle={t('page.profileSubtitle')} />
       <Card className="max-w-md p-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">
@@ -33,6 +35,7 @@ const EMPTY = { fullName: '', phone: '', gender: 'MALE', dateOfBirth: '', email:
 
 function PatientProfile() {
   const toast = useToast()
+  const { t } = useI18n()
   // US-02b: prefill ho ten + email tu token Keycloak (dang nhap Google khong co san ho so)
   const { name: accountName, email: accountEmail } = useAuth()
   const { profile: existing, loading, setProfile } = usePatientProfile()
@@ -80,7 +83,7 @@ function PatientProfile() {
   return (
     <>
       <PageHeader
-        title="Hồ sơ bệnh nhân"
+        title={t('page.profileTitle')}
         subtitle={existing ? 'Cập nhật thông tin cá nhân của bạn' : 'Tạo hồ sơ để bắt đầu đặt lịch khám'}
       />
       {!existing && (
@@ -129,6 +132,7 @@ function PatientProfile() {
 
 function DoctorProfile() {
   const toast = useToast()
+  const { t } = useI18n()
   const [doc, setDoc] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -144,7 +148,7 @@ function DoctorProfile() {
 
   return (
     <>
-      <PageHeader title="Hồ sơ bác sĩ" subtitle="Thông tin và giờ làm việc của bạn" />
+      <PageHeader title={t('page.profileTitle')} subtitle={t('page.profileSubtitle')} />
       <Card className="max-w-md p-6">
         <div className="flex items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft text-primary">

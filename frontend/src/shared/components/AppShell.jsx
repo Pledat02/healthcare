@@ -1,5 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
+import { useTheme } from '@/shared/theme/ThemeProvider'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import {
   Stethoscope,
   CalendarDays,
@@ -11,32 +13,34 @@ import {
   CalendarCheck,
   ChartNoAxesColumnIncreasing,
   UserRoundCog,
+  Sun,
+  Moon,
+  Languages,
 } from 'lucide-react'
 
-// Menu theo tung vai tro
+// Menu theo tung vai tro (label lay qua i18n key)
 const NAV = {
   PATIENT: [
-    { to: '/doctors', label: 'Bác sĩ', icon: Stethoscope },
-    { to: '/appointments', label: 'Lịch của tôi', icon: CalendarDays },
-    { to: '/records', label: 'Hồ sơ khám', icon: FileText },
-    { to: '/profile', label: 'Hồ sơ', icon: UserCircle },
+    { to: '/doctors', key: 'nav.doctors', icon: Stethoscope },
+    { to: '/appointments', key: 'nav.myAppointments', icon: CalendarDays },
+    { to: '/records', key: 'nav.records', icon: FileText },
+    { to: '/profile', key: 'nav.profile', icon: UserCircle },
   ],
   DOCTOR: [
-    { to: '/schedule', label: 'Lịch khám', icon: CalendarCheck },
-    { to: '/profile', label: 'Hồ sơ', icon: UserCircle },
+    { to: '/schedule', key: 'nav.schedule', icon: CalendarCheck },
+    { to: '/profile', key: 'nav.profile', icon: UserCircle },
   ],
   ADMIN: [
-    { to: '/admin/analytics', label: 'Thống kê', icon: ChartNoAxesColumnIncreasing },
-    { to: '/admin/doctors', label: 'Bác sĩ', icon: Users },
-    { to: '/admin/patients', label: 'Bệnh nhân', icon: UserRoundCog },
-    { to: '/admin/appointments', label: 'Lịch hẹn', icon: ClipboardList },
+    { to: '/admin/analytics', key: 'nav.analytics', icon: ChartNoAxesColumnIncreasing },
+    { to: '/admin/doctors', key: 'nav.manageDoctors', icon: Users },
+    { to: '/admin/patients', key: 'nav.managePatients', icon: UserRoundCog },
+    { to: '/admin/appointments', key: 'nav.allAppointments', icon: ClipboardList },
   ],
 }
 
-const ROLE_LABEL = { PATIENT: 'Bệnh nhân', DOCTOR: 'Bác sĩ', ADMIN: 'Quản trị' }
-
 function NavItems({ items, onClick }) {
-  return items.map(({ to, label, icon: Icon }) => (
+  const { t } = useI18n()
+  return items.map(({ to, key, icon: Icon }) => (
     <NavLink
       key={to}
       to={to}
@@ -50,13 +54,47 @@ function NavItems({ items, onClick }) {
       }
     >
       <Icon className="h-5 w-5" />
-      <span>{label}</span>
+      <span>{t(key)}</span>
     </NavLink>
   ))
 }
 
+// Nut doi giao dien sang/toi
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme()
+  const { t } = useI18n()
+  const dark = theme === 'dark'
+  return (
+    <button
+      onClick={toggleTheme}
+      className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-slate-100 hover:text-text"
+      title={dark ? t('common.lightMode') : t('common.darkMode')}
+      aria-label={dark ? t('common.lightMode') : t('common.darkMode')}
+    >
+      {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+    </button>
+  )
+}
+
+// Nut doi ngon ngu VI/EN
+function LangToggle() {
+  const { lang, toggleLang } = useI18n()
+  return (
+    <button
+      onClick={toggleLang}
+      className="flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold text-muted transition-colors hover:bg-slate-100 hover:text-text"
+      title="Vietnamese / English"
+      aria-label="Đổi ngôn ngữ"
+    >
+      <Languages className="h-5 w-5" />
+      {lang === 'vi' ? 'VI' : 'EN'}
+    </button>
+  )
+}
+
 export default function AppShell({ children }) {
   const { name, role, logout } = useAuth()
+  const { t } = useI18n()
   const location = useLocation()
   const items = NAV[role] || []
 
@@ -64,11 +102,17 @@ export default function AppShell({ children }) {
     <div className="min-h-dvh bg-bg">
       {/* Sidebar - desktop */}
       <aside className="app-sidebar fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-white lg:flex">
-        <div className="flex items-center gap-2 px-6 py-5">
-          <div className="rounded-lg bg-primary p-1.5 text-white">
-            <Stethoscope className="h-5 w-5" />
+        <div className="flex items-center justify-between px-6 py-5">
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary p-1.5 text-white">
+              <Stethoscope className="h-5 w-5" />
+            </div>
+            <span className="text-lg font-bold text-text">MediBook</span>
           </div>
-          <span className="text-lg font-bold text-text">MediBook</span>
+          <div className="flex items-center gap-0.5">
+            <ThemeToggle />
+            <LangToggle />
+          </div>
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3">
           <NavItems items={items} />
@@ -76,14 +120,14 @@ export default function AppShell({ children }) {
         <div className="border-t border-border p-3">
           <div className="mb-2 px-3">
             <p className="truncate text-sm font-medium text-text">{name}</p>
-            <p className="text-xs text-muted">{ROLE_LABEL[role]}</p>
+            <p className="text-xs text-muted">{t(`role.${role}`)}</p>
           </div>
           <button
             onClick={() => logout()}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:bg-slate-100 hover:text-danger"
           >
             <LogOut className="h-5 w-5" />
-            Đăng xuất
+            {t('common.logout')}
           </button>
         </div>
       </aside>
@@ -96,13 +140,17 @@ export default function AppShell({ children }) {
           </div>
           <span className="font-bold text-text">MediBook</span>
         </div>
-        <button
-          onClick={() => logout()}
-          className="text-muted hover:text-danger"
-          aria-label="Đăng xuất"
-        >
-          <LogOut className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-0.5">
+          <ThemeToggle />
+          <LangToggle />
+          <button
+            onClick={() => logout()}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:text-danger"
+            aria-label={t('common.logout')}
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
       {/* Main content */}
@@ -112,7 +160,7 @@ export default function AppShell({ children }) {
 
       {/* Bottom nav - mobile (<=5 items) */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-white lg:hidden">
-        {items.slice(0, 5).map(({ to, label, icon: Icon }) => (
+        {items.slice(0, 5).map(({ to, key, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -123,7 +171,7 @@ export default function AppShell({ children }) {
             }
           >
             <Icon className="h-5 w-5" />
-            {label}
+            {t(key)}
           </NavLink>
         ))}
       </nav>

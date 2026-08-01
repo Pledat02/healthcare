@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import api, { unwrap, apiMessage } from '@/shared/lib/api'
 import { formatWorkTime, todayInClinic, clinicDateTimeToIso, instantToClinicHHMM } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import {
   Button, Card, Field, Input, Select, Textarea, Spinner, EmptyState, PageHeader, StarRating,
 } from '@/shared/ui'
@@ -12,6 +13,7 @@ const PAGE_SIZE = 6
 
 export default function DoctorsPage() {
   const toast = useToast()
+  const { t } = useI18n()
   const [doctors, setDoctors] = useState([])
   const [specializations, setSpecializations] = useState([])
   const [loading, setLoading] = useState(true)
@@ -50,7 +52,7 @@ export default function DoctorsPage() {
 
   return (
     <>
-      <PageHeader title="Tìm bác sĩ" subtitle="Chọn bác sĩ theo chuyên khoa và đặt lịch khám" />
+      <PageHeader title={t('page.doctorsTitle')} subtitle={t('page.doctorsSubtitle')} />
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">

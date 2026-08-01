@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import api, { unwrap, apiMessage } from '@/shared/lib/api'
 import { formatDateTime } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import { Button, Card, Spinner, EmptyState, PageHeader } from '@/shared/ui'
 import { FileText, Pill, Download } from 'lucide-react'
 
 export default function MyRecordsPage() {
   const toast = useToast()
+  const { t } = useI18n()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(null)
@@ -42,7 +44,7 @@ export default function MyRecordsPage() {
 
   return (
     <>
-      <PageHeader title="Hồ sơ khám bệnh" subtitle="Lịch sử chẩn đoán và đơn thuốc của bạn" />
+      <PageHeader title={t('page.recordsTitle')} subtitle={t('page.recordsSubtitle')} />
       {records.length === 0 ? (
         <EmptyState icon={FileText} title="Chưa có hồ sơ khám" subtitle="Hồ sơ sẽ xuất hiện sau khi bạn hoàn thành buổi khám" />
       ) : (

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import api, { unwrap, apiMessage } from '@/shared/lib/api'
 import { formatWorkTime } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import { useConfirm } from '@/shared/components/Confirm'
 import { Button, Card, Field, Input, Spinner, EmptyState, PageHeader } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
@@ -17,6 +18,7 @@ const EMPTY = {
 
 export default function ManageDoctorsPage() {
   const toast = useToast()
+  const { t } = useI18n()
   const confirm = useConfirm()
   const [doctors, setDoctors] = useState([])
   const [loading, setLoading] = useState(true)
@@ -71,7 +73,7 @@ export default function ManageDoctorsPage() {
   return (
     <>
       <PageHeader
-        title="Quản lý bác sĩ"
+        title={t('page.manageDoctorsTitle')}
         subtitle={`${totalElements} bác sĩ trong hệ thống · Có thể cập nhật hồ sơ và giờ làm việc`}
         action={<Button onClick={() => setAdding(true)}><Plus className="h-4 w-4" /> Thêm bác sĩ</Button>}
       />

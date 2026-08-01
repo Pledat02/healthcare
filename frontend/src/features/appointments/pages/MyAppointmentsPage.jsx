@@ -5,6 +5,7 @@ import {
 } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
 import { useConfirm } from '@/shared/components/Confirm'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import { Button, Card, Field, Input, Textarea, Spinner, EmptyState, PageHeader, StatusBadge, StarRating } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
 import { CalendarDays, Stethoscope, XCircle, CalendarClock, Star } from 'lucide-react'
@@ -12,6 +13,7 @@ import { CalendarDays, Stethoscope, XCircle, CalendarClock, Star } from 'lucide-
 export default function MyAppointmentsPage() {
   const toast = useToast()
   const confirm = useConfirm()
+  const { t } = useI18n()
   const [items, setItems] = useState([])
   const [doctors, setDoctors] = useState({})
   const [loading, setLoading] = useState(true)
@@ -61,7 +63,7 @@ export default function MyAppointmentsPage() {
 
   return (
     <>
-      <PageHeader title="Lịch hẹn của tôi" subtitle="Theo dõi và quản lý các lịch khám đã đặt" />
+      <PageHeader title={t('page.myApptTitle')} subtitle={t('page.myApptSubtitle')} />
       {items.length === 0 ? (
         <EmptyState icon={CalendarDays} title="Chưa có lịch hẹn nào" subtitle="Hãy tìm bác sĩ và đặt lịch khám đầu tiên" />
       ) : (

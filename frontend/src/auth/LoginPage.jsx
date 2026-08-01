@@ -1,15 +1,17 @@
 import { useAuth } from '@/auth/AuthContext'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import { Button } from '@/shared/ui'
 import { Stethoscope, CalendarCheck, ShieldCheck, Clock, ArrowRight } from 'lucide-react'
 
-const FEATURES = [
-  { icon: CalendarCheck, title: 'Đặt lịch online', desc: 'Chọn bác sĩ và khung giờ chỉ trong 2 phút' },
-  { icon: Clock, title: 'Nhắc lịch tự động', desc: 'Email xác nhận và nhắc trước 24 giờ' },
-  { icon: ShieldCheck, title: 'Hồ sơ an toàn', desc: 'Dữ liệu khám được bảo mật, chỉ bạn xem được' },
-]
-
 export default function LoginPage() {
   const { login, loginWithGoogle, register } = useAuth()
+  const { t, lang, toggleLang } = useI18n()
+
+  const features = [
+    { icon: CalendarCheck, title: t('login.f1Title'), desc: t('login.f1Desc') },
+    { icon: Clock, title: t('login.f2Title'), desc: t('login.f2Desc') },
+    { icon: ShieldCheck, title: t('login.f3Title'), desc: t('login.f3Desc') },
+  ]
 
   return (
     <div className="login-page min-h-dvh overflow-hidden lg:grid lg:grid-cols-2">
@@ -25,18 +27,16 @@ export default function LoginPage() {
         </div>
         <div className="relative z-10">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-white/70 motion-fade-up">
-            Chăm sóc sức khỏe thông minh
+            {t('login.eyebrow')}
           </p>
           <h1 className="text-4xl font-bold leading-tight motion-fade-up motion-delay-1">
-            Đặt lịch khám bệnh,
-            <br />đơn giản và nhanh chóng
+            {t('login.h1')}
           </h1>
           <p className="mt-4 max-w-md text-white/80 motion-fade-up motion-delay-2">
-            Hệ thống đặt lịch khám trực tuyến — kết nối bệnh nhân với bác sĩ, quản lý
-            lịch hẹn và hồ sơ khám tập trung một chỗ.
+            {t('login.intro')}
           </p>
           <div className="mt-9 space-y-4 stagger-list">
-            {FEATURES.map(({ icon: Icon, title, desc }, index) => (
+            {features.map(({ icon: Icon, title, desc }, index) => (
               <div key={title} className="feature-row flex items-start gap-3" style={{ '--item-index': index }}>
                 <div className="mt-0.5 rounded-lg bg-white/15 p-2">
                   <Icon className="h-5 w-5" />
@@ -49,11 +49,20 @@ export default function LoginPage() {
             ))}
           </div>
         </div>
-        <p className="relative z-10 text-sm text-white/60 motion-fade-up motion-delay-3">© 2026 MediBook. Healthcare Booking System.</p>
+        <p className="relative z-10 text-sm text-white/60 motion-fade-up motion-delay-3">{t('login.copyright')}</p>
       </div>
 
       {/* Right: actions */}
       <div className="relative flex min-h-dvh flex-col items-center justify-center bg-white p-6 lg:min-h-0">
+        {/* Doi ngon ngu ngay tren trang dang nhap (chua vao app shell) */}
+        <button
+          onClick={toggleLang}
+          className="absolute right-4 top-4 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-muted transition-colors hover:text-text"
+          aria-label="Đổi ngôn ngữ"
+        >
+          {lang === 'vi' ? 'EN' : 'VI'}
+        </button>
+
         <div className="w-full max-w-sm motion-auth-card">
           <div className="mb-8 flex items-center gap-2 lg:hidden">
             <div className="rounded-lg bg-primary p-2 text-white">
@@ -63,35 +72,31 @@ export default function LoginPage() {
           </div>
 
           <span className="inline-flex rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
-            Cổng chăm sóc MediBook
+            {t('login.badge')}
           </span>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-text">Chào mừng trở lại</h2>
-          <p className="mt-1 text-sm text-muted">
-            Đăng nhập để đặt lịch và quản lý hồ sơ khám của bạn.
-          </p>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-text">{t('login.welcome')}</h2>
+          <p className="mt-1 text-sm text-muted">{t('login.welcomeSub')}</p>
 
           <div className="mt-8 space-y-3">
             <Button className="group w-full" onClick={() => loginWithGoogle()}>
               <GoogleIcon />
-              Tiếp tục với Google
+              {t('login.google')}
               <ArrowRight className="ml-auto h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
             <div className="flex items-center gap-3 py-1 text-xs text-muted">
               <span className="h-px flex-1 bg-border" />
-              hoặc
+              {t('login.or')}
               <span className="h-px flex-1 bg-border" />
             </div>
             <Button variant="secondary" className="w-full" onClick={() => login()}>
-              Đăng nhập bằng tài khoản
+              {t('login.accountLogin')}
             </Button>
             <Button variant="ghost" className="w-full" onClick={() => register()}>
-              Đăng ký tài khoản bệnh nhân
+              {t('login.register')}
             </Button>
           </div>
 
-          <p className="mt-6 text-center text-xs text-muted">
-            Bằng việc tiếp tục, bạn đồng ý với điều khoản sử dụng của MediBook.
-          </p>
+          <p className="mt-6 text-center text-xs text-muted">{t('login.terms')}</p>
         </div>
       </div>
     </div>

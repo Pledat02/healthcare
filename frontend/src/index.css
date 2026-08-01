@@ -37,7 +37,36 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color .25s ease, color .25s ease;
 }
+
+/* ===== Dark theme ===== Ghi de token mau duoi selector [data-theme=dark].
+   Vi component dung nhieu token (bg-surface/text-text/text-muted/border-border),
+   chi can doi bien la ca giao dien theo. Them vai override cho class hardcode pho bien.
+   Chuyen theme bang <html data-theme="dark"> (ThemeProvider). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-primary: #14b8a6;        /* teal-500 - sang hon tren nen toi */
+  --color-primary-hover: #0d9488;
+  --color-primary-soft: #134e4a;   /* teal-900 */
+  --color-accent: #3b82f6;
+  --color-bg: #0b1220;
+  --color-surface: #131c2e;
+  --color-border: #273449;
+  --color-text: #e5eaf2;
+  --color-muted: #94a3b8;
+}
+
+/* Class hardcode (khong phai token) -> ghi de an toan cho dark.
+   CSS khong-layer + specificity cao hon nen thang utility cua Tailwind. */
+:root[data-theme="dark"] .bg-white { background-color: var(--color-surface); }
+:root[data-theme="dark"] .bg-slate-50 { background-color: #1a2436; }
+:root[data-theme="dark"] .hover\:bg-slate-50:hover { background-color: #1f2b40; }
+:root[data-theme="dark"] .hover\:bg-slate-100:hover { background-color: #24324a; }
+:root[data-theme="dark"] .text-slate-400 { color: #8b98ab; }
+:root[data-theme="dark"] .text-slate-300 { color: #5b6b82; }
+:root[data-theme="dark"] .placeholder\:text-slate-400::placeholder { color: #5b6b82; }
+:root[data-theme="dark"] tbody tr:hover { background: rgb(255 255 255 / .04); }
 
 button,
 a,

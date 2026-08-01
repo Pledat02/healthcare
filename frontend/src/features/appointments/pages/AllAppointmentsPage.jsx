@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import api, { unwrap, apiMessage, fetchByIdsMap } from '@/shared/lib/api'
 import { formatDateTime } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import { Button, Card, Select, Spinner, EmptyState, PageHeader, StatusBadge } from '@/shared/ui'
 import { ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -16,6 +17,7 @@ const PAGE_SIZE = 20
 
 export default function AllAppointmentsPage() {
   const toast = useToast()
+  const { t } = useI18n()
   const [items, setItems] = useState([])
   const [doctors, setDoctors] = useState({})
   const [loading, setLoading] = useState(true)
@@ -57,7 +59,7 @@ export default function AllAppointmentsPage() {
   return (
     <>
       <PageHeader
-        title="Tất cả lịch hẹn"
+        title={t('page.allApptTitle')}
         subtitle={`Tổng ${totalElements} lịch hẹn trong hệ thống`}
         action={
           <Select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-auto" aria-label="Lọc trạng thái">

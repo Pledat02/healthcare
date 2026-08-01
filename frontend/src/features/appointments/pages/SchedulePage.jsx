@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import api, { unwrap, apiMessage } from '@/shared/lib/api'
 import { formatTime, toDateInput } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import {
   Button, Card, Field, Input, Textarea, Spinner, EmptyState, PageHeader, StatusBadge,
 } from '@/shared/ui'
@@ -10,6 +11,7 @@ import { CalendarCheck, User, Check, ClipboardCheck, FileText, Plus, Trash2, Cal
 
 export default function SchedulePage() {
   const toast = useToast()
+  const { t } = useI18n()
   const [date, setDate] = useState(toDateInput())
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -48,8 +50,8 @@ export default function SchedulePage() {
   return (
     <>
       <PageHeader
-        title="Lịch khám"
-        subtitle="Danh sách bệnh nhân theo ngày"
+        title={t('page.scheduleTitle')}
+        subtitle={t('page.scheduleSubtitle')}
         action={
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-auto" aria-label="Chọn ngày" />
         }

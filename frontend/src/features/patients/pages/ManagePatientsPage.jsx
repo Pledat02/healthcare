@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import api, { unwrap, apiMessage } from '@/shared/lib/api'
 import { useToast } from '@/shared/components/Toast'
+import { useI18n } from '@/shared/i18n/I18nProvider'
 import { useConfirm } from '@/shared/components/Confirm'
 import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
@@ -19,6 +20,7 @@ function shortDate(value) {
 
 export default function ManagePatientsPage() {
   const toast = useToast()
+  const { t } = useI18n()
   const confirm = useConfirm()
   const [patients, setPatients] = useState([])
   const [appointments, setAppointments] = useState([])
@@ -93,7 +95,7 @@ export default function ManagePatientsPage() {
   return (
     <>
       <PageHeader
-        title="Quản lý bệnh nhân"
+        title={t('page.managePatientsTitle')}
         subtitle={`${patients.length} hồ sơ bệnh nhân · Xem hoạt động và cập nhật thông tin liên hệ`}
       />
 

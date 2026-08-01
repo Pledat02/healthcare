@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom'
 import '@/index.css'
 import keycloak from '@/auth/keycloak'
 import { AuthProvider } from '@/auth/AuthContext'
+import { ThemeProvider } from '@/shared/theme/ThemeProvider'
+import { I18nProvider } from '@/shared/i18n/I18nProvider'
 import App from './App.jsx'
 
 // Khoi tao Keycloak truoc khi render (check-sso: khong ep dang nhap ngay)
@@ -16,11 +18,15 @@ keycloak
   .then(() => {
     createRoot(document.getElementById('root')).render(
       <StrictMode>
-        <BrowserRouter>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </BrowserRouter>
+        <ThemeProvider>
+          <I18nProvider>
+            <BrowserRouter>
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </BrowserRouter>
+          </I18nProvider>
+        </ThemeProvider>
       </StrictMode>,
     )
   })
