@@ -201,6 +201,10 @@ public class AppointmentService {
                    ) {
                 throw new AppException(ErrorCode.CANNOT_MODIFY_COMPLETED);
             }
+            // Chi duoc danh dau da kham TU thoi diem lich hen tro di (khong hoan thanh som)
+            if (Instant.now().isBefore(appointment.getAppointmentTime())) {
+                throw new AppException(ErrorCode.TOO_EARLY_TO_COMPLETE);
+            }
 
             appointment.setStatus(AppointmentStatus.COMPLETED);
             appointmentRepository.save(appointment);
@@ -286,6 +290,33 @@ public class AppointmentService {
                 .findByDoctorIdAndAppointmentTimeBetween(me.getId(), start, end).stream()
                 .map(appointmentMapper::toResponse).toList();
         return withPatientNames(list);   // lam giau ten benh nhan (bac si chi thay BN cua chinh minh)
+    }
+
+    // GET /api/appointments/doctors/me?from=..&to=..  -> lich trong khoang [from, to] (vd 1 tuan)
+    public List<AppointmentResponse> getMyDoctorAppointmentsRange(LocalDate from, LocalDate to) {
+        DoctorDto me = doctorClient.getMe();
+        Instant start = from.atStartOfDay(CLINIC_ZONE).toInstant();
+        Instant end = to.plusDays(1).atStartOfDay(CLINIC_ZONE).toInstant();   // to bao gom ca ngay to
+        List<AppointmentResponse> list = appointmentRepository
+                .findByDoctorIdAndAppointmentTimeBetween(me.getId(), start, end).stream()
+                .map(appointmentMapper::toResponse)
+                .sorted(java.util.Comparator.comparing(AppointmentResponse::getAppointmentTime))
+                .toList();
+        return withPatientNames(list);
+    }
+
+    // GET /api/appointments/doctors/me/history -> cac lich DA QUA cua bac si, phan trang (moi nhat truoc)
+    public PageResponse<AppointmentResponse> getMyDoctorHistory(int page, int size) {
+        DoctorDto me = doctorClient.getMe();
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        Pageable pageable = PageRequest.of(Math.max(page, 0), safeSize,
+                Sort.by(Sort.Direction.DESC, "appointmentTime"));
+        Page<Appointment> pg = appointmentRepository
+                .findByDoctorIdAndAppointmentTimeBefore(me.getId(), Instant.now(), pageable);
+        List<AppointmentResponse> content = withPatientNames(
+                pg.getContent().stream().map(appointmentMapper::toResponse).toList());
+        return new PageResponse<>(content, pg.getNumber(), pg.getSize(),
+                pg.getTotalPages(), pg.getTotalElements());
     }
     // GET /api/appointments/doctors/{doctorId}/booked?date=...
     // Tra ve cac gio ĐA co lich (chua huy) cua bac si trong 1 ngay, de FE lam mo slot da dat.

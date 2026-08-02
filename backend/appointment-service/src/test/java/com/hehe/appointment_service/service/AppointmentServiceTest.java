@@ -400,6 +400,7 @@ class AppointmentServiceTest {
     @DisplayName("Bac si hoan thanh hop le -> chuyen COMPLETED + gui thong bao")
     void complete_valid_completesAndNotifies() {
         Appointment appt = existingAppointment("pat-1", AppointmentStatus.CONFIRMED);
+        appt.setAppointmentTime(Instant.now().minusSeconds(3600)); // da toi gio hen -> duoc hoan thanh
         when(appointmentRepository.findById("appt-1")).thenReturn(Optional.of(appt));
         when(doctorClient.getMe()).thenReturn(doctor(DOCTOR_ID));
         when(patientClient.getPatient("pat-1")).thenReturn(patient("pat-1")); // notify()
@@ -409,5 +410,20 @@ class AppointmentServiceTest {
         assertThat(service.complete("appt-1")).isTrue();
         assertThat(appt.getStatus()).isEqualTo(AppointmentStatus.COMPLETED);
         verify(notificationClient).send(any());
+    }
+
+    @Test
+    @DisplayName("complete: chua toi gio hen -> chan (TOO_EARLY_TO_COMPLETE)")
+    void complete_beforeAppointmentTime_throws() {
+        Appointment appt = existingAppointment("pat-1", AppointmentStatus.CONFIRMED);
+        appt.setAppointmentTime(Instant.now().plusSeconds(3600)); // gio hen o tuong lai
+        when(appointmentRepository.findById("appt-1")).thenReturn(Optional.of(appt));
+        when(doctorClient.getMe()).thenReturn(doctor(DOCTOR_ID));
+
+        assertThatThrownBy(() -> service.complete("appt-1"))
+                .isInstanceOf(AppException.class)
+                .extracting(e -> ((AppException) e).getErrorCode())
+                .isEqualTo(ErrorCode.TOO_EARLY_TO_COMPLETE);
+        assertThat(appt.getStatus()).isEqualTo(AppointmentStatus.CONFIRMED);
     }
 }

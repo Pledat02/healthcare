@@ -112,14 +112,31 @@ public class AppointmentController {
                 .build();
     }
 
-    // US-07: bac si xem lich cua minh theo ngay
+    // US-07: bac si xem lich cua minh. Theo NGAY (date) hoac theo KHOANG (from+to, vd 1 tuan).
     @GetMapping("/doctors/me")
     public ApiResponse<List<AppointmentResponse>> getMyDoctorAppointments(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        List<AppointmentResponse> data = (from != null && to != null)
+                ? appointmentService.getMyDoctorAppointmentsRange(from, to)
+                : appointmentService.getMyDoctorAppointments(date != null ? date : LocalDate.now());
         return ApiResponse.<List<AppointmentResponse>>builder()
                 .code(200)
-                .data(appointmentService.getMyDoctorAppointments(date))
+                .data(data)
                 .message("Lấy danh sách lịch hẹn thành công")
+                .build();
+    }
+
+    // Bac si xem LICH SU hen (cac lich da qua), phan trang moi nhat truoc
+    @GetMapping("/doctors/me/history")
+    public ApiResponse<PageResponse<AppointmentResponse>> getMyDoctorHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.<PageResponse<AppointmentResponse>>builder()
+                .code(200)
+                .data(appointmentService.getMyDoctorHistory(page, size))
+                .message("Lấy lịch sử hẹn thành công")
                 .build();
     }
 

@@ -24,6 +24,9 @@ public enum ErrorCode {
     // --- Bác sĩ nghỉ phép ngày đó ---
     DOCTOR_ON_LEAVE(400, "Bác sĩ nghỉ vào ngày này, vui lòng chọn ngày khác"),
 
+    // --- Chỉ được đánh dấu đã khám từ thời điểm lịch hẹn trở đi ---
+    TOO_EARLY_TO_COMPLETE(400, "Chưa tới giờ hẹn — chỉ đánh dấu đã khám từ thời điểm lịch hẹn trở đi"),
+
     // --- BR-01: chống trùng lịch ---
     APPOINTMENT_CONFLICT(409, "Bác sĩ đã có lịch hẹn khác trong khung giờ này"),
 

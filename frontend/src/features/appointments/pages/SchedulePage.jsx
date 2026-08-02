@@ -7,106 +7,186 @@ import {
   Button, Card, Field, Input, Textarea, Spinner, EmptyState, PageHeader, StatusBadge,
 } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
-import { CalendarCheck, User, Check, ClipboardCheck, FileText, Plus, Trash2, CalendarOff } from 'lucide-react'
+import {
+  CalendarCheck, User, Check, ClipboardCheck, FileText, Plus, Trash2, CalendarOff,
+  ChevronLeft, ChevronRight, History, CalendarRange,
+} from 'lucide-react'
+
+const CLINIC_TZ = 'Asia/Ho_Chi_Minh'
+const WEEKDAY_KEYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
+
+// Date -> "YYYY-MM-DD" theo gio phong kham
+function clinicYMD(dt) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: CLINIC_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(dt))
+}
+// Thu Hai cua tuan chua 'date' (Date, 00:00 local)
+function mondayOf(date) {
+  const d = new Date(date); const off = (d.getDay() + 6) % 7 // 0=Mon..6=Sun
+  d.setDate(d.getDate() - off); d.setHours(0, 0, 0, 0); return d
+}
+function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate() + n); return d }
+function ymd(d) { const p = (x) => String(x).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}` }
+function ddmm(ymdStr) { const [, m, dd] = ymdStr.split('-'); return `${dd}/${m}` }
 
 export default function SchedulePage() {
   const toast = useToast()
   const { t } = useI18n()
-  const [date, setDate] = useState(toDateInput())
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [view, setView] = useState('week')                 // 'week' | 'history'
+  const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()))
+  const [weekItems, setWeekItems] = useState([])
+  const [loadingWeek, setLoadingWeek] = useState(true)
+  const [history, setHistory] = useState({ content: [], totalPages: 0 })
+  const [histPage, setHistPage] = useState(0)
+  const [loadingHist, setLoadingHist] = useState(false)
   const [acting, setActing] = useState(null)
-  const [recording, setRecording] = useState(null) // appointment dang ghi ho so
+  const [recording, setRecording] = useState(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const weekEnd = addDays(weekStart, 6)
+
+  const loadWeek = useCallback(async () => {
+    setLoadingWeek(true)
     try {
-      const res = await api.get('/appointments/doctors/me', { params: { date } })
-      const list = (unwrap(res) || []).slice().sort((a, b) => new Date(a.appointmentTime) - new Date(b.appointmentTime))
-      setItems(list)
-    } catch (e) {
-      toast.error(apiMessage(e))
-    } finally {
-      setLoading(false)
-    }
-  }, [date]) // eslint-disable-line
+      const res = await api.get('/appointments/doctors/me', { params: { from: ymd(weekStart), to: ymd(weekEnd) } })
+      setWeekItems(unwrap(res) || [])
+    } catch (e) { toast.error(apiMessage(e)) } finally { setLoadingWeek(false) }
+  }, [weekStart]) // eslint-disable-line
 
-  useEffect(() => { load() }, [load])
+  const loadHistory = useCallback(async () => {
+    setLoadingHist(true)
+    try {
+      const res = await api.get('/appointments/doctors/me/history', { params: { page: histPage, size: 20 } })
+      setHistory(unwrap(res) || { content: [], totalPages: 0 })
+    } catch (e) { toast.error(apiMessage(e)) } finally { setLoadingHist(false) }
+  }, [histPage]) // eslint-disable-line
+
+  useEffect(() => { if (view === 'week') loadWeek() }, [view, loadWeek])
+  useEffect(() => { if (view === 'history') loadHistory() }, [view, loadHistory])
 
   async function act(id, action, okMsg) {
     setActing(id + action)
     try {
       await api.patch(`/appointments/${id}/${action}`)
       toast.success(okMsg)
-      load()
-    } catch (e) {
-      toast.error(apiMessage(e))
-    } finally {
-      setActing(null)
-    }
+      if (view === 'week') loadWeek(); else loadHistory()
+    } catch (e) { toast.error(apiMessage(e)) } finally { setActing(null) }
   }
+
+  // Nhom lich tuan theo ngay
+  const byDay = {}
+  weekItems.forEach((a) => { const k = clinicYMD(a.appointmentTime); (byDay[k] ||= []).push(a) })
+  Object.values(byDay).forEach((arr) => arr.sort((a, b) => new Date(a.appointmentTime) - new Date(b.appointmentTime)))
+  const days = Array.from({ length: 7 }, (_, i) => ymd(addDays(weekStart, i)))
+  const todayY = clinicYMD(new Date())
+  const rowProps = { acting, act, onRecord: setRecording, t }
 
   return (
     <>
-      <PageHeader
-        title={t('page.scheduleTitle')}
-        subtitle={t('page.scheduleSubtitle')}
-        action={
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-auto" aria-label={t('schedule.pickDate')} />
-        }
-      />
+      <PageHeader title={t('page.scheduleTitle')} subtitle={t('page.scheduleSubtitle')} />
 
       <LeaveManager toast={toast} />
 
-      {loading ? (
-        <Spinner />
-      ) : items.length === 0 ? (
-        <EmptyState icon={CalendarCheck} title={t('schedule.empty')} subtitle={t('schedule.emptySub')} />
+      <div className="mb-4 inline-flex rounded-lg border border-border bg-surface p-1">
+        <TabBtn active={view === 'week'} onClick={() => setView('week')} icon={CalendarRange} label={t('schedule.tabWeek')} />
+        <TabBtn active={view === 'history'} onClick={() => setView('history')} icon={History} label={t('schedule.tabHistory')} />
+      </div>
+
+      {view === 'week' ? (
+        <>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <Button variant="secondary" onClick={() => setWeekStart((d) => addDays(d, -7))} aria-label="prev week"><ChevronLeft className="h-4 w-4" /></Button>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-text">{ddmm(ymd(weekStart))} – {ddmm(ymd(weekEnd))}</p>
+              <button className="text-xs text-primary hover:underline" onClick={() => setWeekStart(mondayOf(new Date()))}>{t('schedule.thisWeek')}</button>
+            </div>
+            <Button variant="secondary" onClick={() => setWeekStart((d) => addDays(d, 7))} aria-label="next week"><ChevronRight className="h-4 w-4" /></Button>
+          </div>
+
+          {loadingWeek ? <Spinner label={t('schedule.weekLoading')} /> : (
+            <div className="space-y-4">
+              {days.map((dk) => {
+                const appts = byDay[dk] || []
+                const dow = WEEKDAY_KEYS[new Date(dk + 'T00:00:00').getDay()]
+                return (
+                  <div key={dk}>
+                    <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${dk === todayY ? 'text-primary' : 'text-text'}`}>
+                      {t(`weekday.${dow}`)}, {ddmm(dk)}
+                      {dk === todayY && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">{t('schedule.thisWeek')}</span>}
+                    </div>
+                    {appts.length === 0 ? (
+                      <p className="pl-1 text-sm text-muted">{t('schedule.noApptsDay')}</p>
+                    ) : (
+                      <div className="space-y-2">{appts.map((a) => <AppointmentRow key={a.id} a={a} {...rowProps} />)}</div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
       ) : (
-        <div className="space-y-3">
-          {items.map((a) => {
-            return (
-              <Card key={a.id} className="flex flex-wrap items-center gap-4 p-4">
-                <div className="flex flex-col items-center rounded-lg bg-primary-soft px-3 py-2 text-primary">
-                  <span className="text-lg font-bold tabular-nums leading-none">{formatTime(a.appointmentTime)}</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1.5 font-semibold text-text">
-                    <User className="h-4 w-4 text-muted" />
-                    {a.patientName || t('schedule.patientFallback')}
-                  </p>
-                  <p className="text-sm text-muted">
-                    {a.patientPhone} {a.reason && `· ${a.reason}`}
-                  </p>
-                </div>
-                <StatusBadge status={a.status} />
-                <div className="flex gap-2">
-                  {a.status === 'PENDING' && (
-                    <Button loading={acting === a.id + 'confirm'} onClick={() => act(a.id, 'confirm', t('schedule.confirmed'))}>
-                      <Check className="h-4 w-4" /> {t('schedule.confirm')}
-                    </Button>
-                  )}
-                  {a.status === 'CONFIRMED' && (
-                    <Button loading={acting === a.id + 'complete'} onClick={() => act(a.id, 'complete', t('schedule.completed'))}>
-                      <ClipboardCheck className="h-4 w-4" /> {t('schedule.complete')}
-                    </Button>
-                  )}
-                  {a.status === 'COMPLETED' && (
-                    <Button variant="secondary" onClick={() => setRecording(a)}>
-                      <FileText className="h-4 w-4" /> {t('schedule.writeRecord')}
-                    </Button>
-                  )}
-                </div>
-              </Card>
-            )
-          })}
-        </div>
+        loadingHist ? <Spinner /> : history.content.length === 0 ? (
+          <EmptyState icon={History} title={t('schedule.historyEmpty')} subtitle={t('schedule.historyEmptySub')} />
+        ) : (
+          <>
+            <div className="space-y-2">{history.content.map((a) => <AppointmentRow key={a.id} a={a} withDate {...rowProps} />)}</div>
+            {history.totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <Button variant="secondary" disabled={histPage === 0} onClick={() => setHistPage((p) => p - 1)}><ChevronLeft className="h-4 w-4" /> {t('common.prev')}</Button>
+                <span className="text-sm text-muted">{histPage + 1}/{history.totalPages}</span>
+                <Button variant="secondary" disabled={histPage >= history.totalPages - 1} onClick={() => setHistPage((p) => p + 1)}>{t('common.next')} <ChevronRight className="h-4 w-4" /></Button>
+              </div>
+            )}
+          </>
+        )
       )}
 
       {recording && (
-        <RecordModal appointment={recording} onClose={() => setRecording(null)} onSaved={load} toast={toast} />
+        <RecordModal appointment={recording} onClose={() => setRecording(null)} onSaved={() => (view === 'week' ? loadWeek() : loadHistory())} toast={toast} />
       )}
     </>
+  )
+}
+
+function TabBtn({ active, onClick, icon: Icon, label }) {
+  return (
+    <button onClick={onClick} className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${active ? 'bg-primary text-white' : 'text-muted hover:text-text'}`}>
+      <Icon className="h-4 w-4" /> {label}
+    </button>
+  )
+}
+
+// 1 dong lich hen (dung o ca tuan + lich su). withDate: hien them ngay (lich su).
+function AppointmentRow({ a, acting, act, onRecord, t, withDate }) {
+  const notYet = new Date(a.appointmentTime) > new Date()   // chua toi gio hen -> chua duoc hoan thanh
+  return (
+    <Card className="flex flex-wrap items-center gap-4 p-4">
+      <div className="flex flex-col items-center rounded-lg bg-primary-soft px-3 py-2 text-primary">
+        <span className="text-lg font-bold tabular-nums leading-none">{formatTime(a.appointmentTime)}</span>
+        {withDate && <span className="mt-0.5 text-xs">{ddmm(clinicYMD(a.appointmentTime))}</span>}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="flex items-center gap-1.5 font-semibold text-text"><User className="h-4 w-4 text-muted" />{a.patientName || t('schedule.patientFallback')}</p>
+        <p className="text-sm text-muted">{a.patientPhone} {a.reason && `· ${a.reason}`}</p>
+      </div>
+      <StatusBadge status={a.status} />
+      <div className="flex gap-2">
+        {a.status === 'PENDING' && (
+          <Button loading={acting === a.id + 'confirm'} onClick={() => act(a.id, 'confirm', t('schedule.confirmed'))}>
+            <Check className="h-4 w-4" /> {t('schedule.confirm')}
+          </Button>
+        )}
+        {a.status === 'CONFIRMED' && (
+          <Button loading={acting === a.id + 'complete'} disabled={notYet} title={notYet ? t('schedule.tooEarly') : ''} onClick={() => act(a.id, 'complete', t('schedule.completed'))}>
+            <ClipboardCheck className="h-4 w-4" /> {t('schedule.complete')}
+          </Button>
+        )}
+        {a.status === 'COMPLETED' && (
+          <Button variant="secondary" onClick={() => onRecord(a)}>
+            <FileText className="h-4 w-4" /> {t('schedule.writeRecord')}
+          </Button>
+        )}
+      </div>
+    </Card>
   )
 }
 

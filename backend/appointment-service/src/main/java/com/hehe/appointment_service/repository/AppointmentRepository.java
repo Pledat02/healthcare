@@ -37,9 +37,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment,String>
                                @Param("durationMinutes") int durationMinutes,
                                @Param("currentId") String currentId);
 
-    // Lay lich cua bac si trong 1 ngay: appointmentTime nam trong [dau ngay, dau ngay hom sau)
+    // Lay lich cua bac si trong 1 ngay/tuan: appointmentTime nam trong [start, end)
     List<Appointment> findByDoctorIdAndAppointmentTimeBetween(String doctorId, Instant start, Instant end);
     List<Appointment> findByPatientId(String patientId);
+
+    // Lich su cua bac si: cac lich da qua (appointmentTime < now), phan trang
+    org.springframework.data.domain.Page<Appointment> findByDoctorIdAndAppointmentTimeBefore(
+            String doctorId, Instant before, org.springframework.data.domain.Pageable pageable);
 
     // Phan trang cho trang admin (loc theo trang thai)
     org.springframework.data.domain.Page<Appointment> findByStatus(
