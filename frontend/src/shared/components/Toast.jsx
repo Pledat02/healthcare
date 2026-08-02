@@ -41,17 +41,17 @@ export function ToastProvider({ children }) {
         className="fixed bottom-4 right-4 z-[1000] flex flex-col gap-2"
         aria-live="polite"
       >
-        {toasts.map((t) => {
-          const { icon: Icon, cls } = ICONS[t.type] || ICONS.info
+        {toasts.map((item) => {
+          const { icon: Icon, cls } = ICONS[item.type] || ICONS.info
           return (
             <div
-              key={t.id}
+              key={item.id}
               className="toast-enter flex w-80 max-w-[90vw] items-start gap-3 rounded-lg border border-border bg-white p-3.5 shadow-lg"
             >
               <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${cls}`} />
-              <p className="flex-1 text-sm text-text">{t.message}</p>
+              <p className="flex-1 text-sm text-text">{item.message}</p>
               <button
-                onClick={() => dismiss(t.id)}
+                onClick={() => dismiss(item.id)}
                 className="text-slate-400 hover:text-slate-600"
                 aria-label={t('common.close')}
               >
