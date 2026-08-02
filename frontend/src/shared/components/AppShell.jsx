@@ -16,6 +16,7 @@ import {
   Sun,
   Moon,
   Languages,
+  History,
 } from 'lucide-react'
 
 // Menu theo tung vai tro (label lay qua i18n key)
@@ -28,6 +29,7 @@ const NAV = {
   ],
   DOCTOR: [
     { to: '/schedule', key: 'nav.schedule', icon: CalendarCheck },
+    { to: '/schedule/history', key: 'nav.history', icon: History },
     { to: '/profile', key: 'nav.profile', icon: UserCircle },
   ],
   ADMIN: [
@@ -44,6 +46,7 @@ function NavItems({ items, onClick }) {
     <NavLink
       key={to}
       to={to}
+      end
       onClick={onClick}
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
@@ -164,6 +167,7 @@ export default function AppShell({ children }) {
           <NavLink
             key={to}
             to={to}
+            end
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${
                 isActive ? 'text-primary' : 'text-muted'

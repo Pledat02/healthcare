@@ -16,6 +16,7 @@ import MyRecordsPage from '@/features/records/pages/MyRecordsPage'
 import ProfilePage from '@/features/patients/pages/ProfilePage'
 // Doctor
 import SchedulePage from '@/features/appointments/pages/SchedulePage'
+import AppointmentHistoryPage from '@/features/appointments/pages/AppointmentHistoryPage'
 // Admin
 import ManageDoctorsPage from '@/features/doctors/pages/ManageDoctorsPage'
 import AllAppointmentsPage from '@/features/appointments/pages/AllAppointmentsPage'
@@ -78,6 +79,7 @@ export default function App() {
 
             {/* Doctor */}
             <Route path="/schedule" element={<RequireRole role="DOCTOR"><SchedulePage /></RequireRole>} />
+            <Route path="/schedule/history" element={<RequireRole role="DOCTOR"><AppointmentHistoryPage /></RequireRole>} />
 
             {/* Admin */}
             <Route path="/admin/analytics" element={<RequireRole role="ADMIN"><AnalyticsPage /></RequireRole>} />

@@ -1,82 +1,71 @@
 import { useEffect, useState, useCallback } from 'react'
 import api, { unwrap, apiMessage } from '@/shared/lib/api'
-import { formatTime, toDateInput } from '@/shared/lib/format'
+import { toDateInput } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
 import { useI18n } from '@/shared/i18n/I18nProvider'
-import {
-  Button, Card, Field, Input, Textarea, Spinner, EmptyState, PageHeader, StatusBadge,
-} from '@/shared/ui'
-import Modal from '@/shared/components/Modal'
-import {
-  CalendarCheck, User, Check, ClipboardCheck, FileText, Plus, Trash2, CalendarOff,
-  ChevronLeft, ChevronRight, History, CalendarRange,
-} from 'lucide-react'
+import { Button, Card, Field, Input, Spinner, EmptyState, PageHeader } from '@/shared/ui'
+import AppointmentRow from '@/features/appointments/components/AppointmentRow'
+import RecordModal from '@/features/appointments/components/RecordModal'
+import MonthCalendar from '@/features/appointments/components/MonthCalendar'
+import { CalendarCheck, Plus, Trash2, CalendarOff } from 'lucide-react'
 
 const CLINIC_TZ = 'Asia/Ho_Chi_Minh'
-const WEEKDAY_KEYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
-
-// Date -> "YYYY-MM-DD" theo gio phong kham
-function clinicYMD(dt) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: CLINIC_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(dt))
-}
-// Thu Hai cua tuan chua 'date' (Date, 00:00 local)
-function mondayOf(date) {
-  const d = new Date(date); const off = (d.getDay() + 6) % 7 // 0=Mon..6=Sun
-  d.setDate(d.getDate() - off); d.setHours(0, 0, 0, 0); return d
-}
-function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate() + n); return d }
-function ymd(d) { const p = (x) => String(x).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}` }
-function ddmm(ymdStr) { const [, m, dd] = ymdStr.split('-'); return `${dd}/${m}` }
+const p2 = (n) => String(n).padStart(2, '0')
+const clinicYMD = (dt) => new Intl.DateTimeFormat('en-CA', { timeZone: CLINIC_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(dt))
+const ymdLocal = (d) => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x }
 
 export default function SchedulePage() {
   const toast = useToast()
-  const { t } = useI18n()
-  const [view, setView] = useState('week')                 // 'week' | 'history'
-  const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()))
-  const [weekItems, setWeekItems] = useState([])
-  const [loadingWeek, setLoadingWeek] = useState(true)
-  const [history, setHistory] = useState({ content: [], totalPages: 0 })
-  const [histPage, setHistPage] = useState(0)
-  const [loadingHist, setLoadingHist] = useState(false)
+  const { t, lang } = useI18n()
+  const [cursor, setCursor] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() } }) // thang cua lich
+  const [monthAppts, setMonthAppts] = useState([])
+  const [upcoming, setUpcoming] = useState([])
+  const [loading, setLoading] = useState(true)
   const [acting, setActing] = useState(null)
   const [recording, setRecording] = useState(null)
 
-  const weekEnd = addDays(weekStart, 6)
-
-  const loadWeek = useCallback(async () => {
-    setLoadingWeek(true)
+  // Lich thang (calendar)
+  const loadMonth = useCallback(async () => {
+    const from = `${cursor.y}-${p2(cursor.m + 1)}-01`
+    const to = ymdLocal(new Date(cursor.y, cursor.m + 1, 0)) // ngay cuoi thang
     try {
-      const res = await api.get('/appointments/doctors/me', { params: { from: ymd(weekStart), to: ymd(weekEnd) } })
-      setWeekItems(unwrap(res) || [])
-    } catch (e) { toast.error(apiMessage(e)) } finally { setLoadingWeek(false) }
-  }, [weekStart]) // eslint-disable-line
+      const res = await api.get('/appointments/doctors/me', { params: { from, to } })
+      setMonthAppts(unwrap(res) || [])
+    } catch (e) { toast.error(apiMessage(e)) }
+  }, [cursor]) // eslint-disable-line
 
-  const loadHistory = useCallback(async () => {
-    setLoadingHist(true)
+  // Lich hen sap toi 7 ngay
+  const loadUpcoming = useCallback(async () => {
+    setLoading(true)
+    const today = new Date()
     try {
-      const res = await api.get('/appointments/doctors/me/history', { params: { page: histPage, size: 20 } })
-      setHistory(unwrap(res) || { content: [], totalPages: 0 })
-    } catch (e) { toast.error(apiMessage(e)) } finally { setLoadingHist(false) }
-  }, [histPage]) // eslint-disable-line
+      const res = await api.get('/appointments/doctors/me', {
+        params: { from: ymdLocal(today), to: ymdLocal(addDays(today, 6)) },
+      })
+      const list = (unwrap(res) || []).slice().sort((a, b) => new Date(a.appointmentTime) - new Date(b.appointmentTime))
+      setUpcoming(list)
+    } catch (e) { toast.error(apiMessage(e)) } finally { setLoading(false) }
+  }, [])
 
-  useEffect(() => { if (view === 'week') loadWeek() }, [view, loadWeek])
-  useEffect(() => { if (view === 'history') loadHistory() }, [view, loadHistory])
+  useEffect(() => { loadMonth() }, [loadMonth])
+  useEffect(() => { loadUpcoming() }, [loadUpcoming])
 
   async function act(id, action, okMsg) {
     setActing(id + action)
     try {
       await api.patch(`/appointments/${id}/${action}`)
       toast.success(okMsg)
-      if (view === 'week') loadWeek(); else loadHistory()
+      loadUpcoming(); loadMonth()
     } catch (e) { toast.error(apiMessage(e)) } finally { setActing(null) }
   }
 
-  // Nhom lich tuan theo ngay
-  const byDay = {}
-  weekItems.forEach((a) => { const k = clinicYMD(a.appointmentTime); (byDay[k] ||= []).push(a) })
-  Object.values(byDay).forEach((arr) => arr.sort((a, b) => new Date(a.appointmentTime) - new Date(b.appointmentTime)))
-  const days = Array.from({ length: 7 }, (_, i) => ymd(addDays(weekStart, i)))
-  const todayY = clinicYMD(new Date())
+  // Nhom lich thang theo ngay (cho calendar)
+  const apptsByDay = {}
+  monthAppts.forEach((a) => { const k = clinicYMD(a.appointmentTime); (apptsByDay[k] ||= []).push(a) })
+
+  const todayYmd = clinicYMD(new Date())
+  const shiftMonth = (delta) => setCursor((c) => { const d = new Date(c.y, c.m + delta, 1); return { y: d.getFullYear(), m: d.getMonth() } })
   const rowProps = { acting, act, onRecord: setRecording, t }
 
   return (
@@ -85,108 +74,30 @@ export default function SchedulePage() {
 
       <LeaveManager toast={toast} />
 
-      <div className="mb-4 inline-flex rounded-lg border border-border bg-surface p-1">
-        <TabBtn active={view === 'week'} onClick={() => setView('week')} icon={CalendarRange} label={t('schedule.tabWeek')} />
-        <TabBtn active={view === 'history'} onClick={() => setView('history')} icon={History} label={t('schedule.tabHistory')} />
-      </div>
+      <MonthCalendar
+        year={cursor.y} month={cursor.m} apptsByDay={apptsByDay} todayYmd={todayYmd}
+        onPrev={() => shiftMonth(-1)} onNext={() => shiftMonth(1)}
+        onThis={() => { const d = new Date(); setCursor({ y: d.getFullYear(), m: d.getMonth() }) }}
+        t={t} lang={lang}
+      />
 
-      {view === 'week' ? (
-        <>
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <Button variant="secondary" onClick={() => setWeekStart((d) => addDays(d, -7))} aria-label="prev week"><ChevronLeft className="h-4 w-4" /></Button>
-            <div className="text-center">
-              <p className="text-sm font-semibold text-text">{ddmm(ymd(weekStart))} – {ddmm(ymd(weekEnd))}</p>
-              <button className="text-xs text-primary hover:underline" onClick={() => setWeekStart(mondayOf(new Date()))}>{t('schedule.thisWeek')}</button>
-            </div>
-            <Button variant="secondary" onClick={() => setWeekStart((d) => addDays(d, 7))} aria-label="next week"><ChevronRight className="h-4 w-4" /></Button>
-          </div>
-
-          {loadingWeek ? <Spinner label={t('schedule.weekLoading')} /> : (
-            <div className="space-y-4">
-              {days.map((dk) => {
-                const appts = byDay[dk] || []
-                const dow = WEEKDAY_KEYS[new Date(dk + 'T00:00:00').getDay()]
-                return (
-                  <div key={dk}>
-                    <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${dk === todayY ? 'text-primary' : 'text-text'}`}>
-                      {t(`weekday.${dow}`)}, {ddmm(dk)}
-                      {dk === todayY && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">{t('schedule.thisWeek')}</span>}
-                    </div>
-                    {appts.length === 0 ? (
-                      <p className="pl-1 text-sm text-muted">{t('schedule.noApptsDay')}</p>
-                    ) : (
-                      <div className="space-y-2">{appts.map((a) => <AppointmentRow key={a.id} a={a} {...rowProps} />)}</div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </>
+      <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-text">
+        <CalendarCheck className="h-5 w-5 text-primary" /> {t('schedule.upcoming')}
+      </h2>
+      {loading ? (
+        <Spinner />
+      ) : upcoming.length === 0 ? (
+        <EmptyState icon={CalendarCheck} title={t('schedule.upcomingEmpty')} subtitle={t('schedule.upcomingEmptySub')} />
       ) : (
-        loadingHist ? <Spinner /> : history.content.length === 0 ? (
-          <EmptyState icon={History} title={t('schedule.historyEmpty')} subtitle={t('schedule.historyEmptySub')} />
-        ) : (
-          <>
-            <div className="space-y-2">{history.content.map((a) => <AppointmentRow key={a.id} a={a} withDate {...rowProps} />)}</div>
-            {history.totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-center gap-3">
-                <Button variant="secondary" disabled={histPage === 0} onClick={() => setHistPage((p) => p - 1)}><ChevronLeft className="h-4 w-4" /> {t('common.prev')}</Button>
-                <span className="text-sm text-muted">{histPage + 1}/{history.totalPages}</span>
-                <Button variant="secondary" disabled={histPage >= history.totalPages - 1} onClick={() => setHistPage((p) => p + 1)}>{t('common.next')} <ChevronRight className="h-4 w-4" /></Button>
-              </div>
-            )}
-          </>
-        )
+        <div className="space-y-2">
+          {upcoming.map((a) => <AppointmentRow key={a.id} a={a} withDate {...rowProps} />)}
+        </div>
       )}
 
       {recording && (
-        <RecordModal appointment={recording} onClose={() => setRecording(null)} onSaved={() => (view === 'week' ? loadWeek() : loadHistory())} toast={toast} />
+        <RecordModal appointment={recording} onClose={() => setRecording(null)} onSaved={() => { loadUpcoming(); loadMonth() }} toast={toast} />
       )}
     </>
-  )
-}
-
-function TabBtn({ active, onClick, icon: Icon, label }) {
-  return (
-    <button onClick={onClick} className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${active ? 'bg-primary text-white' : 'text-muted hover:text-text'}`}>
-      <Icon className="h-4 w-4" /> {label}
-    </button>
-  )
-}
-
-// 1 dong lich hen (dung o ca tuan + lich su). withDate: hien them ngay (lich su).
-function AppointmentRow({ a, acting, act, onRecord, t, withDate }) {
-  const notYet = new Date(a.appointmentTime) > new Date()   // chua toi gio hen -> chua duoc hoan thanh
-  return (
-    <Card className="flex flex-wrap items-center gap-4 p-4">
-      <div className="flex flex-col items-center rounded-lg bg-primary-soft px-3 py-2 text-primary">
-        <span className="text-lg font-bold tabular-nums leading-none">{formatTime(a.appointmentTime)}</span>
-        {withDate && <span className="mt-0.5 text-xs">{ddmm(clinicYMD(a.appointmentTime))}</span>}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1.5 font-semibold text-text"><User className="h-4 w-4 text-muted" />{a.patientName || t('schedule.patientFallback')}</p>
-        <p className="text-sm text-muted">{a.patientPhone} {a.reason && `· ${a.reason}`}</p>
-      </div>
-      <StatusBadge status={a.status} />
-      <div className="flex gap-2">
-        {a.status === 'PENDING' && (
-          <Button loading={acting === a.id + 'confirm'} onClick={() => act(a.id, 'confirm', t('schedule.confirmed'))}>
-            <Check className="h-4 w-4" /> {t('schedule.confirm')}
-          </Button>
-        )}
-        {a.status === 'CONFIRMED' && (
-          <Button loading={acting === a.id + 'complete'} disabled={notYet} title={notYet ? t('schedule.tooEarly') : ''} onClick={() => act(a.id, 'complete', t('schedule.completed'))}>
-            <ClipboardCheck className="h-4 w-4" /> {t('schedule.complete')}
-          </Button>
-        )}
-        {a.status === 'COMPLETED' && (
-          <Button variant="secondary" onClick={() => onRecord(a)}>
-            <FileText className="h-4 w-4" /> {t('schedule.writeRecord')}
-          </Button>
-        )}
-      </div>
-    </Card>
   )
 }
 
@@ -204,11 +115,7 @@ function LeaveManager({ toast }) {
     setLoading(true)
     try {
       setLeaves(unwrap(await api.get('/doctors/me/leaves')) || [])
-    } catch (e) {
-      toast.error(apiMessage(e))
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { toast.error(apiMessage(e)) } finally { setLoading(false) }
   }, []) // eslint-disable-line
 
   useEffect(() => { load() }, [load])
@@ -222,11 +129,7 @@ function LeaveManager({ toast }) {
       toast.success(t('leave.added'))
       setNewDate(''); setReason('')
       load()
-    } catch (err) {
-      toast.error(apiMessage(err))
-    } finally {
-      setSaving(false)
-    }
+    } catch (err) { toast.error(apiMessage(err)) } finally { setSaving(false) }
   }
 
   async function remove(id) {
@@ -235,11 +138,7 @@ function LeaveManager({ toast }) {
       await api.delete(`/doctors/me/leaves/${id}`)
       toast.success(t('leave.removed'))
       load()
-    } catch (err) {
-      toast.error(apiMessage(err))
-    } finally {
-      setRemoving(null)
-    }
+    } catch (err) { toast.error(apiMessage(err)) } finally { setRemoving(null) }
   }
 
   const fmt = (ymd) => { const [y, m, d] = ymd.split('-'); return `${d}/${m}/${y}` }
@@ -289,76 +188,5 @@ function LeaveManager({ toast }) {
         </Button>
       </form>
     </Card>
-  )
-}
-
-function RecordModal({ appointment, onClose, onSaved, toast }) {
-  const { t } = useI18n()
-  const [diagnosis, setDiagnosis] = useState('')
-  const [notes, setNotes] = useState('')
-  const [items, setItems] = useState([{ medicineName: '', dosage: '', quantity: 1, instruction: '' }])
-  const [saving, setSaving] = useState(false)
-
-  const setItem = (i, k) => (e) =>
-    setItems((arr) => arr.map((it, idx) => (idx === i ? { ...it, [k]: k === 'quantity' ? +e.target.value : e.target.value } : it)))
-  const addItem = () => setItems((a) => [...a, { medicineName: '', dosage: '', quantity: 1, instruction: '' }])
-  const removeItem = (i) => setItems((a) => a.filter((_, idx) => idx !== i))
-
-  async function submit(e) {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      await api.post('/medical-records', {
-        appointmentId: appointment.id,
-        diagnosis,
-        notes,
-        prescriptionItems: items.filter((it) => it.medicineName.trim()),
-      })
-      toast.success(t('record.saved'))
-      onClose()
-      onSaved()
-    } catch (err) {
-      toast.error(apiMessage(err))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <Modal open onClose={onClose} title={t('record.title')}>
-      <form onSubmit={submit} className="space-y-4">
-        <Field label={t('record.diagnosis')} required>
-          <Textarea value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)} required placeholder={t('record.diagnosisPlaceholder')} />
-        </Field>
-        <Field label={t('record.notes')}>
-          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('record.notesPlaceholder')} />
-        </Field>
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-text">{t('record.prescription')}</span>
-            <Button type="button" variant="ghost" onClick={addItem} className="text-primary">
-              <Plus className="h-4 w-4" /> {t('record.addMedicine')}
-            </Button>
-          </div>
-          <div className="space-y-2">
-            {items.map((it, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2">
-                <Input className="col-span-4" placeholder={t('record.medicineName')} value={it.medicineName} onChange={setItem(i, 'medicineName')} />
-                <Input className="col-span-3" placeholder={t('record.dose')} value={it.dosage} onChange={setItem(i, 'dosage')} />
-                <Input className="col-span-2" type="number" min="1" value={it.quantity} onChange={setItem(i, 'quantity')} aria-label={t('record.qtyAria')} />
-                <Input className="col-span-2" placeholder={t('record.usage')} value={it.instruction} onChange={setItem(i, 'instruction')} />
-                <button type="button" onClick={() => removeItem(i)} className="col-span-1 flex items-center justify-center text-slate-400 hover:text-danger" aria-label={t('record.removeAria')}>
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="secondary" type="button" onClick={onClose}>{t('common.cancel')}</Button>
-          <Button type="submit" loading={saving}>{t('record.save')}</Button>
-        </div>
-      </form>
-    </Modal>
   )
 }
