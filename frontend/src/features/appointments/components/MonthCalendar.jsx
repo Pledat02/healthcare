@@ -1,22 +1,31 @@
 import { Card } from '@/shared/ui'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-// Mau cham theo trang thai lich hen
-const DOT = {
-  PENDING: 'bg-amber-400',
-  CONFIRMED: 'bg-blue-500',
-  COMPLETED: 'bg-green-500',
-  CANCELLED: 'bg-slate-400',
+// Mau NEN theo trang thai (ban trong suot -> hop ca sang/toi). Ngay nhieu lich:
+// to theo trang thai UU TIEN (can bac si xu ly nhat) theo thu tu duoi.
+const PRIORITY = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED']
+const BG = {
+  PENDING: 'bg-amber-500/25',
+  CONFIRMED: 'bg-blue-500/25',
+  COMPLETED: 'bg-green-500/25',
+  CANCELLED: 'bg-slate-500/20',
+}
+const SWATCH = {
+  PENDING: 'bg-amber-500/60',
+  CONFIRMED: 'bg-blue-500/60',
+  COMPLETED: 'bg-green-500/60',
+  CANCELLED: 'bg-slate-500/50',
 }
 const WD_VI = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 const WD_EN = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
 const p2 = (n) => String(n).padStart(2, '0')
 const ymdOf = (d) => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`
+const dominant = (appts) => { const set = new Set(appts.map((a) => a.status)); return PRIORITY.find((s) => set.has(s)) }
 
 /**
  * Lich thang kieu "cuon lich" cho bac si: hien het cac ngay trong thang,
- * moi ngay danh dau cham mau theo trang thai lich hen ngay do.
+ * TO MAU NEN moi ngay theo trang thai lich hen ngay do + so luong lich.
  */
 export default function MonthCalendar({ year, month, apptsByDay, todayYmd, onPrev, onNext, onThis, t, lang }) {
   const monthLabel = new Intl.DateTimeFormat(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'long', year: 'numeric' })
@@ -48,22 +57,22 @@ export default function MonthCalendar({ year, month, apptsByDay, todayYmd, onPre
           const inMonth = d.getMonth() === month
           const isToday = ymd === todayYmd
           const appts = apptsByDay[ymd] || []
+          const dom = appts.length ? dominant(appts) : null
           return (
             <div
               key={i}
+              title={appts.length ? appts.map((a) => `${a.patientName || ''} · ${t(`status.${a.status}`)}`).join('\n') : ''}
               className={[
-                'min-h-[46px] rounded-lg border p-1 text-xs',
-                inMonth ? 'border-border bg-surface' : 'border-transparent bg-transparent text-slate-300',
+                'relative flex min-h-[52px] flex-col rounded-lg border p-1 text-xs',
+                inMonth ? 'border-border' : 'border-transparent text-slate-300',
+                dom ? BG[dom] : inMonth ? 'bg-surface' : 'bg-transparent',
                 isToday ? 'ring-2 ring-primary ring-inset' : '',
               ].join(' ')}
             >
-              <div className={`text-right font-medium ${isToday ? 'text-primary' : inMonth ? 'text-text' : 'text-slate-300'}`}>{d.getDate()}</div>
+              <div className={`text-right font-semibold ${isToday ? 'text-primary' : inMonth ? 'text-text' : 'text-slate-300'}`}>{d.getDate()}</div>
               {appts.length > 0 && (
-                <div className="mt-0.5 flex flex-wrap gap-0.5">
-                  {appts.slice(0, 4).map((a) => (
-                    <span key={a.id} className={`h-1.5 w-1.5 rounded-full ${DOT[a.status] || 'bg-slate-400'}`} title={`${a.patientName || ''} · ${a.status}`} />
-                  ))}
-                  {appts.length > 4 && <span className="text-[9px] leading-none text-muted">+{appts.length - 4}</span>}
+                <div className="mt-auto text-[11px] font-medium text-text/70">
+                  {appts.length} {lang === 'vi' ? 'lịch' : appts.length > 1 ? 'appts' : 'appt'}
                 </div>
               )}
             </div>
@@ -71,11 +80,11 @@ export default function MonthCalendar({ year, month, apptsByDay, todayYmd, onPre
         })}
       </div>
 
-      {/* Chu thich mau */}
+      {/* Chu thich mau nen */}
       <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted">
-        {['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'].map((s) => (
+        {PRIORITY.map((s) => (
           <span key={s} className="inline-flex items-center gap-1.5">
-            <span className={`h-2 w-2 rounded-full ${DOT[s]}`} />{t(`status.${s}`)}
+            <span className={`h-3 w-3 rounded ${SWATCH[s]}`} />{t(`status.${s}`)}
           </span>
         ))}
       </div>
