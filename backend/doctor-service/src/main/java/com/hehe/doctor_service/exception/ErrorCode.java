@@ -4,6 +4,11 @@ import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
+    AVATAR_EMPTY(400, "Vui long chon anh dai dien"),
+    AVATAR_TOO_LARGE(413, "Anh dai dien vuot qua 5 MB"),
+    AVATAR_INVALID(415, "Anh khong hop le; chi chap nhan JPEG hoac PNG"),
+    AVATAR_NOT_PENDING(409, "Bac si khong co anh dang cho duyet"),
+    AVATAR_STORAGE_UNAVAILABLE(503, "Kho anh tam thoi khong kha dung"),
     FORBIDDEN(403, "Bạn không có quyền truy cập dữ liệu này"),
     DOCTOR_NOT_FOUND(404, "Không tìm thấy bác sĩ"),
     TOO_MANY_IDS(400, "Số lượng ID vượt giới hạn cho phép (tối đa 100)"),

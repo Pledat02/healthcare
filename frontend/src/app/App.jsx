@@ -14,6 +14,8 @@ import DoctorsPage from '@/features/doctors/pages/DoctorsPage'
 import MyAppointmentsPage from '@/features/appointments/pages/MyAppointmentsPage'
 import MyRecordsPage from '@/features/records/pages/MyRecordsPage'
 import ProfilePage from '@/features/patients/pages/ProfilePage'
+import PatientHomePage from '@/features/patients/pages/PatientHomePage'
+import HospitalPage from '@/features/patients/pages/HospitalPage'
 // Doctor
 import SchedulePage from '@/features/appointments/pages/SchedulePage'
 import AppointmentHistoryPage from '@/features/appointments/pages/AppointmentHistoryPage'
@@ -28,7 +30,7 @@ function HomeRedirect() {
   const { role } = useAuth()
   if (role === 'ADMIN') return <Navigate to="/admin/analytics" replace />
   if (role === 'DOCTOR') return <Navigate to="/schedule" replace />
-  if (role === 'PATIENT') return <Navigate to="/doctors" replace />
+  if (role === 'PATIENT') return <Navigate to="/home" replace />
   return <Navigate to="/profile" replace />
 }
 
@@ -70,7 +72,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
 
-            {/* Patient — can ho so benh nhan truoc khi dung (US-02b) */}
+            {/* Patient — landing page is available before profile completion. */}
+            <Route path="/home" element={<RequireRole role="PATIENT"><PatientHomePage /></RequireRole>} />
+            <Route path="/hospital" element={<RequireRole role="PATIENT"><HospitalPage /></RequireRole>} />
             <Route path="/doctors" element={<RequireRole role="PATIENT"><RequirePatientProfile><DoctorsPage /></RequirePatientProfile></RequireRole>} />
             <Route path="/appointments" element={<RequireRole role="PATIENT"><RequirePatientProfile><MyAppointmentsPage /></RequirePatientProfile></RequireRole>} />
             <Route path="/records" element={<RequireRole role="PATIENT"><RequirePatientProfile><MyRecordsPage /></RequirePatientProfile></RequireRole>} />

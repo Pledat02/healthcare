@@ -14,6 +14,7 @@ public interface DoctorMapper  {
 
      @Mapping(target = "avgRating", ignore = true)
      @Mapping(target = "ratingCount", ignore = true)
+     @Mapping(target = "avatarUrl", ignore = true)
      DoctorResponse toResponse(Doctor doctor);
 
      // Tinh trung binh sao tu (ratingSum, ratingCount); null-guard cho row cu.
@@ -23,6 +24,9 @@ public interface DoctorMapper  {
           int sum = doctor.getRatingSum() == null ? 0 : doctor.getRatingSum();
           res.setRatingCount(count);
           res.setAvgRating(count > 0 ? Math.round((double) sum / count * 10.0) / 10.0 : null);
+          res.setAvatarStatus(doctor.getAvatarStatus() == null
+                  ? com.hehe.doctor_service.entity.DoctorAvatarStatus.NONE
+                  : doctor.getAvatarStatus());
      }
 
      Doctor toEntity(CreationDoctorRequest doctorRequest);
@@ -31,5 +35,9 @@ public interface DoctorMapper  {
      @Mapping(target = "keycloakId", ignore = true)
      @Mapping(target = "createdAt", ignore = true)
      @Mapping(target = "updatedTime", ignore = true)
+     @Mapping(target = "avatarPath", ignore = true)
+     @Mapping(target = "pendingAvatarPath", ignore = true)
+     @Mapping(target = "avatarStatus", ignore = true)
+     @Mapping(target = "avatarUpdatedAt", ignore = true)
      Doctor updateEntity (@MappingTarget Doctor doctor, UpdateDoctorRequest doctorRequest);
 }

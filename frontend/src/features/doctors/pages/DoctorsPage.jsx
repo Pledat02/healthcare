@@ -7,6 +7,7 @@ import {
   Button, Card, Field, Input, Select, Textarea, Spinner, EmptyState, PageHeader, StarRating,
 } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
+import DoctorAvatar from '@/shared/components/DoctorAvatar'
 import { Stethoscope, Clock, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const PAGE_SIZE = 6
@@ -54,11 +55,11 @@ export default function DoctorsPage() {
     <>
       <PageHeader title={t('page.doctorsTitle')} subtitle={t('page.doctorsSubtitle')} />
 
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row">
+      <Card className="mb-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
           <Input
-            className="pl-9"
+            className="pl-10"
             placeholder={t('doctors.searchPlaceholder')}
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -71,7 +72,8 @@ export default function DoctorsPage() {
             <option key={s} value={s}>{s}</option>
           ))}
         </Select>
-      </div>
+        {!loading && <span className="min-w-11 shrink-0 self-end rounded-xl bg-primary-soft px-3 py-2 text-center text-xs font-extrabold text-primary sm:self-auto">{totalElements}</span>}
+      </Card>
 
       {loading ? (
         <Spinner />
@@ -79,30 +81,29 @@ export default function DoctorsPage() {
         <EmptyState icon={Stethoscope} title={t('doctors.notFound')} subtitle={t('doctors.notFoundSub')} />
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {doctors.map((d) => (
-              <Card key={d.id} className="flex flex-col p-5">
+              <Card key={d.id} className="interactive-card relative flex flex-col overflow-hidden p-6">
+                <div className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-teal-100/60 blur-2xl" aria-hidden="true" />
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">
-                    <Stethoscope className="h-6 w-6" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-text">{d.fullName}</p>
-                    <p className="truncate text-sm text-primary">{d.specialization}</p>
+                  <DoctorAvatar doctor={d} />
+                  <div className="relative min-w-0">
+                    <p className="truncate text-base font-extrabold text-text">{d.fullName}</p>
+                    <p className="mt-0.5 truncate text-sm font-semibold text-primary">{d.specialization}</p>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-1.5 text-sm text-muted">
-                  <Clock className="h-4 w-4" />
+                <div className="mt-5 flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-sm font-medium text-muted">
+                  <Clock className="h-4 w-4 text-primary" aria-hidden="true" />
                   {formatWorkTime(d.workStartTime)} – {formatWorkTime(d.workEndTime)}
                 </div>
-                <div className="mt-2 min-h-[20px]">
+                <div className="mt-3 min-h-[20px]">
                   {d.ratingCount > 0 ? (
                     <StarRating value={d.avgRating || 0} count={d.ratingCount} showNumber />
                   ) : (
                     <span className="text-xs text-muted">{t('doctors.noRating')}</span>
                   )}
                 </div>
-                <Button className="mt-4 w-full" onClick={() => setBooking(d)}>
+                <Button className="mt-5 w-full" onClick={() => setBooking(d)}>
                   {t('doctors.book')}
                 </Button>
               </Card>

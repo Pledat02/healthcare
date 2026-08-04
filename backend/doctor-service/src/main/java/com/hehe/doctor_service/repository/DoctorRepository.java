@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor,String> {
     Optional<Doctor> findByKeycloakId(String id);
+    Optional<Doctor> findByEmail(String email);
 }

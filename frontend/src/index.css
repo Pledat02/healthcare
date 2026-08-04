@@ -60,13 +60,35 @@ body {
 /* Class hardcode (khong phai token) -> ghi de an toan cho dark.
    CSS khong-layer + specificity cao hon nen thang utility cua Tailwind. */
 :root[data-theme="dark"] .bg-white { background-color: var(--color-surface); }
+:root[data-theme="dark"] [class~="bg-white/95"] { background-color: rgb(19 28 46 / .95); }
+:root[data-theme="dark"] [class~="bg-white/90"] { background-color: rgb(19 28 46 / .9); }
+:root[data-theme="dark"] [class~="bg-white/80"] { background-color: rgb(19 28 46 / .8); }
 :root[data-theme="dark"] .bg-slate-50 { background-color: #1a2436; }
+:root[data-theme="dark"] .bg-slate-100 { background-color: #24324a; }
+:root[data-theme="dark"] .bg-blue-50 { background-color: rgb(59 130 246 / .12); }
+:root[data-theme="dark"] .bg-green-50 { background-color: rgb(34 197 94 / .12); }
+:root[data-theme="dark"] .bg-amber-50 { background-color: rgb(245 158 11 / .12); }
+:root[data-theme="dark"] .bg-red-50 { background-color: rgb(239 68 68 / .12); }
+:root[data-theme="dark"] .text-blue-700 { color: #93c5fd; }
+:root[data-theme="dark"] .text-green-700 { color: #86efac; }
+:root[data-theme="dark"] .text-amber-700 { color: #fcd34d; }
 :root[data-theme="dark"] .hover\:bg-slate-50:hover { background-color: #1f2b40; }
 :root[data-theme="dark"] .hover\:bg-slate-100:hover { background-color: #24324a; }
 :root[data-theme="dark"] .text-slate-400 { color: #8b98ab; }
 :root[data-theme="dark"] .text-slate-300 { color: #5b6b82; }
 :root[data-theme="dark"] .placeholder\:text-slate-400::placeholder { color: #5b6b82; }
 :root[data-theme="dark"] tbody tr:hover { background: rgb(255 255 255 / .04); }
+
+/* Patient profile: calm branded header with accessible dark surfaces. */
+:root[data-theme="dark"] .profile-hero {
+  border-color: rgb(45 212 191 / .2);
+  background: radial-gradient(circle at 88% 12%, rgb(20 184 166 / .14), transparent 30%), linear-gradient(135deg, #131c2e, #102733);
+}
+:root[data-theme="dark"] .profile-hero .text-slate-950 { color: var(--color-text); }
+:root[data-theme="dark"] .profile-hero .text-slate-600 { color: var(--color-muted); }
+:root[data-theme="dark"] .profile-privacy { border-color: rgb(45 212 191 / .2); background-color: rgb(20 184 166 / .1); }
+:root[data-theme="dark"] .profile-privacy .text-slate-900 { color: var(--color-text); }
+:root[data-theme="dark"] .profile-privacy .text-slate-600 { color: var(--color-muted); }
 
 button,
 a,
@@ -122,7 +144,34 @@ textarea {
   animation: fade-up 380ms cubic-bezier(.22, 1, .36, 1) both;
   transition: border-color 220ms ease, box-shadow 260ms ease, transform 260ms cubic-bezier(.22, 1, .36, 1);
 }
-.motion-card:hover { border-color: rgb(13 148 136 / .28); box-shadow: 0 12px 30px rgb(15 23 42 / .07); transform: translateY(-2px); }
+.motion-card:hover { border-color: rgb(13 148 136 / .24); box-shadow: 0 12px 30px rgb(15 23 42 / .06); }
+
+/* Shared product surfaces used across patient, doctor and admin workspaces. */
+.app-page-hero {
+  background: radial-gradient(circle at 85% 0%, rgb(45 212 191 / .16), transparent 32%), linear-gradient(135deg, #f0fdfa 0%, #ffffff 56%, #f0f9ff 100%);
+}
+.app-page-orb { background: linear-gradient(135deg, rgb(45 212 191 / .2), rgb(56 189 248 / .14)); filter: blur(2px); }
+.app-card { box-shadow: 0 10px 34px rgb(15 23 42 / .045); }
+.interactive-card { transition: transform .28s cubic-bezier(.22, 1, .36, 1), border-color .25s ease, box-shadow .28s ease; }
+.interactive-card:hover { transform: translateY(-4px); border-color: rgb(45 212 191 / .5); box-shadow: 0 22px 46px rgb(15 118 110 / .1); }
+.app-button-primary { background-image: linear-gradient(105deg, #0f766e, #0d9488 58%, #0891b2); box-shadow: 0 8px 18px rgb(13 148 136 / .16); }
+.app-button-primary:hover { box-shadow: 0 12px 26px rgb(13 148 136 / .24); }
+.app-card table thead { background: linear-gradient(90deg, rgb(248 250 252 / .96), rgb(240 253 250 / .72)); }
+.app-card table thead th { letter-spacing: .055em; text-transform: uppercase; }
+.app-card table tbody tr { transition: background-color .18s ease; }
+.app-card table tbody tr:hover { background-color: rgb(240 253 250 / .54); }
+
+:root[data-theme="dark"] .app-page-hero {
+  border-color: rgb(45 212 191 / .18);
+  background: radial-gradient(circle at 86% 0%, rgb(20 184 166 / .15), transparent 32%), linear-gradient(135deg, #131c2e, #102733);
+}
+:root[data-theme="dark"] .app-card { box-shadow: 0 14px 38px rgb(0 0 0 / .14); }
+:root[data-theme="dark"] .app-card table thead { background: linear-gradient(90deg, #182338, #172b36); }
+:root[data-theme="dark"] .app-card table tbody tr:hover { background-color: rgb(45 212 191 / .055); }
+:root[data-theme="dark"] .status-badge[data-status="PENDING"] { background-color: rgb(245 158 11 / .13); color: #fcd34d; --tw-ring-color: rgb(245 158 11 / .26); }
+:root[data-theme="dark"] .status-badge[data-status="CONFIRMED"] { background-color: rgb(59 130 246 / .13); color: #93c5fd; --tw-ring-color: rgb(59 130 246 / .26); }
+:root[data-theme="dark"] .status-badge[data-status="COMPLETED"] { background-color: rgb(34 197 94 / .13); color: #86efac; --tw-ring-color: rgb(34 197 94 / .26); }
+:root[data-theme="dark"] .status-badge[data-status="CANCELLED"] { background-color: rgb(148 163 184 / .12); color: #cbd5e1; --tw-ring-color: rgb(148 163 184 / .24); }
 
 input, select, textarea { transition: border-color 180ms ease, box-shadow 220ms ease, background-color 180ms ease; }
 tbody tr { transition: background-color 180ms ease; }
@@ -139,6 +188,175 @@ tbody tr:hover { background: rgb(248 250 252 / .9); }
 .login-orb-two { width: 14rem; height: 14rem; left: -6rem; bottom: 8%; animation: float-soft 10s ease-in-out 1s infinite reverse; }
 .feature-row { opacity: 0; animation: fade-up 460ms cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(240ms + var(--item-index) * 90ms); }
 
+/* Patient landing page — a warmer, more expressive layer over the product UI. */
+@keyframes patient-reveal {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes patient-visual-in {
+  from { opacity: 0; transform: translateY(28px) rotate(1.5deg) scale(.96); }
+  to { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+}
+
+@keyframes patient-float-left {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-1deg); }
+  50% { transform: translate3d(0, -11px, 0) rotate(1deg); }
+}
+
+@keyframes patient-float-right {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(1deg); }
+  50% { transform: translate3d(0, 9px, 0) rotate(-1deg); }
+}
+
+@keyframes patient-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(22px, -18px, 0) scale(1.08); }
+}
+
+@keyframes patient-marquee {
+  to { transform: translateX(calc(-50% - .375rem)); }
+}
+
+@keyframes patient-shine {
+  0% { transform: translateX(-160%) skewX(-18deg); }
+  45%, 100% { transform: translateX(320%) skewX(-18deg); }
+}
+
+@keyframes patient-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgb(16 185 129 / .34); }
+  70%, 100% { box-shadow: 0 0 0 10px rgb(16 185 129 / 0); }
+}
+
+@keyframes patient-scroll-in {
+  from { opacity: .72; transform: translateY(16px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.patient-landing {
+  --marketing-surface: #ffffff;
+  --marketing-surface-muted: #f8fafc;
+  --marketing-text: #0f172a;
+  --marketing-copy: #475569;
+  --marketing-border: #e2e8f0;
+  background: var(--marketing-surface);
+  box-shadow: 0 26px 70px rgb(15 23 42 / .08);
+}
+
+.patient-hero {
+  background:
+    radial-gradient(circle at 12% 16%, rgb(255 255 255 / .92) 0, transparent 31%),
+    linear-gradient(135deg, #f0fdfa 0%, #ecfeff 46%, #eff6ff 100%);
+}
+
+.patient-grid {
+  opacity: .35;
+  background-image: linear-gradient(rgb(13 148 136 / .08) 1px, transparent 1px), linear-gradient(90deg, rgb(13 148 136 / .08) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom right, black, transparent 72%);
+}
+
+.patient-blob { position: absolute; border-radius: 9999px; filter: blur(2px); pointer-events: none; animation: patient-drift 10s ease-in-out infinite; }
+.patient-blob-one { width: 18rem; height: 18rem; right: 32%; top: -10rem; background: rgb(45 212 191 / .13); }
+.patient-blob-two { width: 13rem; height: 13rem; left: -6rem; bottom: -5rem; background: rgb(56 189 248 / .12); animation-delay: -4s; animation-direction: reverse; }
+
+.patient-reveal { opacity: 0; animation: patient-reveal 620ms cubic-bezier(.16, 1, .3, 1) both; }
+.patient-visual.patient-reveal { animation-name: patient-visual-in; animation-duration: 760ms; }
+.patient-delay-1 { animation-delay: 80ms; }
+.patient-delay-2 { animation-delay: 170ms; }
+.patient-delay-3 { animation-delay: 240ms; }
+.patient-delay-4 { animation-delay: 310ms; }
+.patient-delay-5 { animation-delay: 380ms; }
+
+.patient-gradient-text {
+  color: transparent;
+  background: linear-gradient(100deg, #0f766e 4%, #0d9488 44%, #0284c7 92%);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.patient-primary-cta { position: relative; overflow: hidden; background: linear-gradient(105deg, #0f766e, #0d9488 55%, #0891b2); transition: transform .25s ease, box-shadow .25s ease; }
+.patient-primary-cta::after { content: ''; position: absolute; inset-block: -40%; width: 28%; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .35), transparent); animation: patient-shine 4.8s ease-in-out infinite; }
+.patient-primary-cta:hover { transform: translateY(-3px); box-shadow: 0 18px 34px rgb(13 148 136 / .25); }
+
+.patient-image-halo { background: linear-gradient(145deg, rgb(45 212 191 / .25), rgb(56 189 248 / .22)); filter: blur(1px); transform: rotate(3deg); }
+.patient-image-frame { transition: transform 600ms cubic-bezier(.16, 1, .3, 1), box-shadow 600ms ease; }
+.patient-visual:hover .patient-image-frame { transform: translateY(-5px) rotate(-.7deg); box-shadow: 0 34px 70px rgb(15 118 110 / .2); }
+.patient-float-card-left { animation: patient-float-left 6.5s ease-in-out 1s infinite; contain: paint; }
+.patient-float-card-right { animation: patient-float-right 7.2s ease-in-out .4s infinite; contain: paint; }
+.patient-pulse { animation: patient-pulse-ring 2s ease-out infinite; }
+
+.patient-section-kicker { color: #0d9488; font-size: .75rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.patient-section-title { margin-top: .75rem; color: var(--marketing-text); font-size: clamp(2rem, 4vw, 3.1rem); font-weight: 900; line-height: 1.08; letter-spacing: -.035em; }
+.patient-marquee-mask { mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent); }
+.patient-marquee { animation: patient-marquee 30s linear infinite; }
+.patient-marquee-mask:hover .patient-marquee, .patient-marquee-mask:focus-within .patient-marquee { animation-play-state: paused; }
+
+.patient-feature-card { transition: transform 380ms cubic-bezier(.16, 1, .3, 1), box-shadow 380ms ease, border-color 300ms ease; }
+.patient-feature-card:hover { transform: translateY(-8px); border-color: rgb(153 246 228); box-shadow: 0 25px 55px rgb(15 118 110 / .1); }
+.patient-quote { position: relative; }
+.patient-quote::before { content: ''; position: absolute; width: 13rem; height: 13rem; right: -5rem; top: -7rem; border-radius: 9999px; background: rgb(45 212 191 / .12); filter: blur(2px); }
+.patient-cta { background: linear-gradient(120deg, #115e59, #0d9488 50%, #0369a1); }
+.patient-cta-orb { position: absolute; border-radius: 9999px; background: rgb(255 255 255 / .1); animation: patient-drift 9s ease-in-out infinite; }
+.patient-cta-orb-one { width: 20rem; height: 20rem; left: -8rem; top: -12rem; }
+.patient-cta-orb-two { width: 14rem; height: 14rem; right: -4rem; bottom: -9rem; animation-direction: reverse; }
+
+/* Marketing dark mode: keep the warm identity while respecting the app theme. */
+:root[data-theme="dark"] .patient-landing {
+  --marketing-surface: #101a2b;
+  --marketing-surface-muted: #162237;
+  --marketing-text: #f1f5f9;
+  --marketing-copy: #a8b5c7;
+  --marketing-border: #2a3950;
+  box-shadow: 0 28px 80px rgb(0 0 0 / .28);
+}
+
+:root[data-theme="dark"] .patient-hero,
+:root[data-theme="dark"] .marketing-hero {
+  background: radial-gradient(circle at 12% 16%, rgb(20 184 166 / .12), transparent 34%), linear-gradient(135deg, #101f2d 0%, #102634 48%, #112038 100%);
+}
+
+:root[data-theme="dark"] .patient-landing .bg-white { background-color: var(--marketing-surface); }
+:root[data-theme="dark"] .patient-landing .bg-slate-50 { background-color: var(--marketing-surface-muted); }
+:root[data-theme="dark"] .patient-landing .bg-slate-100 { background-color: #1c2a40; }
+:root[data-theme="dark"] .patient-landing .text-slate-950,
+:root[data-theme="dark"] .patient-landing .text-slate-900,
+:root[data-theme="dark"] .patient-landing .text-slate-800,
+:root[data-theme="dark"] .patient-landing .text-slate-700 { color: var(--marketing-text); }
+:root[data-theme="dark"] .patient-landing .text-slate-600,
+:root[data-theme="dark"] .patient-landing .text-slate-500 { color: var(--marketing-copy); }
+:root[data-theme="dark"] .patient-landing .border-white,
+:root[data-theme="dark"] .patient-landing .border-slate-100,
+:root[data-theme="dark"] .patient-landing .border-slate-200 { border-color: var(--marketing-border); }
+:root[data-theme="dark"] .patient-landing .border-teal-100,
+:root[data-theme="dark"] .patient-landing .border-teal-200 { border-color: rgb(45 212 191 / .22); }
+:root[data-theme="dark"] .patient-landing .bg-teal-50 { background-color: rgb(20 184 166 / .12); }
+:root[data-theme="dark"] .patient-landing .bg-teal-100 { background-color: rgb(20 184 166 / .18); }
+:root[data-theme="dark"] .patient-landing .patient-feature-card { border-color: var(--marketing-border); box-shadow: 0 18px 44px rgb(0 0 0 / .14); }
+:root[data-theme="dark"] .patient-grid { opacity: .18; }
+:root[data-theme="dark"] .patient-image-halo { opacity: .58; }
+:root[data-theme="dark"] .patient-float-card { border-color: rgb(255 255 255 / .12); background: rgb(16 26 43 / .9); }
+:root[data-theme="dark"] .patient-landing .patient-quote { background-color: #080f1d; }
+:root[data-theme="dark"] .patient-landing .patient-cta .bg-white { background-color: #fff; }
+
+@supports (animation-timeline: view()) {
+  .patient-feature-card {
+    animation: patient-scroll-in linear both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 30%;
+  }
+}
+
+@media (max-width: 639px) {
+  .patient-float-card { max-width: 12rem; }
+  .patient-image-frame { border-width: 5px; }
+}
+
+@media (prefers-reduced-data: reduce) {
+  .patient-marquee { animation: none; transform: none; }
+  .patient-float-card-left, .patient-float-card-right, .patient-cta-orb, .patient-blob { animation: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;
@@ -147,7 +365,11 @@ tbody tr:hover { background: rgb(248 250 252 / .9); }
     animation-delay: 0ms !important;
     transition-duration: 1ms !important;
   }
-  .motion-card:hover, .motion-button:hover:not(:disabled) { transform: none; }
+  .motion-card:hover, .motion-button:hover:not(:disabled), .interactive-card:hover { transform: none; }
+  .patient-marquee { animation: none; transform: none; }
+  .patient-feature-card { animation: none !important; opacity: 1; transform: none; }
+  .patient-primary-cta::after { display: none; }
+  .patient-float-card-left, .patient-float-card-right, .patient-cta-orb, .patient-blob { animation: none; }
 }
 
 /* Visible focus ring for accessibility (§1 focus-states) */

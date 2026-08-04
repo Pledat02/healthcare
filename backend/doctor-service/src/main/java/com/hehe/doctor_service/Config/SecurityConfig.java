@@ -21,6 +21,8 @@ public class SecurityConfig {
                         // Bac si tu quan ly ngay nghi cua minh (khong phai ADMIN)
                         .requestMatchers(HttpMethod.POST, "/api/doctors/me/leaves").hasRole("DOCTOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/doctors/me/leaves/**").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/doctors/me/avatar").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.GET, "/api/doctors/*/avatar/review").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/doctors/**").authenticated()
                         .requestMatchers("/api/doctors/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

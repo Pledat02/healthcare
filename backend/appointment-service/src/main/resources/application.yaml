@@ -17,15 +17,15 @@ spring:
   application:
     name: appointment-service
 
-  # Dung chung Supabase project voi doctor-service (Mumbai / ap-south-1)
+  # Dung chung Supabase project Singapore voi cac service du lieu (ap-southeast-1)
   # Schema mac dinh "public" -> Hibernate tu tao bang, khong can tao schema tay
   datasource:
-    url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
-    username: postgres.ewxubwczuqljaqbyjnmp
+    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.nxfrravtjtxnjrwldfse
     driver-class-name: org.postgresql.Driver
-    # Supabase free: 15 ket noi/project. 3 service dung chung project Mumbai.
+    # Supabase free: 15 ket noi/project. 5 service dung chung project Singapore.
     hikari:
-      maximum-pool-size: 5
+      maximum-pool-size: 2
 
   jpa:
     hibernate:

@@ -39,6 +39,7 @@ class DoctorServiceTest {
     @Mock DoctorMapper doctorMapper;
     @Mock DoctorRepository doctorRepository;
     @Mock KeycloakAdminClient keycloakAdminClient;
+    @Mock SupabaseAvatarStorage avatarStorage;
     @InjectMocks DoctorService service;
 
     private CreationDoctorRequest request() {

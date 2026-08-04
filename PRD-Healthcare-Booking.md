@@ -303,13 +303,13 @@ MEDICAL_RECORD (Hồ sơ khám)
 
 | Service | Supabase project | Schema | Bảng |
 |---|---|---|---|
-| patient-service | Singapore (`ap-southeast-1`) | `public` | `patients` |
-| medical-record-service | Singapore — **dùng chung project với patient** | `public` | `medical_records`, `prescription_items` |
-| doctor-service | Mumbai (`ap-south-1`) | `public` | `doctors` |
-| appointment-service | Mumbai — **dùng chung project với doctor** | `public` | `appointments` |
-| notification-service | Mumbai — **dùng chung project với doctor** | `public` | `notifications` |
+| patient-service | Singapore (`ap-southeast-1`) — **dùng chung project dữ liệu** | `public` | `patients` |
+| medical-record-service | Singapore — **dùng chung project dữ liệu** | `public` | `medical_records`, `prescription_items` |
+| doctor-service | Singapore (`ap-southeast-1`) — **dùng chung project dữ liệu** | `public` | `doctors` |
+| appointment-service | Singapore — **dùng chung project dữ liệu** | `public` | `appointments` |
+| notification-service | Singapore — **dùng chung project dữ liệu** | `public` | `notifications` |
 
-> ⚠️ **Thỏa hiệp có chủ ý:** appointment và doctor dùng chung Supabase project vì gói free giới hạn số project. Điều này **KHÔNG** cho phép hai service truy vấn bảng của nhau — nguyên tắc "gọi qua API" (mục 7) vẫn giữ nguyên. Dùng chung chỉ là chuyện hạ tầng, không phải chuyện thiết kế.
+> ⚠️ **Thỏa hiệp có chủ ý:** năm service dữ liệu dùng chung Supabase project Singapore vì gói free giới hạn số project. Mỗi Hikari pool được giới hạn 2 connections. Điều này **KHÔNG** cho phép các service truy vấn bảng của nhau — nguyên tắc "gọi qua API" (mục 7) vẫn giữ nguyên. Dùng chung chỉ là chuyện hạ tầng, không phải chuyện thiết kế.
 
 **Kết nối DB:** dùng **Session pooler cổng 5432**, KHÔNG dùng Transaction pooler (6543) — pooler 6543 không hỗ trợ prepared statement, gây lỗi khi Hibernate chạy CRUD.
 

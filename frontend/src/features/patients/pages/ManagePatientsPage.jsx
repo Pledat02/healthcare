@@ -98,11 +98,11 @@ export default function ManagePatientsPage() {
         subtitle={t('managePatients.subtitle', { count: patients.length })}
       />
 
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row">
+      <Card className="mb-6 flex flex-col gap-3 p-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
           <Input
-            className="pl-9"
+            className="pl-10"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('managePatients.searchPlaceholder')}
@@ -113,7 +113,7 @@ export default function ManagePatientsPage() {
           <option value="">{t('managePatients.allGenders')}</option>
           {GENDER_VALUES.map((v) => <option key={v} value={v}>{t(`gender.${v}`)}</option>)}
         </Select>
-      </div>
+      </Card>
 
       {loading ? <Spinner /> : filtered.length === 0 ? (
         <EmptyState
@@ -127,7 +127,7 @@ export default function ManagePatientsPage() {
             <table className="w-full text-sm">
               <thead className="border-b border-border bg-slate-50 text-left text-xs text-muted">
                 <tr>
-                  <th className="px-4 py-3 font-medium">{t('common.patient')}</th>
+                  <th className="min-w-48 px-4 py-3 font-medium">{t('common.patient')}</th>
                   <th className="px-4 py-3 font-medium">{t('managePatients.colPersonal')}</th>
                   <th className="px-4 py-3 font-medium">{t('managePatients.colContact')}</th>
                   <th className="px-4 py-3 font-medium">{t('managePatients.colActivity')}</th>
@@ -139,9 +139,9 @@ export default function ManagePatientsPage() {
                   const stats = activity[patient.id] || { total: 0, completed: 0, lastVisit: null }
                   return (
                     <tr key={patient.id}>
-                      <td className="px-4 py-3">
+                      <td className="min-w-48 px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 font-semibold text-accent">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 font-extrabold text-white shadow-sm">
                             {(patient.fullName || '?').trim().charAt(0).toUpperCase()}
                           </div>
                           <span className="font-medium text-text">{patient.fullName}</span>

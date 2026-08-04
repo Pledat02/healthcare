@@ -13,9 +13,9 @@ spring:
     url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
     username: postgres.nxfrravtjtxnjrwldfse
     driver-class-name: org.postgresql.Driver
-    # Supabase free: 15 ket noi/project. patient + medical-record dung chung project Singapore.
+    # Supabase free: 15 ket noi/project. 5 service dung chung project Singapore.
     hikari:
-      maximum-pool-size: 5
+      maximum-pool-size: 2
 
   security:
     oauth2:

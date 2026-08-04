@@ -9,13 +9,18 @@ spring:
   application:
     name: doctor-service
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
   datasource:
-    url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
-    username: postgres.ewxubwczuqljaqbyjnmp
+    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.nxfrravtjtxnjrwldfse
     driver-class-name: org.postgresql.Driver
-    # Supabase free: 15 ket noi/project. 3 service dung chung project Mumbai.
+    # Supabase free: 15 ket noi/project. 5 service dung chung project Singapore.
     hikari:
-      maximum-pool-size: 4
+      maximum-pool-size: 2
 
   # Redis cache: danh sach bac si doc rat nhieu, doi rat it -> cache 10 phut
   data:
@@ -48,6 +53,16 @@ keycloak:
   server-url: ${KEYCLOAK_SERVER_URL:http://localhost:8080}
   realm: ${KEYCLOAK_REALM:healthcare}
   admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:healthcare-admin-cli}
+
+# Anh chi luu object path trong PostgreSQL; binary nam trong Supabase Storage.
+# Service-role key la server secret, tuyet doi khong dua vao frontend/Vite env.
+medibook:
+  doctor-avatar:
+    supabase-url: ${SUPABASE_URL:https://nxfrravtjtxnjrwldfse.supabase.co}
+    service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
+    bucket: ${SUPABASE_DOCTOR_AVATAR_BUCKET:doctor-avatars}
+    max-bytes: ${DOCTOR_AVATAR_MAX_BYTES:5242880}
+    seed-enabled: ${DOCTOR_AVATAR_SEED_ENABLED:false}
 
 # ----- BL-07 Observability (Actuator + Prometheus + distributed tracing) -----
 management:

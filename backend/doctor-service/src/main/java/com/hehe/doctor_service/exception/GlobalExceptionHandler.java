@@ -6,11 +6,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Object>> handleUploadTooLarge(MaxUploadSizeExceededException ex) {
+        ErrorCode ec = ErrorCode.AVATAR_TOO_LARGE;
+        return ResponseEntity.status(ec.getCode())
+                .body(ApiResponse.<Object>builder().code(ec.getCode()).message(ec.getMessage()).build());
+    }
 
     // Lỗi validate @Valid  ->  400
     @ExceptionHandler(MethodArgumentNotValidException.class)

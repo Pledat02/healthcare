@@ -6,8 +6,9 @@ import { useI18n } from '@/shared/i18n/I18nProvider'
 import { useConfirm } from '@/shared/components/Confirm'
 import { Button, Card, Field, Input, Spinner, EmptyState, PageHeader } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
+import DoctorAvatar from '@/shared/components/DoctorAvatar'
 import {
-  Users, Plus, Trash2, Stethoscope, ChevronLeft, ChevronRight, Pencil, Search,
+  Users, Plus, Trash2, ChevronLeft, ChevronRight, Pencil, Search, Eye, Check, X,
 } from 'lucide-react'
 
 const PAGE_SIZE = 10
@@ -28,6 +29,8 @@ export default function ManageDoctorsPage() {
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
+  const [reviewing, setReviewing] = useState(null)
+  const [reviewLoading, setReviewLoading] = useState(false)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -70,6 +73,35 @@ export default function ManageDoctorsPage() {
     }
   }
 
+  async function openAvatarReview(doctor) {
+    setReviewing({ doctor, data: null })
+    setReviewLoading(true)
+    try {
+      const data = unwrap(await api.get(`/doctors/${doctor.id}/avatar/review`))
+      setReviewing({ doctor, data })
+    } catch (error) {
+      toast.error(apiMessage(error))
+      setReviewing(null)
+    } finally {
+      setReviewLoading(false)
+    }
+  }
+
+  async function decideAvatar(decision) {
+    if (!reviewing) return
+    setReviewLoading(true)
+    try {
+      await api.patch(`/doctors/${reviewing.doctor.id}/avatar/${decision}`)
+      toast.success(t(decision === 'approve' ? 'manageDoctors.avatarApproved' : 'manageDoctors.avatarRejected'))
+      setReviewing(null)
+      load()
+    } catch (error) {
+      toast.error(apiMessage(error))
+    } finally {
+      setReviewLoading(false)
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -78,10 +110,7 @@ export default function ManageDoctorsPage() {
         action={<Button onClick={() => setAdding(true)}><Plus className="h-4 w-4" /> {t('manageDoctors.add')}</Button>}
       />
 
-      <div className="relative mb-5 max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <Input className="pl-9" value={query} onChange={search} placeholder={t('manageDoctors.searchPlaceholder')} aria-label={t('manageDoctors.searchAria')} />
-      </div>
+      <Card className="mb-6 max-w-xl p-4"><div className="relative"><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><Input className="pl-10" value={query} onChange={search} placeholder={t('manageDoctors.searchPlaceholder')} aria-label={t('manageDoctors.searchAria')} /></div></Card>
 
       {loading ? <Spinner /> : doctors.length === 0 ? (
         <EmptyState
@@ -97,7 +126,7 @@ export default function ManageDoctorsPage() {
               <table className="w-full text-sm">
                 <thead className="border-b border-border bg-slate-50 text-left text-xs text-muted">
                   <tr>
-                    <th className="px-4 py-3 font-medium">{t('common.doctor')}</th>
+                    <th className="min-w-52 px-4 py-3 font-medium">{t('common.doctor')}</th>
                     <th className="px-4 py-3 font-medium">{t('manageDoctors.colSpecialty')}</th>
                     <th className="px-4 py-3 font-medium">{t('manageDoctors.colHours')}</th>
                     <th className="px-4 py-3 font-medium">{t('manageDoctors.colContact')}</th>
@@ -107,11 +136,9 @@ export default function ManageDoctorsPage() {
                 <tbody className="divide-y divide-border">
                   {doctors.map((doctor) => (
                     <tr key={doctor.id}>
-                      <td className="px-4 py-3">
+                      <td className="min-w-52 px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-primary">
-                            <Stethoscope className="h-4 w-4" />
-                          </div>
+                          <DoctorAvatar doctor={doctor} className="h-9 w-9" rounded="rounded-xl" />
                           <span className="font-medium text-text">{doctor.fullName}</span>
                         </div>
                       </td>
@@ -125,6 +152,11 @@ export default function ManageDoctorsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-1">
+                          {doctor.avatarStatus === 'PENDING' && (
+                            <button onClick={() => openAvatarReview(doctor)} className="rounded-lg bg-amber-50 p-2 text-amber-700 hover:bg-amber-100" aria-label={t('manageDoctors.reviewAvatarAria', { name: doctor.fullName })}>
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          )}
                           <button onClick={() => setEditing(doctor)} className="rounded-lg p-2 text-slate-400 hover:bg-primary-soft hover:text-primary" aria-label={t('manageDoctors.editAria', { name: doctor.fullName })}>
                             <Pencil className="h-4 w-4" />
                           </button>
@@ -156,6 +188,24 @@ export default function ManageDoctorsPage() {
 
       {adding && <DoctorModal onClose={() => setAdding(false)} onSaved={load} toast={toast} />}
       {editing && <DoctorModal doctor={editing} onClose={() => setEditing(null)} onSaved={load} toast={toast} />}
+      {reviewing && (
+        <Modal open onClose={() => !reviewLoading && setReviewing(null)} title={t('manageDoctors.reviewAvatarTitle')}>
+          {reviewLoading && !reviewing.data ? <Spinner /> : (
+            <div className="space-y-5">
+              <div className="flex items-center gap-4 rounded-2xl bg-slate-50 p-4">
+                {reviewing.data?.pendingAvatarUrl ? (
+                  <img src={reviewing.data.pendingAvatarUrl} alt={t('manageDoctors.pendingAvatarAlt', { name: reviewing.doctor.fullName })} className="h-28 w-28 rounded-2xl object-cover shadow-sm" width="112" height="112" />
+                ) : <DoctorAvatar doctor={reviewing.doctor} className="h-28 w-28" />}
+                <div><p className="font-extrabold text-text">{reviewing.doctor.fullName}</p><p className="mt-1 text-sm text-primary">{reviewing.doctor.specialization}</p><p className="mt-3 text-xs leading-5 text-muted">{t('manageDoctors.reviewAvatarHint')}</p></div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="secondary" disabled={reviewLoading} onClick={() => decideAvatar('reject')}><X className="h-4 w-4" />{t('manageDoctors.rejectAvatar')}</Button>
+                <Button loading={reviewLoading} onClick={() => decideAvatar('approve')}><Check className="h-4 w-4" />{t('manageDoctors.approveAvatar')}</Button>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
     </>
   )
 }

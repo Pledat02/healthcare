@@ -14,7 +14,8 @@ export function StatusBadge({ status }) {
   const label = CLS[status] ? t(`status.${status}`) : status
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${cls}`}
+      data-status={status}
+      className={`status-badge inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset ${cls}`}
     >
       {label}
     </span>

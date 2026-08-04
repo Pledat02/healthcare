@@ -35,6 +35,16 @@ public class Doctor {
 
     String specialization;
 
+    // Storage chi giu object path; URL public duoc tao o response de co the doi CDN/bucket.
+    String avatarPath;
+
+    String pendingAvatarPath;
+
+    @Enumerated(EnumType.STRING)
+    DoctorAvatarStatus avatarStatus = DoctorAvatarStatus.NONE;
+
+    Instant avatarUpdatedAt;
+
     // Danh gia: luu tong sao + so luot -> tinh trung binh. @ColumnDefault de row cu = 0.
     @Column(nullable = false)
     @org.hibernate.annotations.ColumnDefault("0")

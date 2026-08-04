@@ -38,13 +38,13 @@ export default function MonthCalendar({ year, month, apptsByDay, todayYmd, onPre
   const cells = Array.from({ length: 42 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d })
 
   return (
-    <Card className="mb-6 p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="font-semibold capitalize text-text">{monthLabel}</p>
+    <Card className="mb-6 p-4 sm:p-6">
+      <div className="mb-5 flex items-center justify-between">
+        <p className="text-lg font-extrabold capitalize tracking-tight text-text">{monthLabel}</p>
         <div className="flex items-center gap-1">
-          <button onClick={onThis} className="mr-1 text-xs text-primary hover:underline">{t('schedule.thisMonth')}</button>
-          <button onClick={onPrev} aria-label="prev month" className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-slate-100 hover:text-text"><ChevronLeft className="h-4 w-4" /></button>
-          <button onClick={onNext} aria-label="next month" className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-slate-100 hover:text-text"><ChevronRight className="h-4 w-4" /></button>
+          <button onClick={onThis} className="mr-1 rounded-lg px-2 py-1 text-xs font-bold text-primary hover:bg-primary-soft">{t('schedule.thisMonth')}</button>
+          <button onClick={onPrev} aria-label="prev month" className="flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:bg-slate-100 hover:text-text"><ChevronLeft className="h-4 w-4" aria-hidden="true" /></button>
+          <button onClick={onNext} aria-label="next month" className="flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:bg-slate-100 hover:text-text"><ChevronRight className="h-4 w-4" aria-hidden="true" /></button>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export default function MonthCalendar({ year, month, apptsByDay, todayYmd, onPre
               key={i}
               title={appts.length ? appts.map((a) => `${a.patientName || ''} · ${t(`status.${a.status}`)}`).join('\n') : ''}
               className={[
-                'relative flex min-h-[52px] flex-col rounded-lg border p-1 text-xs',
+                'relative flex min-h-[58px] flex-col rounded-xl border p-1.5 text-xs transition sm:min-h-[66px]',
                 inMonth ? 'border-border' : 'border-transparent text-slate-300',
                 dom ? BG[dom] : inMonth ? 'bg-surface' : 'bg-transparent',
                 isToday ? 'ring-2 ring-primary ring-inset' : '',

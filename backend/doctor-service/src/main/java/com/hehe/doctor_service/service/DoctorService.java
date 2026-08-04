@@ -31,6 +31,7 @@ public class DoctorService {
     DoctorMapper doctorMapper ;
     DoctorRepository doctorRepository;
     KeycloakAdminClient keycloakAdminClient;
+    SupabaseAvatarStorage avatarStorage;
 
     // US-03: admin them bac si -> tao luon tai khoan Keycloak (role DOCTOR)
     // va noi voi ho so qua keycloakId, de bac si dang nhap duoc ngay.
@@ -43,7 +44,7 @@ public class DoctorService {
         try {
             Doctor doctor = doctorMapper.toEntity(request);
             doctor.setKeycloakId(keycloakId);
-            return doctorMapper.toResponse(doctorRepository.save(doctor));
+            return toResponse(doctorRepository.save(doctor));
         } catch (RuntimeException e) {
             // Luu DB that bai -> go bo tai khoan vua tao, tranh user mo coi
             keycloakAdminClient.deleteUser(keycloakId);
@@ -58,7 +59,7 @@ public class DoctorService {
         );
         // Ho so bac si cho MOI user da dang nhap xem (PRD: benh nhan can xem bac si de dat lich)
         // -> khong kiem chu so huu o day.
-        return doctorMapper.toResponse(doctor);
+        return toResponse(doctor);
     }
 
     @Cacheable(value = "doctors", key = "'all'")
@@ -66,7 +67,7 @@ public class DoctorService {
         // check admin
 
         return doctorRepository.findAll().stream().
-        map(doctorMapper::toResponse).toList();
+        map(this::toResponse).toList();
     }
 
     // Batch: lay nhieu bac si theo id. THONG NHAT voi patient-service - cung dung findAllById
@@ -75,7 +76,7 @@ public class DoctorService {
         if (ids == null || ids.size() > MAX_BATCH_IDS)
             throw new AppException(ErrorCode.TOO_MANY_IDS);
         return doctorRepository.findAllById(ids).stream()
-                .map(doctorMapper::toResponse).toList();
+                .map(this::toResponse).toList();
     }
 
     // Sua bac si -> xoa ca cache chi tiet (dung id) va danh sach.
@@ -93,11 +94,11 @@ public class DoctorService {
         // va bat lai kiem chu so huu: if (!SecurityUtils.isAccessed(doctor)) throw FORBIDDEN;
          doctor = doctorMapper.updateEntity(doctor,request);
         doctorRepository.save(doctor);
-        return doctorMapper.toResponse(doctor);
+        return toResponse(doctor);
     }
     public DoctorResponse getMe(){
         String idKeyCloak = SecurityUtils.getKeyCloakId();
-        return doctorMapper.toResponse(doctorRepository.findByKeycloakId(idKeyCloak).orElseThrow(() ->
+        return toResponse(doctorRepository.findByKeycloakId(idKeyCloak).orElseThrow(() ->
                 new AppException(ErrorCode.DOCTOR_NOT_FOUND)));
     }
 
@@ -126,6 +127,12 @@ public class DoctorService {
         doctorRepository.findById(id)
                 .ifPresent(d -> keycloakAdminClient.deleteUser(d.getKeycloakId()));
         doctorRepository.deleteById(id);
+    }
+
+    private DoctorResponse toResponse(Doctor doctor) {
+        DoctorResponse response = doctorMapper.toResponse(doctor);
+        response.setAvatarUrl(avatarStorage.publicUrl(doctor.getAvatarPath()));
+        return response;
     }
 
 }

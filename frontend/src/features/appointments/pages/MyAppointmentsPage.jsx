@@ -66,32 +66,32 @@ export default function MyAppointmentsPage() {
       {items.length === 0 ? (
         <EmptyState icon={CalendarDays} title={t('myAppt.empty')} subtitle={t('myAppt.emptySub')} />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {items.map((a) => {
             const d = doctors[a.doctorId]
             const canModify = a.status !== 'COMPLETED' && a.status !== 'CANCELLED'
             return (
-              <Card key={a.id} className="flex flex-wrap items-center gap-4 p-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-primary">
-                  <Stethoscope className="h-5 w-5" />
+              <Card key={a.id} className="interactive-card flex flex-wrap items-center gap-4 overflow-hidden p-5 sm:p-6">
+                <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-700/15">
+                  <Stethoscope className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-text">{d?.fullName || t('common.doctor')}</p>
-                  <p className="text-sm text-muted">
+                  <p className="font-extrabold text-text">{d?.fullName || t('common.doctor')}</p>
+                  <p className="mt-1 text-sm font-medium text-muted">
                     {d?.specialization} · {formatDateTime(a.appointmentTime)}
                   </p>
-                  {a.reason && <p className="mt-0.5 truncate text-sm text-slate-400">{t('common.reason')}: {a.reason}</p>}
+                  {a.reason && <p className="mt-2 truncate rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs text-muted">{t('common.reason')}: {a.reason}</p>}
                 </div>
                 <StatusBadge status={a.status} />
                 {canModify && (
-                  <div className="flex gap-1">
+                  <div className="flex w-full gap-1 border-t border-border pt-3 sm:w-auto sm:border-0 sm:pt-0">
                     <Button
                       variant="ghost"
                       disabled={!d}
                       onClick={() => setRescheduling(a)}
                       title={d ? t('myAppt.rescheduleTip') : t('myAppt.loadingDoctorTip')}
                     >
-                      <CalendarClock className="h-4 w-4" /> {t('myAppt.reschedule')}
+                      <CalendarClock className="h-4 w-4" aria-hidden="true" /> {t('myAppt.reschedule')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -99,7 +99,7 @@ export default function MyAppointmentsPage() {
                       loading={cancelling === a.id}
                       onClick={() => cancel(a.id)}
                     >
-                      <XCircle className="h-4 w-4" /> {t('common.cancel')}
+                      <XCircle className="h-4 w-4" aria-hidden="true" /> {t('common.cancel')}
                     </Button>
                   </div>
                 )}

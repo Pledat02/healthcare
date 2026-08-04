@@ -48,7 +48,7 @@ export default function AppointmentHistoryPage() {
         <EmptyState icon={History} title={t('schedule.historyEmpty')} subtitle={t('schedule.historyEmptySub')} />
       ) : (
         <>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {data.content.map((a) => <AppointmentRow key={a.id} a={a} withDate {...rowProps} />)}
           </div>
           {data.totalPages > 1 && (

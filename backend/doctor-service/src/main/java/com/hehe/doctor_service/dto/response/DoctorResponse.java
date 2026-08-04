@@ -1,5 +1,7 @@
 package com.hehe.doctor_service.dto.response;
 
+import com.hehe.doctor_service.entity.DoctorAvatarStatus;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,9 +21,13 @@ public class DoctorResponse implements Serializable {   // Serializable de cache
 
     // Doi cau truc class -> flush cache doctor (xem ADR-0001). serialVersionUID tuong minh
     // giup cac lan them field VE SAU tuong thich hon.
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 3L;
 
     String id;
+
+    String avatarUrl;
+
+    DoctorAvatarStatus avatarStatus;
 
     @NotBlank(message = "Tên bác sĩ không được để trống")
     String fullName;

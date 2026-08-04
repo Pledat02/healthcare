@@ -81,15 +81,15 @@ export default function SchedulePage() {
         t={t} lang={lang}
       />
 
-      <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-text">
-        <CalendarCheck className="h-5 w-5 text-primary" /> {t('schedule.upcoming')}
+      <h2 className="mb-4 flex items-center gap-3 text-lg font-extrabold tracking-tight text-text">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft text-primary"><CalendarCheck className="h-5 w-5" aria-hidden="true" /></span>{t('schedule.upcoming')}
       </h2>
       {loading ? (
         <Spinner />
       ) : upcoming.length === 0 ? (
         <EmptyState icon={CalendarCheck} title={t('schedule.upcomingEmpty')} subtitle={t('schedule.upcomingEmptySub')} />
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {upcoming.map((a) => <AppointmentRow key={a.id} a={a} withDate {...rowProps} />)}
         </div>
       )}
@@ -145,9 +145,9 @@ function LeaveManager({ toast }) {
   const today = toDateInput()
 
   return (
-    <Card className="mb-5 p-4">
-      <div className="mb-3 flex items-center gap-2 font-semibold text-text">
-        <CalendarOff className="h-4 w-4 text-primary" /> {t('leave.title')}
+    <Card className="mb-6 p-5 sm:p-6">
+      <div className="mb-4 flex items-center gap-3 font-extrabold text-text">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft text-primary"><CalendarOff className="h-5 w-5" aria-hidden="true" /></span>{t('leave.title')}
       </div>
 
       {loading ? (

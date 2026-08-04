@@ -19,23 +19,23 @@ export default function Modal({ open, onClose, title, children }) {
 
   return (
     <div
-      className="modal-backdrop fixed inset-0 z-[900] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4"
+      className="modal-backdrop fixed inset-0 z-[900] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className="modal-panel w-full max-w-lg rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+        className="modal-panel w-full max-w-lg overflow-hidden rounded-t-[1.75rem] border border-border bg-surface shadow-2xl shadow-slate-950/25 sm:rounded-[1.75rem]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h3 className="text-lg font-semibold text-text">{title}</h3>
+        <div className="flex items-center justify-between border-b border-border bg-slate-50 px-5 py-4">
+          <h3 className="text-lg font-extrabold tracking-tight text-text">{title}</h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-text"
             aria-label={t('common.close')}
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
         <div className="max-h-[70vh] overflow-y-auto p-5">{children}</div>

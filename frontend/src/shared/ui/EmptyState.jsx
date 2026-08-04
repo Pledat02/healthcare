@@ -1,15 +1,15 @@
 export function EmptyState({ icon: Icon, title, subtitle, action }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+    <div className="app-empty-state flex flex-col items-center justify-center gap-4 rounded-[1.75rem] border border-dashed border-border bg-surface px-6 py-16 text-center shadow-sm">
       {Icon && (
-        <div className="rounded-full bg-primary-soft p-3 text-primary">
-          <Icon className="h-6 w-6" />
+        <div className="rounded-2xl bg-primary-soft p-4 text-primary shadow-sm">
+          <Icon className="h-7 w-7" aria-hidden="true" />
         </div>
       )}
       <div>
-        <p className="font-semibold text-text">{title}</p>
+        <p className="text-lg font-extrabold text-text">{title}</p>
         {subtitle && (
-          <p className="mt-1 text-sm text-muted">{subtitle}</p>
+          <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-muted">{subtitle}</p>
         )}
       </div>
       {action}

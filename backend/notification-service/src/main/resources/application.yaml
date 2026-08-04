@@ -19,15 +19,15 @@ spring:
     init:
       mode: always
 
-  # Dung chung Supabase project voi doctor-service + appointment-service (Mumbai / ap-south-1)
+  # Dung chung Supabase project Singapore voi cac service du lieu (ap-southeast-1)
   datasource:
-    url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
-    username: postgres.ewxubwczuqljaqbyjnmp
+    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.nxfrravtjtxnjrwldfse
     driver-class-name: org.postgresql.Driver
-    # Supabase free chi cho 15 ket noi/project (session mode), ma 3 service
-    # doctor + appointment + notification dung chung project nay -> gioi han pool.
+    # Supabase free chi cho 15 ket noi/project (session mode), ma 5 service
+    # dung chung project nay -> gioi han pool moi service.
     hikari:
-      maximum-pool-size: 4
+      maximum-pool-size: 2
 
   jpa:
     hibernate:
