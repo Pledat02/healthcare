@@ -9,6 +9,7 @@ import {
   FileText,
   UserCircle,
   LogOut,
+  KeyRound,
   ClipboardList,
   CalendarCheck,
   ChartNoAxesColumnIncreasing,
@@ -21,6 +22,7 @@ import {
   Building2,
   ChevronDown,
   MoreHorizontal,
+  ShieldAlert,
 } from 'lucide-react'
 
 // Menu theo tung vai tro (label lay qua i18n key)
@@ -43,6 +45,9 @@ const NAV = {
     { to: '/admin/doctors', key: 'nav.manageDoctors', icon: Users },
     { to: '/admin/patients', key: 'nav.managePatients', icon: UserRoundCog },
     { to: '/admin/appointments', key: 'nav.allAppointments', icon: ClipboardList },
+  ],
+  DEV: [
+    { to: '/dev/security', key: 'nav.security', icon: ShieldAlert },
   ],
 }
 
@@ -91,7 +96,7 @@ function PatientNavItems({ items }) {
   ))
 }
 
-function SecondaryMenu({ items, onLogout }) {
+function SecondaryMenu({ items, onLogout, onChangePassword }) {
   const { t } = useI18n()
   if (!items.length) return null
   return (
@@ -114,7 +119,10 @@ function SecondaryMenu({ items, onLogout }) {
             <Icon className="h-5 w-5" aria-hidden="true" /><span>{t(key)}</span>
           </NavLink>
         ))}
-        {onLogout && <div className="mt-2 border-t border-border pt-2"><button onClick={() => onLogout()} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted transition-colors hover:bg-slate-100 hover:text-danger"><LogOut className="h-5 w-5" aria-hidden="true" />{t('common.logout')}</button></div>}
+        {(onLogout || onChangePassword) && <div className="mt-2 border-t border-border pt-2">
+          {onChangePassword && <button onClick={() => onChangePassword()} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted transition-colors hover:bg-slate-100 hover:text-text"><KeyRound className="h-5 w-5" aria-hidden="true" />{t('common.changePassword')}</button>}
+          {onLogout && <button onClick={() => onLogout()} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted transition-colors hover:bg-slate-100 hover:text-danger"><LogOut className="h-5 w-5" aria-hidden="true" />{t('common.logout')}</button>}
+        </div>}
       </div>
     </details>
   )
@@ -154,7 +162,7 @@ function LangToggle() {
 }
 
 export default function AppShell({ children }) {
-  const { name, role, logout } = useAuth()
+  const { name, role, logout, changePassword } = useAuth()
   const { t } = useI18n()
   const location = useLocation()
   const items = NAV[role] || []
@@ -190,6 +198,14 @@ export default function AppShell({ children }) {
               <ThemeToggle />
               <LangToggle />
               <button
+                onClick={() => changePassword()}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-slate-100 hover:text-text"
+                title={t('common.changePassword')}
+                aria-label={t('common.changePassword')}
+              >
+                <KeyRound className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <button
                 onClick={() => logout()}
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-slate-100 hover:text-danger"
                 title={t('common.logout')}
@@ -211,7 +227,7 @@ export default function AppShell({ children }) {
               <span className="hidden font-extrabold text-text lg:block">MediBook</span>
             </NavLink>
             <nav className="grid min-w-0 flex-1 grid-cols-4 gap-0.5" aria-label={t('nav.primary')}><PatientNavItems items={patientPrimary} /></nav>
-            <div className="flex shrink-0 items-center gap-0.5 border-l border-border pl-2"><SecondaryMenu items={patientSecondary} onLogout={logout} /><ThemeToggle /><LangToggle /></div>
+            <div className="flex shrink-0 items-center gap-0.5 border-l border-border pl-2"><SecondaryMenu items={patientSecondary} onLogout={logout} onChangePassword={changePassword} /><ThemeToggle /><LangToggle /></div>
           </div>
         </header>
       )}
@@ -239,6 +255,13 @@ export default function AppShell({ children }) {
             <p className="text-xs text-muted">{t(`role.${role}`)}</p>
           </div>
           <button
+            onClick={() => changePassword()}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:bg-slate-100 hover:text-text"
+          >
+            <KeyRound className="h-5 w-5" />
+            {t('common.changePassword')}
+          </button>
+          <button
             onClick={() => logout()}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:bg-slate-100 hover:text-danger"
           >
@@ -257,7 +280,7 @@ export default function AppShell({ children }) {
           <span className="font-bold text-text">MediBook</span>
         </div>
         <div className="flex items-center gap-0.5">
-          <SecondaryMenu items={patientSecondary} onLogout={logout} />
+          <SecondaryMenu items={patientSecondary} onLogout={logout} onChangePassword={changePassword} />
           <ThemeToggle />
           <LangToggle />
         </div>
@@ -267,6 +290,14 @@ export default function AppShell({ children }) {
       {!patientLayout && <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-white px-4 py-3 lg:hidden">
         <div className="flex items-center gap-2"><div className="rounded-lg bg-primary p-1.5 text-white"><Stethoscope className="h-5 w-5" aria-hidden="true" /></div><span className="font-bold text-text">MediBook</span></div>
         <div className="flex items-center gap-0.5"><ThemeToggle /><LangToggle />
+          <button
+            onClick={() => changePassword()}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:text-text"
+            aria-label={t('common.changePassword')}
+            title={t('common.changePassword')}
+          >
+            <KeyRound className="h-5 w-5" aria-hidden="true" />
+          </button>
           <button
             onClick={() => logout()}
             className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:text-danger"

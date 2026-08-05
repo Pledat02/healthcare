@@ -22,6 +22,13 @@ export function AuthProvider({ children }) {
       }),
     logout: () => keycloak.logout({ redirectUri: window.location.origin }),
     register: () => keycloak.register(),
+    // Doi mat khau: dung required-action UPDATE_PASSWORD cua Keycloak (chinh chu,
+    // khong tu viet endpoint). Sau khi doi xong Keycloak quay lai dung trang hien tai.
+    changePassword: () =>
+      keycloak.login({ action: 'UPDATE_PASSWORD', redirectUri: window.location.href }),
+    // Quen mat khau: dua toi trang dang nhap Keycloak, noi co link "Quen mat khau?"
+    // (chi hien khi realm bat resetPasswordAllowed). Can SMTP de gui email reset.
+    forgotPassword: () => keycloak.login({ redirectUri: window.location.origin }),
   }
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui'
 import { Stethoscope, CalendarCheck, ShieldCheck, Clock, ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
-  const { login, loginWithGoogle, register } = useAuth()
+  const { login, loginWithGoogle, register, forgotPassword } = useAuth()
   const { t, lang, toggleLang } = useI18n()
 
   const features = [
@@ -91,6 +91,13 @@ export default function LoginPage() {
             <Button variant="secondary" className="w-full" onClick={() => login()}>
               {t('login.accountLogin')}
             </Button>
+            <button
+              type="button"
+              onClick={() => forgotPassword()}
+              className="w-full text-center text-sm font-medium text-primary hover:underline"
+            >
+              {t('login.forgotPassword')}
+            </button>
             <Button variant="ghost" className="w-full" onClick={() => register()}>
               {t('login.register')}
             </Button>

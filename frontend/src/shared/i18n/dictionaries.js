@@ -4,6 +4,7 @@
 export const vi = {
   common: {
     logout: 'Đăng xuất',
+    changePassword: 'Đổi mật khẩu',
     skipToContent: 'Chuyển đến nội dung chính',
     lightMode: 'Chế độ sáng',
     darkMode: 'Chế độ tối',
@@ -310,6 +311,7 @@ export const vi = {
     searchAria: 'Tìm bệnh nhân',
     genderAria: 'Lọc giới tính',
     allGenders: 'Mọi giới tính',
+    pageInfo: 'Trang {page}/{total} · {count} bệnh nhân',
     notFound: 'Không tìm thấy bệnh nhân',
     tryOther: 'Thử thay đổi từ khóa hoặc bộ lọc',
     none: 'Chưa có bệnh nhân',
@@ -339,7 +341,11 @@ export const vi = {
     updated: 'Đã cập nhật hồ sơ bệnh nhân',
     saveChanges: 'Lưu thay đổi',
   },
-  role: { PATIENT: 'Bệnh nhân', DOCTOR: 'Bác sĩ', ADMIN: 'Quản trị' },
+  security: {
+    title: 'Trung tâm an ninh',
+    subtitle: 'Rà soát cảnh báo, truy vết sự kiện và quản lý IP bị chặn',
+  },
+  role: { PATIENT: 'Bệnh nhân', DOCTOR: 'Bác sĩ', ADMIN: 'Quản trị', DEV: 'An ninh hệ thống' },
   nav: {
     home: 'Trang chủ',
     doctors: 'Bác sĩ',
@@ -356,6 +362,7 @@ export const vi = {
     manageDoctors: 'Bác sĩ',
     managePatients: 'Bệnh nhân',
     allAppointments: 'Lịch hẹn',
+    security: 'An ninh',
   },
   status: {
     PENDING: 'Chờ xác nhận',
@@ -380,6 +387,7 @@ export const vi = {
     google: 'Tiếp tục với Google',
     or: 'hoặc',
     accountLogin: 'Đăng nhập bằng tài khoản',
+    forgotPassword: 'Quên mật khẩu?',
     register: 'Đăng ký tài khoản bệnh nhân',
     terms: 'Bằng việc tiếp tục, bạn đồng ý với điều khoản sử dụng của MediBook.',
   },
@@ -408,6 +416,7 @@ export const vi = {
 export const en = {
   common: {
     logout: 'Sign out',
+    changePassword: 'Change password',
     skipToContent: 'Skip to main content',
     lightMode: 'Light mode',
     darkMode: 'Dark mode',
@@ -714,6 +723,7 @@ export const en = {
     searchAria: 'Search patients',
     genderAria: 'Filter by gender',
     allGenders: 'All genders',
+    pageInfo: 'Page {page}/{total} · {count} patients',
     notFound: 'No patients found',
     tryOther: 'Try changing the keyword or filter',
     none: 'No patients yet',
@@ -743,7 +753,11 @@ export const en = {
     updated: 'Patient record updated',
     saveChanges: 'Save changes',
   },
-  role: { PATIENT: 'Patient', DOCTOR: 'Doctor', ADMIN: 'Admin' },
+  security: {
+    title: 'Security operations',
+    subtitle: 'Review alerts, investigate events, and manage blocked IP addresses',
+  },
+  role: { PATIENT: 'Patient', DOCTOR: 'Doctor', ADMIN: 'Admin', DEV: 'Security analyst' },
   nav: {
     home: 'Home',
     doctors: 'Doctors',
@@ -760,6 +774,7 @@ export const en = {
     manageDoctors: 'Doctors',
     managePatients: 'Patients',
     allAppointments: 'Appointments',
+    security: 'Security',
   },
   status: {
     PENDING: 'Pending',
@@ -784,6 +799,7 @@ export const en = {
     google: 'Continue with Google',
     or: 'or',
     accountLogin: 'Sign in with account',
+    forgotPassword: 'Forgot password?',
     register: 'Register a patient account',
     terms: 'By continuing, you agree to MediBook’s terms of use.',
   },

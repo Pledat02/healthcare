@@ -1,17 +1,49 @@
 # Keycloak production deployment
 
+## Realm config in the repo (`realm-config/healthcare-realm.json`)
+
+A committed, reproducible snapshot of the `healthcare` realm — roles, clients,
+identity providers, authentication flows, and the **`MediBook`** brand
+(`displayName` / `displayNameHtml`, so the login page reads "Sign in to MediBook").
+
+It is exported **without users** and with **secrets scrubbed** to `${env.*}`
+placeholders, so it is safe to commit (unlike `import/` and `backups/`, which are
+gitignored because they carry users and password hashes). Placeholders present:
+
+| Placeholder                        | Where                          | Set via                          |
+| ---------------------------------- | ------------------------------ | -------------------------------- |
+| `${env.GOOGLE_CLIENT_ID}`          | Google identity provider       | `.env` → `GOOGLE_CLIENT_ID`      |
+| `${env.GOOGLE_CLIENT_SECRET}`      | Google identity provider       | `.env` → `GOOGLE_CLIENT_SECRET`  |
+| `${env.KEYCLOAK_ADMIN_CLIENT_SECRET}` | `healthcare-admin-cli` client | `.env` → `KEYCLOAK_ADMIN_CLIENT_SECRET` |
+
+To import into a **fresh** realm (Keycloak imports only when the realm does not
+already exist): copy the file into `import/` and start the stack, then set the
+three secrets in **Admin Console** (Identity Providers → google, and Clients →
+healthcare-admin-cli → Credentials). Regenerate any secret that was ever real.
+
+```powershell
+Copy-Item realm-config/healthcare-realm.json import/healthcare-realm.json
+docker compose --profile cloudflare up -d   # command already has --import-realm
+```
+
+To refresh this snapshot after changing the realm in the Admin Console, re-run the
+export below, then re-scrub secrets and set `displayName`/`displayNameHtml` back to
+`MediBook` before overwriting `realm-config/healthcare-realm.json`.
+
+---
+
 This stack replaces the disposable `start-dev`/H2 setup with:
 
 - Keycloak 26.4 running `start --optimized`;
 - PostgreSQL with a persistent Docker volume;
-- HTTPS termination and automatic certificates through Caddy;
+- Cloudflare Tunnel for public ingress and Caddy for forwarding-header normalization;
 - readiness health checks and restart policies;
 - realm import support for migration from the current H2 container.
 
 ## Prerequisites
 
-1. Create a public DNS record such as `auth.example.com` pointing to the deployment host.
-2. Allow inbound TCP ports 80 and 443. Caddy uses them to obtain and renew TLS certificates.
+1. Add the domain to Cloudflare and create a remotely-managed Tunnel for `auth.example.com`.
+2. Do not open inbound ports 80/443; the connector creates an outbound-only connection.
 3. Install Docker Compose v2.
 4. Keep the current `keycloak` container until the new deployment has passed all checks.
 
@@ -41,18 +73,21 @@ Edit `.env` and set:
 - the real public hostname;
 - a unique PostgreSQL password of at least 32 random characters;
 - a unique bootstrap administrator password of at least 32 random characters.
+- the `CLOUDFLARE_KEYCLOAK_TUNNEL_TOKEN` secret.
 
 Do not reuse the existing development administrator password. The `.env` file is ignored by Git. In Kubernetes or another orchestrator, inject the same values through its secret manager instead.
 
 ## 3. Start the production stack
 
 ```powershell
-docker compose build --pull
-docker compose up -d
+docker compose --profile cloudflare build --pull
+docker compose --profile cloudflare up -d
 docker compose ps
 ```
 
-Keycloak is not published over plain HTTP. Only Caddy publishes ports 80/443; traffic between Caddy and Keycloak stays on the private Docker network.
+Configure the Tunnel public hostname to route to `http://keycloak-tls:8080`. Caddy's recovery port
+binds only to `127.0.0.1:8088`; no public origin port is required. Public TLS terminates at Cloudflare,
+and Caddy overwrites forwarding headers before Keycloak consumes them.
 
 ## 4. Point applications to the HTTPS issuer
 
