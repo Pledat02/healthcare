@@ -9,32 +9,35 @@ import { I18nProvider } from '@/shared/i18n/I18nProvider'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import App from './App.jsx'
 
-// Khoi tao Keycloak truoc khi render (check-sso: khong ep dang nhap ngay)
+function render() {
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <ThemeProvider>
+        <I18nProvider>
+          <ErrorBoundary>
+            <BrowserRouter>
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </BrowserRouter>
+          </ErrorBoundary>
+        </I18nProvider>
+      </ThemeProvider>
+    </StrictMode>,
+  )
+}
+
+// Khoi tao Keycloak truoc khi render (check-sso: khong ep dang nhap ngay).
+// Neu Keycloak khong ket noi duoc (vd deploy UI-only, chua co Keycloak public),
+// van render app: authenticated=false -> hien trang Login (nut login se can Keycloak).
 keycloak
   .init({
     onLoad: 'check-sso',
     pkceMethod: 'S256',
     checkLoginIframe: false,
   })
-  .then(() => {
-    createRoot(document.getElementById('root')).render(
-      <StrictMode>
-        <ThemeProvider>
-          <I18nProvider>
-            <ErrorBoundary>
-              <BrowserRouter>
-                <AuthProvider>
-                  <App />
-                </AuthProvider>
-              </BrowserRouter>
-            </ErrorBoundary>
-          </I18nProvider>
-        </ThemeProvider>
-      </StrictMode>,
-    )
-  })
+  .then(render)
   .catch((err) => {
-    console.error('Keycloak init failed', err)
-    document.getElementById('root').innerHTML =
-      '<div style="padding:2rem;font-family:sans-serif">Không kết nối được Keycloak (http://localhost:8080). Hãy chắc chắn Keycloak đang chạy.</div>'
+    console.error('Keycloak init failed — rendering app in logged-out state', err)
+    render()
   })

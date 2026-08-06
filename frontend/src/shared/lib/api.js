@@ -1,8 +1,9 @@
 import axios from 'axios'
 import keycloak from '@/auth/keycloak'
 
-// Goi API qua proxy '/api' -> api-gateway (8090). Gateway verify JWT roi route.
-const api = axios.create({ baseURL: '/api' })
+// DEV: goi '/api' -> Vite proxy -> api-gateway (8090).
+// PROD (Vercel): dat VITE_API_URL = URL public cua gateway, vd https://api.example.com/api
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' })
 
 // Gan Bearer token vao moi request; refresh neu sap het han
 api.interceptors.request.use(async (config) => {
