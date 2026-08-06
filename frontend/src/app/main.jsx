@@ -33,6 +33,9 @@ function render() {
 keycloak
   .init({
     onLoad: 'check-sso',
+    // Check ngam qua iframe -> KHONG redirect full-page sang Keycloak.
+    // Neu Keycloak khong toi duoc (deploy UI-only) thi app o lai trang va hien Login.
+    silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
     pkceMethod: 'S256',
     checkLoginIframe: false,
   })
