@@ -1,0 +1,32 @@
+name: healthcare-edge
+
+# Caddy edge proxy: giu cong 80/443, terminate HTTPS, route sang keycloak + gateway
+# qua network ngoai "web" (ca 2 stack kia cung join network nay).
+#
+#   docker network create web        # chay 1 lan
+#   docker compose -f infrastructure/vps/compose.caddy.yaml --env-file infrastructure/vps/.env up -d
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in infrastructure/vps/.env}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in infrastructure/vps/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data       # luu chung chi -> khong xin lai moi lan restart
+      - caddy_config:/config
+    networks:
+      - web
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  web:
+    external: true

@@ -1,0 +1,17 @@
+# Override cho infrastructure/keycloak/compose.yaml khi chay tren VPS.
+# Gan keycloak vao network ngoai "web" de Caddy goi toi (keycloak:8080).
+# KHONG dung profile cloudflare. Service keycloak-tls (Caddy noi bo cho Tunnel)
+# khong can thiet o day - co the stop: docker compose ... stop keycloak-tls
+#
+#   docker compose -f infrastructure/keycloak/compose.yaml \
+#     -f infrastructure/vps/compose.keycloak.override.yaml \
+#     --env-file infrastructure/keycloak/.env up -d
+
+services:
+  keycloak:
+    networks:
+      web: {}
+
+networks:
+  web:
+    external: true

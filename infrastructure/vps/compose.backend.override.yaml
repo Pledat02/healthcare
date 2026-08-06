@@ -1,0 +1,16 @@
+# Override cho backend/compose.yaml khi chay tren VPS (IP public + Caddy).
+# Gan api-gateway vao network ngoai "web" de Caddy goi toi (api-gateway:8090).
+# KHONG dung profile cloudflare o day.
+#
+#   docker compose -f backend/compose.yaml \
+#     -f infrastructure/vps/compose.backend.override.yaml \
+#     --env-file backend/.env up -d --build
+
+services:
+  api-gateway:
+    networks:
+      web: {}
+
+networks:
+  web:
+    external: true

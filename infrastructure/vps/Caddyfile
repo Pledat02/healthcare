@@ -1,0 +1,20 @@
+# Reverse-proxy cho VPS co IP public (thay Cloudflare Tunnel).
+# Caddy tu xin chung chi Let's Encrypt cho auth.<domain> va api.<domain>.
+# Yeu cau: DNS A record auth + api tro ve IP VPS, mo cong 80 + 443.
+#
+# {$DOMAIN} / {$ACME_EMAIL} lay tu bien moi truong cua container (xem .env).
+
+{
+	email {$ACME_EMAIL}
+}
+
+# Keycloak (dang nhap / OIDC). Keycloak da set KC_PROXY_HEADERS=xforwarded +
+# KC_HOSTNAME=https://auth.<domain> nen hoat dong dung sau proxy TLS.
+auth.{$DOMAIN} {
+	reverse_proxy keycloak:8080
+}
+
+# API Gateway (Spring Cloud Gateway) - route toi cac microservice.
+api.{$DOMAIN} {
+	reverse_proxy api-gateway:8090
+}
