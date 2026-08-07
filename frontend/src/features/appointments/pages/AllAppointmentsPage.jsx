@@ -8,7 +8,7 @@ import { ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const STATUS_VALUES = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED']
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 export default function AllAppointmentsPage() {
   const toast = useToast()
