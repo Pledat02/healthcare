@@ -8,7 +8,7 @@ import Modal from '@/shared/components/Modal'
 import { CalendarCheck, ChevronLeft, ChevronRight, Pencil, Search, Trash2, UsersRound } from 'lucide-react'
 
 const GENDER_VALUES = ['MALE', 'FEMALE', 'OTHER']
-const PAGE_SIZE = 5
+const PAGE_SIZE = 10
 
 function shortDate(value) {
   if (!value) return '—'
