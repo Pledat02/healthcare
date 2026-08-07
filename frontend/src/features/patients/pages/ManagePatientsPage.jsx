@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import api, { unwrap, apiMessage } from '@/shared/lib/api'
 import { useToast } from '@/shared/components/Toast'
 import { useI18n } from '@/shared/i18n/I18nProvider'
 import { useConfirm } from '@/shared/components/Confirm'
 import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
-import { CalendarCheck, Pencil, Search, Trash2, UsersRound } from 'lucide-react'
+import { CalendarCheck, ChevronLeft, ChevronRight, Pencil, Search, Trash2, UsersRound } from 'lucide-react'
 
 const GENDER_VALUES = ['MALE', 'FEMALE', 'OTHER']
+const PAGE_SIZE = 5
 
 function shortDate(value) {
   if (!value) return '—'
@@ -22,29 +23,59 @@ export default function ManagePatientsPage() {
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [gender, setGender] = useState('')
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0)
   const [editing, setEditing] = useState(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [patientRes, appointmentRes] = await Promise.all([
-        api.get('/patients'),
-        // /appointments tra ve PageResponse (phan trang) -> lay .content. size 100 de
-        // tinh hoat dong kham (gioi han: >100 lich thi thong ke chua day du - can aggregate BE).
-        api.get('/appointments', { params: { size: 100 } }),
-      ])
-      setPatients(unwrap(patientRes) || [])
-      const appts = unwrap(appointmentRes)
-      setAppointments(Array.isArray(appts) ? appts : (appts?.content || []))
-    } catch (e) {
-      toast.error(apiMessage(e))
-    } finally {
-      setLoading(false)
-    }
-  }, []) // eslint-disable-line
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 300)
+    return () => window.clearTimeout(timer)
+  }, [query])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { setPage(0) }, [debouncedQuery, gender])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadPatients() {
+      setLoading(true)
+      try {
+        const response = await api.get('/patients', {
+          params: { page, size: PAGE_SIZE, query: debouncedQuery || undefined, gender: gender || undefined },
+        })
+        const data = unwrap(response) || {}
+        if (cancelled) return
+        setPatients(data.content || [])
+        setTotalPages(data.totalPages || 0)
+        setTotalElements(data.totalElements || 0)
+      } catch (e) {
+        if (!cancelled) toast.error(apiMessage(e))
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    loadPatients()
+    return () => { cancelled = true }
+  }, [page, debouncedQuery, gender, refreshKey]) // eslint-disable-line
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadAppointments() {
+      try {
+        // Gioi han hien tai: thong ke hoat dong chi dua tren 100 lich moi nhat.
+        const response = await api.get('/appointments', { params: { size: 100 } })
+        const data = unwrap(response)
+        if (!cancelled) setAppointments(Array.isArray(data) ? data : (data?.content || []))
+      } catch (e) {
+        if (!cancelled) toast.error(apiMessage(e))
+      }
+    }
+    loadAppointments()
+    return () => { cancelled = true }
+  }, []) // eslint-disable-line
 
   const activity = useMemo(() => {
     const map = {}
@@ -62,15 +93,6 @@ export default function ManagePatientsPage() {
     return map
   }, [appointments])
 
-  const filtered = useMemo(() => {
-    const keyword = query.trim().toLowerCase()
-    return patients.filter((patient) => {
-      const matchesGender = !gender || patient.gender === gender
-      const searchable = [patient.fullName, patient.phone, patient.email, patient.address].filter(Boolean).join(' ').toLowerCase()
-      return matchesGender && (!keyword || searchable.includes(keyword))
-    })
-  }, [patients, query, gender])
-
   async function remove(patient) {
     const count = activity[patient.id]?.total || 0
     const ok = await confirm({
@@ -84,7 +106,8 @@ export default function ManagePatientsPage() {
     if (!ok) return
     try {
       await api.delete(`/patients/${patient.id}`)
-      setPatients((items) => items.filter((item) => item.id !== patient.id))
+      if (patients.length === 1 && page > 0) setPage((current) => current - 1)
+      else setRefreshKey((current) => current + 1)
       toast.success(t('managePatients.deleted'))
     } catch (e) {
       toast.error(apiMessage(e))
@@ -95,7 +118,7 @@ export default function ManagePatientsPage() {
     <>
       <PageHeader
         title={t('page.managePatientsTitle')}
-        subtitle={t('managePatients.subtitle', { count: patients.length })}
+        subtitle={t('managePatients.subtitle', { count: totalElements })}
       />
 
       <Card className="mb-6 flex flex-col gap-3 p-4 sm:flex-row">
@@ -115,11 +138,11 @@ export default function ManagePatientsPage() {
         </Select>
       </Card>
 
-      {loading ? <Spinner /> : filtered.length === 0 ? (
+      {loading ? <Spinner /> : patients.length === 0 ? (
         <EmptyState
           icon={UsersRound}
-          title={patients.length ? t('managePatients.notFound') : t('managePatients.none')}
-          subtitle={patients.length ? t('managePatients.tryOther') : t('managePatients.noneSub')}
+          title={debouncedQuery || gender ? t('managePatients.notFound') : t('managePatients.none')}
+          subtitle={debouncedQuery || gender ? t('managePatients.tryOther') : t('managePatients.noneSub')}
         />
       ) : (
         <Card className="overflow-hidden">
@@ -135,7 +158,7 @@ export default function ManagePatientsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filtered.map((patient) => {
+                {patients.map((patient) => {
                   const stats = activity[patient.id] || { total: 0, completed: 0, lastVisit: null }
                   return (
                     <tr key={patient.id}>
@@ -178,7 +201,19 @@ export default function ManagePatientsPage() {
         </Card>
       )}
 
-      {editing && <EditPatientModal patient={editing} onClose={() => setEditing(null)} onSaved={load} toast={toast} />}
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <Button variant="secondary" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
+            <ChevronLeft className="h-4 w-4" /> {t('common.prev')}
+          </Button>
+          <span className="text-sm text-muted">{t('managePatients.pageInfo', { page: page + 1, total: totalPages, count: totalElements })}</span>
+          <Button variant="secondary" disabled={page >= totalPages - 1} onClick={() => setPage((current) => current + 1)}>
+            {t('common.next')} <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {editing && <EditPatientModal patient={editing} onClose={() => setEditing(null)} onSaved={() => setRefreshKey((current) => current + 1)} toast={toast} />}
     </>
   )
 }
