@@ -1,5 +1,5 @@
 # =============================================================================
-#  Dockerfile multi-stage DUNG CHUNG cho 6 service backend.
+#  Dockerfile multi-stage DUNG CHUNG cho 7 service backend.
 #  Tham so hoa bang ARG SERVICE -> 1 file build duoc moi service:
 #    docker build -f backend/Dockerfile --build-arg SERVICE=doctor-service \
 #                 --build-arg APP_PORT=8082 -t healthcare/doctor-service backend
@@ -13,7 +13,7 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /workspace
 
-# Copy TRUOC cac pom (aggregator + 6 module) de tan dung layer cache:
+# Copy TRUOC cac pom (aggregator + 7 module) de tan dung layer cache:
 # doi source thi khong phai tai lai dependency.
 COPY pom.xml ./
 COPY api-gateway/pom.xml            api-gateway/
@@ -22,6 +22,7 @@ COPY doctor-service/pom.xml         doctor-service/
 COPY appointment-service/pom.xml    appointment-service/
 COPY medical-record-service/pom.xml medical-record-service/
 COPY notification-service/pom.xml   notification-service/
+COPY security-service/pom.xml       security-service/
 
 ARG SERVICE
 RUN mvn -B -q -pl "${SERVICE}" dependency:go-offline

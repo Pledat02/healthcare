@@ -1,9 +1,10 @@
 name: healthcare-backend
 
 # =============================================================================
-#  Compose local/staging cho 6 microservice + Redis + Kafka.
+#  Compose local/staging cho 7 microservice + Redis + Kafka.
 #
-#  Chay:   docker compose -f backend/compose.yaml --env-file backend/.env up -d --build
+#  Local:  docker compose -f backend/compose.yaml --env-file backend/.env up -d --build
+#  Prod:   them --profile cloudflare de chay outbound Tunnel connector.
 #  Dung:   docker compose -f backend/compose.yaml down
 #
 #  DATABASE: dung Supabase (external) -> KHONG co postgres o day; moi service
@@ -82,8 +83,17 @@ services:
         APP_PORT: "8090"
     image: healthcare/api-gateway:latest
     ports:
-      - "8090:8090"    # diem vao duy nhat tu ben ngoai
+      # Chi expose tren loopback de dev/health-check; Internet phai di qua Tunnel.
+      - "127.0.0.1:${GATEWAY_LOCAL_PORT:-8090}:8090"
+    networks:
+      backend:
+      edge:
+        ipv4_address: 172.29.250.3
     depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
       patient-service:
         condition: service_started
       doctor-service:
@@ -94,6 +104,29 @@ services:
         condition: service_started
       medical-record-service:
         condition: service_started
+      # security-service loai khoi deploy public (chua co DB) - bo depends_on
+      # security-service:
+      #   condition: service_started
+
+  # Bat bang: docker compose --profile cloudflare ... up -d --build
+  # Public hostname trong Cloudflare Tunnel tro toi http://api-gateway:8090.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    pull_policy: always
+    profiles: ["cloudflare"]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    command: ["tunnel", "--no-autoupdate", "--loglevel", "info", "--metrics", "0.0.0.0:2000", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      edge:
+        ipv4_address: 172.29.250.2
 
   patient-service:
     <<: *service-base
@@ -165,9 +198,30 @@ services:
       SPRING_DATASOURCE_USERNAME: ${MEDICALRECORD_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${MEDICALRECORD_DB_PASSWORD}
 
+  # security-service: LOAI khoi deploy public (chua co DB rieng).
+  # Bat lai sau khi tao SECURITY_DB tren Supabase + them secrets.yaml, va bo comment
+  # o depends_on cua api-gateway phia tren.
+  # security-service:
+  #   <<: *service-base
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     args:
+  #       SERVICE: security-service
+  #       APP_PORT: "8086"
+  #   image: healthcare/security-service:latest
+  #   environment:
+  #     SPRING_DATASOURCE_URL: ${SECURITY_DB_URL}
+  #     SPRING_DATASOURCE_USERNAME: ${SECURITY_DB_USER}
+  #     SPRING_DATASOURCE_PASSWORD: ${SECURITY_DB_PASSWORD}
+
 volumes:
   redis_data:
   kafka_data:
 
 networks:
   backend:
+  edge:
+    ipam:
+      config:
+        - subnet: 172.29.250.0/29
