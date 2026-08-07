@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import api, { unwrap, apiMessage, fetchByIdsMap } from '@/shared/lib/api'
+import api, { unwrap, apiMessage } from '@/shared/lib/api'
 import { formatDateTime } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
 import { useI18n } from '@/shared/i18n/I18nProvider'
@@ -14,7 +14,6 @@ export default function AllAppointmentsPage() {
   const toast = useToast()
   const { t } = useI18n()
   const [items, setItems] = useState([])
-  const [doctors, setDoctors] = useState({})
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
   const [page, setPage] = useState(0)
@@ -39,8 +38,7 @@ export default function AllAppointmentsPage() {
         setItems(list)
         setTotalPages(d.totalPages || 0)
         setTotalElements(d.totalElements || 0)
-        // Ten benh nhan da co san (appointment-service lam giau); chi batch ten bac si
-        setDoctors(await fetchByIdsMap('doctors', list.map((a) => a.doctorId)))
+        // Ten benh nhan + bac si da duoc appointment-service lam giau san trong response
       } catch (e) {
         if (!cancelled) toast.error(apiMessage(e))
       } finally {
@@ -88,8 +86,8 @@ export default function AllAppointmentsPage() {
                       <td className="whitespace-nowrap px-4 py-3 tabular-nums text-text">{formatDateTime(a.appointmentTime)}</td>
                       <td className="px-4 py-3 text-text">{a.patientName || '—'}</td>
                       <td className="px-4 py-3 text-muted">
-                        {doctors[a.doctorId]?.fullName || '—'}
-                        <span className="block text-xs text-slate-400">{doctors[a.doctorId]?.specialization}</span>
+                        {a.doctorName || '—'}
+                        <span className="block text-xs text-slate-400">{a.specialization}</span>
                       </td>
                       <td className="max-w-[16rem] truncate px-4 py-3 text-muted">{a.reason || '—'}</td>
                       <td className="px-4 py-3"><StatusBadge status={a.status} /></td>

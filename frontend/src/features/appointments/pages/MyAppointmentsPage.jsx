@@ -27,10 +27,11 @@ export default function MyAppointmentsPage() {
       const appts = await api.get('/appointments/patients/me')
       const list = (unwrap(appts) || []).slice().sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime))
       setItems(list)
-      setDoctors(await fetchByIdsMap('doctors', list.map((a) => a.doctorId)))
+      setLoading(false) // hien danh sach ngay: ten + chuyen khoa bac si da co trong response
+      // Nap object bac si day du (gio lam viec) o NEN -> chi phuc vu modal Doi lich/Danh gia
+      fetchByIdsMap('doctors', list.map((a) => a.doctorId)).then(setDoctors).catch(() => {})
     } catch (e) {
       toast.error(apiMessage(e))
-    } finally {
       setLoading(false)
     }
   }
@@ -76,9 +77,9 @@ export default function MyAppointmentsPage() {
                   <Stethoscope className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-extrabold text-text">{d?.fullName || t('common.doctor')}</p>
+                  <p className="font-extrabold text-text">{a.doctorName || d?.fullName || t('common.doctor')}</p>
                   <p className="mt-1 text-sm font-medium text-muted">
-                    {d?.specialization} · {formatDateTime(a.appointmentTime)}
+                    {a.specialization || d?.specialization} · {formatDateTime(a.appointmentTime)}
                   </p>
                   {a.reason && <p className="mt-2 truncate rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs text-muted">{t('common.reason')}: {a.reason}</p>}
                 </div>
