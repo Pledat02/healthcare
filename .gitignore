@@ -4,8 +4,16 @@
 **/application-local.yaml
 .env
 
+# Local JMeter test credentials
+tools/jmeter-race-test/users.csv
+tools/jmeter-race-test/export/*.zip
+
 # Keycloak realm exports contain users and credential hashes.
 infrastructure/keycloak/import/*
 !infrastructure/keycloak/import/.gitkeep
 infrastructure/keycloak/backups/*
 !infrastructure/keycloak/backups/.gitkeep
+
+# Maven build output
+target/
+**/target/
