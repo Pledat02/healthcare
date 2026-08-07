@@ -2,6 +2,7 @@ package com.hehe.patient_service.service;
 
 import com.hehe.patient_service.dto.request.CreationPatientRequest;
 import com.hehe.patient_service.dto.response.PatientResponse;
+import com.hehe.patient_service.entity.Gender;
 import com.hehe.patient_service.entity.Patient;
 import com.hehe.patient_service.exception.AppException;
 import com.hehe.patient_service.exception.ErrorCode;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 
 import com.hehe.patient_service.dto.request.UpdationPatientRequest;
 
@@ -126,12 +128,34 @@ class PatientServiceTest {
         try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
             mocked.when(SecurityUtil::isAdmin).thenReturn(false);
 
-            assertThatThrownBy(() -> service.getAll())
+            assertThatThrownBy(() -> service.getAll(0, 20, null, null))
                     .isInstanceOf(AppException.class)
                     .extracting(e -> ((AppException) e).getErrorCode())
                     .isEqualTo(ErrorCode.FORBIDDEN);
         }
-        verify(patientRepository, never()).findAll();
+        verify(patientRepository, never()).search(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("ADMIN: danh sach benh nhan duoc phan trang va gioi han size toi da 100")
+    void getAll_asAdmin_returnsPage() {
+        Patient patient = patientOwnedBy("kc-x");
+        when(patientRepository.search(any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(patient)));
+        when(patientMapper.toResponse(patient)).thenReturn(new PatientResponse());
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+            mocked.when(SecurityUtil::isAdmin).thenReturn(true);
+
+            var result = service.getAll(-1, 200, "  an  ", Gender.MALE);
+
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            verify(patientRepository).search(
+                    org.mockito.ArgumentMatchers.eq("an"),
+                    org.mockito.ArgumentMatchers.eq(Gender.MALE),
+                    org.mockito.ArgumentMatchers.argThat(pageable ->
+                            pageable.getPageNumber() == 0 && pageable.getPageSize() == 100));
+        }
     }
 
     // ---------- getByIds (batch): BR-06 + gioi han 100 ID ----------

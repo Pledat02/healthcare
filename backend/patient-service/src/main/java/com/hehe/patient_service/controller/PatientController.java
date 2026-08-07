@@ -3,7 +3,9 @@ package com.hehe.patient_service.controller;
 import com.hehe.patient_service.dto.request.CreationPatientRequest;
 import com.hehe.patient_service.dto.request.UpdationPatientRequest;
 import com.hehe.patient_service.dto.response.ApiResponse;
+import com.hehe.patient_service.dto.response.PageResponse;
 import com.hehe.patient_service.dto.response.PatientResponse;
+import com.hehe.patient_service.entity.Gender;
 import com.hehe.patient_service.service.PatientService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -81,10 +83,14 @@ public class PatientController {
 
     }
     @GetMapping
-    public ApiResponse<List<PatientResponse>> getAll(){
-        return ApiResponse.<List<PatientResponse>>builder()
+    public ApiResponse<PageResponse<PatientResponse>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) Gender gender){
+        return ApiResponse.<PageResponse<PatientResponse>>builder()
                 .code(200)
-                .data(patientService.getAll())
+                .data(patientService.getAll(page, size, query, gender))
                 .message("lấy thành công tất cả bệnh nhân")
                 .build();
     }

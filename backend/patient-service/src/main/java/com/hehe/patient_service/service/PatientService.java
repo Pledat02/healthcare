@@ -2,7 +2,9 @@ package com.hehe.patient_service.service;
 
 import com.hehe.patient_service.dto.request.CreationPatientRequest;
 import com.hehe.patient_service.dto.request.UpdationPatientRequest;
+import com.hehe.patient_service.dto.response.PageResponse;
 import com.hehe.patient_service.dto.response.PatientResponse;
+import com.hehe.patient_service.entity.Gender;
 import com.hehe.patient_service.entity.Patient;
 import com.hehe.patient_service.exception.AppException;
 import com.hehe.patient_service.exception.ErrorCode;
@@ -10,6 +12,10 @@ import com.hehe.patient_service.helper.SecurityUtil;
 import com.hehe.patient_service.mapper.PatientMapper;
 import com.hehe.patient_service.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -57,11 +63,18 @@ public class PatientService {
                 new AppException(ErrorCode.PATIENT_NOT_FOUND)));
     }
 
-    public List<PatientResponse> getAll() {
+    public PageResponse<PatientResponse> getAll(int page, int size, String query, Gender gender) {
         if (!SecurityUtil.isAdmin()) throw new AppException(ErrorCode.FORBIDDEN);
-        return patientRepository.findAll().stream()
-                .map(patientMapper::toResponse).toList();
-
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        Pageable pageable = PageRequest.of(Math.max(page, 0), safeSize,
+                Sort.by(Sort.Direction.DESC, "createdDate").and(Sort.by("id")));
+        String normalizedQuery = query == null ? "" : query.trim();
+        Page<Patient> result = patientRepository.search(normalizedQuery, gender, pageable);
+        List<PatientResponse> content = result.getContent().stream()
+                .map(patientMapper::toResponse)
+                .toList();
+        return new PageResponse<>(content, result.getNumber(), result.getSize(),
+                result.getTotalPages(), result.getTotalElements());
     }
 
     // Batch la API NOI BO: chi ADMIN / service-account (BR-06). Bac si KHONG goi thang nua -
