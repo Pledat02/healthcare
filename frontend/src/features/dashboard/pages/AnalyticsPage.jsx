@@ -243,9 +243,9 @@ function MonthlyBarChart({ data }) {
         </div>
       </div>
       <div className="overflow-x-auto px-4 pb-5 pt-6">
-        <div className="flex min-w-[32rem] items-end gap-3" role="img" aria-label={t('analytics.chartAria')}>
+        <div className="flex min-w-full items-end gap-3" role="img" aria-label={t('analytics.chartAria')}>
           {data.map((item) => (
-            <div key={item.key} className="flex min-w-14 flex-1 flex-col items-center">
+            <div key={item.key} className="flex min-w-11 flex-1 flex-col items-center">
               <div className="mb-2 flex h-48 w-full items-end justify-center gap-1 border-b border-slate-200 px-1">
                 <ChartBar value={item.valid} max={max} color="bg-primary" label={t('analytics.barValid', { label: item.label, n: item.valid })} />
                 <ChartBar value={item.completed} max={max} color="bg-success" label={t('analytics.barCompleted', { label: item.label, n: item.completed })} />
