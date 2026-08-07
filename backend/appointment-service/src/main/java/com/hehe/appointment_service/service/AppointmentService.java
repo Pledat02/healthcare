@@ -218,6 +218,21 @@ public class AppointmentService {
         PatientDto me = patientClient.getPatient();
         List<Appointment> appts = appointmentRepository.findByPatientId(me.getId());
         List<AppointmentResponse> list = appts.stream().map(appointmentMapper::toResponse).toList();
+
+        List<String> doctorIds = appts.stream().map(Appointment::getDoctorId).distinct().toList();
+        java.util.Map<String, DoctorDto> dmap = java.util.Collections.emptyMap();
+        try {
+            dmap = doctorClient.getDoctors(doctorIds).stream()
+                    .collect(java.util.stream.Collectors.toMap(DoctorDto::getId, d -> d, (a, b) -> a));
+        } catch (Exception e) {
+            log.warn("Khong lam giau duoc ten bac si: {}", e.getMessage());
+        }
+        final java.util.Map<String, DoctorDto> doctors = dmap;
+        list.forEach(r -> {
+            DoctorDto d = doctors.get(r.getDoctorId());
+            if (d != null) { r.setDoctorName(d.getFullName()); r.setSpecialization(d.getSpecialization()); }
+        });
+// <<< HET
         // Danh dau lich nao da danh gia -> FE an nut "Danh gia"
         java.util.Set<String> ratedIds = ratingRepository
                 .findByAppointmentIdIn(appts.stream().map(Appointment::getId).toList())
@@ -366,8 +381,8 @@ public class AppointmentService {
                 ? appointmentRepository.findAll(pageable)
                 : appointmentRepository.findByStatus(status, pageable);
         // Chi lam giau ten cho content cua TRANG hien tai (<= 100 ban ghi) -> khong N+1, id it
-        List<AppointmentResponse> content = withPatientNames(
-                pg.getContent().stream().map(appointmentMapper::toResponse).toList());
+        List<AppointmentResponse> content = withDoctorNames(withPatientNames(
+                pg.getContent().stream().map(appointmentMapper::toResponse).toList()));
         return new PageResponse<>(content, pg.getNumber(), pg.getSize(),
                 pg.getTotalPages(), pg.getTotalElements());
     }
@@ -395,6 +410,29 @@ public class AppointmentService {
         }
         return list;
     }
+
+    // Lam giau ten + chuyen khoa bac si qua batch (1 call/trang) -> FE khoi goi /doctors/batch.
+    private List<AppointmentResponse> withDoctorNames(List<AppointmentResponse> list) {
+        if (list.isEmpty()) return list;
+        try {
+            List<String> ids = list.stream()
+                    .map(AppointmentResponse::getDoctorId)
+                    .filter(java.util.Objects::nonNull).distinct().toList();
+            java.util.Map<String, DoctorDto> byId = doctorClient.getDoctors(ids).stream()
+                    .collect(java.util.stream.Collectors.toMap(DoctorDto::getId, d -> d, (a, b) -> a));
+            list.forEach(r -> {
+                DoctorDto d = byId.get(r.getDoctorId());
+                if (d != null) {
+                    r.setDoctorName(d.getFullName());
+                    r.setSpecialization(d.getSpecialization());
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Khong lam giau duoc ten bac si: {}", e.getMessage());
+        }
+        return list;
+    }
+
     private void notify(NotificationType type, Appointment appt) {
         PatientDto p = patientClient.getPatient(appt.getPatientId());
         DoctorDto  d = doctorClient.getDoctor(appt.getDoctorId());

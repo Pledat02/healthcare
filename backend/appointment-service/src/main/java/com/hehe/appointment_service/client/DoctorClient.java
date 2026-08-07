@@ -73,4 +73,15 @@ public class DoctorClient {
                 .retrieve()
                 .toBodilessEntity();
     }
+    // Lay nhieu bac si trong 1 request (batch) -> lam giau lich hen khoi goi lap
+    public List<DoctorDto> getDoctors(List<String> ids) {
+        if (ids == null || ids.isEmpty()) return List.of();
+        ApiResponse<List<DoctorDto>> res = doctorRestClient.get()
+                .uri(b -> b.path("/api/doctors/batch")
+                        .queryParam("ids", String.join(",", ids)).build())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + SecurityUtils.currentToken())
+                .retrieve()
+                .body(new ParameterizedTypeReference<ApiResponse<List<DoctorDto>>>() {});
+        return (res != null && res.getData() != null) ? res.getData() : List.of();
+    }
 }
