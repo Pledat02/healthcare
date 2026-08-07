@@ -20,7 +20,7 @@ export default function AppointmentHistoryPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await api.get('/appointments/doctors/me/history', { params: { page, size: 20 } })
+      const res = await api.get('/appointments/doctors/me/history', { params: { page, size: 10 } })
       setData(unwrap(res) || { content: [], totalPages: 0 })
     } catch (e) { toast.error(apiMessage(e)) } finally { setLoading(false) }
   }, [page]) // eslint-disable-line
