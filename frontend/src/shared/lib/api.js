@@ -40,20 +40,41 @@ export function apiMessage(err) {
   return err?.response?.data?.message || err?.message || 'Đã có lỗi xảy ra'
 }
 
+// Cache session-level cho cac ban ghi tra theo id (vd bac si). Du lieu tham chieu
+// it doi trong 1 phien -> tranh fetch lai khi dieu huong qua lai (nhanh hon nhieu).
+const idsCache = {} // { [resource]: Map<id, obj> }
+const cacheFor = (resource) => (idsCache[resource] ||= new Map())
+
+// Xoa cache sau khi sua/xoa 1 ban ghi de tranh du lieu cu. Bo `id` -> xoa ca resource.
+export function invalidateIdsCache(resource, id) {
+  const cache = idsCache[resource]
+  if (!cache) return
+  if (id == null) cache.clear()
+  else cache.delete(id)
+}
+
 // Lay nhieu ban ghi theo id trong 1 request (endpoint /batch) -> map {id: obj}.
-// Thay cho viec goi GET /{resource}/{id} lap tung cai (fix N+1).
+// Thay cho viec goi GET /{resource}/{id} lap tung cai (fix N+1). Co cache: chi
+// fetch id chua co, phan con lai lay tu cache.
 export async function fetchByIdsMap(resource, ids) {
   const unique = [...new Set(ids)].filter(Boolean)
   if (unique.length === 0) return {}
-  // Chia chunk <= 100 id/request: tranh URL qua dai + khop cap 100 cua backend
-  const CHUNK = 100
-  const chunks = []
-  for (let i = 0; i < unique.length; i += CHUNK) chunks.push(unique.slice(i, i + CHUNK))
-  const results = await Promise.all(
-    chunks.map((c) => api.get(`/${resource}/batch`, { params: { ids: c.join(',') } })),
-  )
+  const cache = cacheFor(resource)
+  const missing = unique.filter((id) => !cache.has(id))
+
+  if (missing.length > 0) {
+    // Chia chunk <= 100 id/request: tranh URL qua dai + khop cap 100 cua backend
+    const CHUNK = 100
+    const chunks = []
+    for (let i = 0; i < missing.length; i += CHUNK) chunks.push(missing.slice(i, i + CHUNK))
+    const results = await Promise.all(
+      chunks.map((c) => api.get(`/${resource}/batch`, { params: { ids: c.join(',') } })),
+    )
+    results.forEach((res) => (unwrap(res) || []).forEach((o) => cache.set(o.id, o)))
+  }
+
   const map = {}
-  results.forEach((res) => (unwrap(res) || []).forEach((o) => (map[o.id] = o)))
+  unique.forEach((id) => { if (cache.has(id)) map[id] = cache.get(id) })
   return map
 }
 
