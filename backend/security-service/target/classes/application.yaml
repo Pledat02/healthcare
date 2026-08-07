@@ -1,0 +1,69 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: security-service
+  config:
+    import: optional:classpath:secrets.yaml
+  datasource:
+    url: ${SECURITY_DB_URL:jdbc:postgresql://localhost:5432/healthcare_security}
+    username: ${SECURITY_DB_USER:postgres}
+    password: ${SECURITY_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 2
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/healthcare}
+
+security:
+  event-topic: ${SECURITY_EVENT_TOPIC:security-access-events}
+  raw-event-retention-days: ${SECURITY_EVENT_RETENTION_DAYS:30}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  structured:
+    format:
+      console: ecs
