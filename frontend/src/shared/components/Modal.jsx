@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useI18n } from '@/shared/i18n/I18nProvider'
 
@@ -17,7 +18,9 @@ export default function Modal({ open, onClose, title, children }) {
 
   if (!open) return null
 
-  return (
+  // Portal ra body: thoat moi ancestor co transform (page-transition/interactive-card)
+  // -> position:fixed tinh theo viewport, backdrop phu ca thanh nav duoi, panel dung cho.
+  return createPortal(
     <div
       className="modal-backdrop fixed inset-0 z-[900] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
@@ -25,10 +28,10 @@ export default function Modal({ open, onClose, title, children }) {
       aria-modal="true"
     >
       <div
-        className="modal-panel w-full max-w-lg overflow-hidden rounded-t-[1.75rem] border border-border bg-surface shadow-2xl shadow-slate-950/25 sm:rounded-[1.75rem]"
+        className="modal-panel flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-surface shadow-2xl shadow-slate-950/25 sm:max-h-[88vh] sm:rounded-[1.75rem]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-border bg-slate-50 px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-border bg-slate-50 px-5 py-4">
           <h3 className="text-lg font-extrabold tracking-tight text-text">{title}</h3>
           <button
             onClick={onClose}
@@ -38,8 +41,9 @@ export default function Modal({ open, onClose, title, children }) {
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto p-5">{children}</div>
+        <div className="overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
