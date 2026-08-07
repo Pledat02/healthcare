@@ -25,4 +25,5 @@ public class AppointmentResponse {
     boolean rated;   // benh nhan da danh gia lich nay chua (chi set o danh sach cua benh nhan)
     String doctorName;      // lam giau tu doctor-service (batch) -> FE khoi goi /doctors/batch
     String specialization;
+    String cancelReason;    // ly do huy (neu lich bi ADMIN huy)
 }

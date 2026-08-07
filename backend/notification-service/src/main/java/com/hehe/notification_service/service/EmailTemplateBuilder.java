@@ -31,7 +31,9 @@ public class EmailTemplateBuilder {
             case APPOINTMENT_CANCELLED -> card(e,
                     "Lịch khám đã bị hủy", "#c62828",
                     "Lịch khám sau đây đã được hủy:",
-                    "Bạn có thể đặt lại bất cứ lúc nào.");
+                    (e.getCancelReason() == null || e.getCancelReason().isBlank())
+                            ? "Bạn có thể đặt lại bất cứ lúc nào."
+                            : "Lý do hủy: " + e.getCancelReason() + ". Bạn có thể đặt lại bất cứ lúc nào.");
             case APPOINTMENT_COMPLETED -> card(e,
                     "Cảm ơn bạn đã đến khám", "#6a1b9a",
                     "Buổi khám đã hoàn tất:",

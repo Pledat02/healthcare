@@ -19,4 +19,5 @@ public class AppointmentNotificationEvent {
     String specialization;
     Instant appointmentTime;
     String reason;
+    String cancelReason;   // ly do huy (ADMIN huy) -> hien trong email
 }

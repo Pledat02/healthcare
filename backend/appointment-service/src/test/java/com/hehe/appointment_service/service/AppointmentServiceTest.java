@@ -217,7 +217,7 @@ class AppointmentServiceTest {
                 .thenReturn(Optional.of(existingAppointment("pat-OWNER", AppointmentStatus.CONFIRMED)));
         when(patientClient.getPatient()).thenReturn(patient("pat-OTHER"));
 
-        assertThatThrownBy(() -> service.cancel("appt-1"))
+        assertThatThrownBy(() -> service.cancel("appt-1", null))
                 .isInstanceOf(AppException.class)
                 .extracting(e -> ((AppException) e).getErrorCode())
                 .isEqualTo(ErrorCode.FORBIDDEN);
@@ -232,7 +232,7 @@ class AppointmentServiceTest {
                 .thenReturn(Optional.of(existingAppointment("pat-1", AppointmentStatus.COMPLETED)));
         when(patientClient.getPatient()).thenReturn(patient("pat-1"));
 
-        assertThatThrownBy(() -> service.cancel("appt-1"))
+        assertThatThrownBy(() -> service.cancel("appt-1", null))
                 .isInstanceOf(AppException.class)
                 .extracting(e -> ((AppException) e).getErrorCode())
                 .isEqualTo(ErrorCode.CANNOT_MODIFY_COMPLETED);
@@ -250,7 +250,7 @@ class AppointmentServiceTest {
         when(doctorClient.getDoctor(DOCTOR_ID))
                 .thenReturn(doctorWorking(LocalTime.of(8, 0), LocalTime.of(17, 0)));    // trong notify()
 
-        boolean result = service.cancel("appt-1");
+        boolean result = service.cancel("appt-1", null);
 
         assertThat(result).isTrue();
         assertThat(appt.getStatus()).isEqualTo(AppointmentStatus.CANCELLED);

@@ -155,20 +155,26 @@ public class AppointmentService {
         return appointmentMapper.toResponse(saved);
     }
 
-    public boolean cancel(String id){
+    public boolean cancel(String id, String cancelReason){
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(()->new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
-        PatientDto me = patientClient.getPatient();
-        if (!appointment.getPatientId().equals(me.getId())) {
-            throw new AppException(ErrorCode.FORBIDDEN);
+        // ADMIN huy bat ky lich nao (kem ly do); benh nhan chi huy lich cua chinh minh
+        if (!SecurityUtils.hasRole("ADMIN")) {
+            PatientDto me = patientClient.getPatient();
+            if (!appointment.getPatientId().equals(me.getId())) {
+                throw new AppException(ErrorCode.FORBIDDEN);
+            }
         }
         if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
             throw new AppException(ErrorCode.CANNOT_MODIFY_COMPLETED);
         }
         appointment.setStatus(AppointmentStatus.CANCELLED);
+        if (cancelReason != null && !cancelReason.isBlank()) {
+            appointment.setCancelReason(cancelReason.trim());
+        }
         appointmentRepository.save(appointment);
-        notify(NotificationType.APPOINTMENT_CANCELLED, appointment);   // + huy lich nhac
+        notify(NotificationType.APPOINTMENT_CANCELLED, appointment);   // + huy lich nhac (kem ly do)
         return true;
     }
     public boolean confirm(String id){
@@ -444,6 +450,7 @@ public class AppointmentService {
                 .doctorName(d.getFullName()).specialization(d.getSpecialization())
                 .appointmentTime(appt.getAppointmentTime())
                 .reason(appt.getReason())
+                .cancelReason(appt.getCancelReason())
                 .build());
     }
 

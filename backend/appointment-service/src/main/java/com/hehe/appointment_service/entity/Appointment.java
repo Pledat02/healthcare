@@ -25,6 +25,7 @@ public class Appointment {
     Instant appointmentTime;
     int durationMinutes;
     String reason;
+    String cancelReason;   // ly do huy (admin nhap) -> gui kem email cho benh nhan
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

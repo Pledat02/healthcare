@@ -1,5 +1,6 @@
 package com.hehe.appointment_service.controller;
 
+import com.hehe.appointment_service.dto.request.CancelAppointmentRequest;
 import com.hehe.appointment_service.dto.request.CreationAppointmentRequest;
 import com.hehe.appointment_service.dto.request.RateRequest;
 import com.hehe.appointment_service.dto.request.UpdateAppointmentRequest;
@@ -52,10 +53,11 @@ public class AppointmentController {
                 .build();
     }
 
-    // US-06: benh nhan huy lich
+    // US-06: benh nhan huy lich; ADMIN huy bat ky lich nao (kem ly do -> email)
     @PatchMapping("/{id}/cancel")
-    public ApiResponse<Void> cancel(@PathVariable String id) {
-        appointmentService.cancel(id);
+    public ApiResponse<Void> cancel(@PathVariable String id,
+                                    @RequestBody(required = false) CancelAppointmentRequest body) {
+        appointmentService.cancel(id, body == null ? null : body.getReason());
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Hủy lịch hẹn thành công")
