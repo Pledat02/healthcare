@@ -26,9 +26,28 @@ Copy-Item realm-config/healthcare-realm.json import/healthcare-realm.json
 docker compose --profile cloudflare up -d   # command already has --import-realm
 ```
 
-To refresh this snapshot after changing the realm in the Admin Console, re-run the
-export below, then re-scrub secrets and set `displayName`/`displayNameHtml` back to
-`MediBook` before overwriting `realm-config/healthcare-realm.json`.
+It also embeds the **service-account users** (`service-account-*`) with their role
+mappings — the `healthcare-admin-cli` service account keeps `ADMIN` (for internal
+service-to-service calls like `/patients/batch`) and the `realm-management` roles
+`manage-users` / `view-users` (doctor-service creates Keycloak accounts when adding
+a doctor). Human users and password hashes are dropped.
+
+> Earlier this export was taken with `--users skip`, which silently dropped the
+> service-account users too — so a fresh import lost those roles and internal calls
+> started returning 403. Always export **with** users and scrub instead (below).
+
+To refresh this snapshot after changing the realm in the Admin Console:
+
+```powershell
+# 1) Export WITH users (the script already passes --users realm_file)
+./Export-KeycloakRealm.ps1 -ContainerName keycloak -Realm healthcare
+# 2) Scrub: keep only service-account users, drop humans, scrub secrets, set brand
+python scrub-realm-export.py backups/<timestamp>/export/healthcare-realm.json realm-config/healthcare-realm.json
+```
+
+`scrub-realm-export.py` keeps service-account users, removes real users + password
+hashes, replaces client secrets with `${env.*}` placeholders, and sets the MediBook
+brand + `resetPasswordAllowed`. Review the diff before committing.
 
 ---
 

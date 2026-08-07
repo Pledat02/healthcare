@@ -2753,5 +2753,25 @@
     "policies": []
   },
   "displayName": "MediBook",
-  "displayNameHtml": "<span>Medi<b>Book</b></span>"
+  "displayNameHtml": "<span>Medi<b>Book</b></span>",
+  "users": [
+    {
+      "username": "service-account-healthcare-admin-cli",
+      "enabled": true,
+      "emailVerified": false,
+      "serviceAccountClientId": "healthcare-admin-cli",
+      "realmRoles": [
+        "ADMIN"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users",
+          "view-realm",
+          "query-realm"
+        ]
+      }
+    }
+  ]
 }
