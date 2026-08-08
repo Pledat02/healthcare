@@ -37,6 +37,20 @@ public interface AppointmentRepository extends JpaRepository<Appointment,String>
                                @Param("durationMinutes") int durationMinutes,
                                @Param("currentId") String currentId);
 
+    // BR: moi ngay benh nhan chi dat 1 ca voi CUNG 1 bac si (day theo mui gio phong kham).
+    @NativeQuery("SELECT EXISTS ( " +
+            "  SELECT 1 FROM appointments a " +
+            "  WHERE a.patient_id = :patientId " +
+            "    AND a.doctor_id = :doctorId " +
+            "    AND a.status <> 'CANCELLED' " +
+            "    AND a.appointment_time >= CAST(:dayStart AS timestamptz) " +
+            "    AND a.appointment_time <  CAST(:dayEnd AS timestamptz) " +
+            ")")
+    boolean existsPatientDoctorActiveInDay(@Param("patientId") String patientId,
+                                           @Param("doctorId") String doctorId,
+                                           @Param("dayStart") Instant dayStart,
+                                           @Param("dayEnd") Instant dayEnd);
+
     // Lay lich cua bac si trong 1 ngay/tuan: appointmentTime nam trong [start, end)
     List<Appointment> findByDoctorIdAndAppointmentTimeBetween(String doctorId, Instant start, Instant end);
     List<Appointment> findByPatientId(String patientId);

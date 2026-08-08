@@ -29,6 +29,7 @@ public enum ErrorCode {
 
     // --- BR-01: chống trùng lịch ---
     APPOINTMENT_CONFLICT(409, "Bác sĩ đã có lịch hẹn khác trong khung giờ này"),
+    ALREADY_BOOKED_DOCTOR_TODAY(409, "Bạn đã có lịch hẹn với bác sĩ này trong ngày — mỗi ngày chỉ đặt được 1 ca với cùng bác sĩ"),
 
     // --- BR-04: lịch đã khám xong thì khóa ---
     CANNOT_MODIFY_COMPLETED(400, "Lịch hẹn đã hoàn thành, không thể hủy hoặc sửa"),

@@ -92,6 +92,16 @@ public class AppointmentService {
         appointment.setPatientId(patientDto.getId());
         appointment.setDurationMinutes(durationMinutes);
 
+        // BR: moi ngay benh nhan chi dat 1 ca voi CUNG 1 bac si
+        // (vd da hen 9h thi khong the hen them 10h cua bac si do trong cung ngay).
+        LocalDate day = appointmentTime.atZone(CLINIC_ZONE).toLocalDate();
+        if (appointmentRepository.existsPatientDoctorActiveInDay(
+                patientDto.getId(), request.getDoctorId(),
+                day.atStartOfDay(CLINIC_ZONE).toInstant(),
+                day.plusDays(1).atStartOfDay(CLINIC_ZONE).toInstant())) {
+            throw new AppException(ErrorCode.ALREADY_BOOKED_DOCTOR_TODAY);
+        }
+
         // Luoi chan CUOI cho race condition: unique index uq_doctor_slot (doctor_id, appointment_time)
         // WHERE status<>'CANCELLED'. saveAndFlush de vi pham no NGAY, bat truoc khi gui mail.
         Appointment saved;
