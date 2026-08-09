@@ -50,38 +50,12 @@ spring:
               predicates:
                 - Path=/api/medical-records/**
 
-            - id: security-service
-              uri: ${SECURITY_SERVICE_URI:http://localhost:8086}
-              predicates:
-                - Path=/api/security/**
-
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-
-  kafka:
-    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
-
   # Xac thuc JWT Keycloak ngay tai cong
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/healthcare}
-
-security:
-  event-topic: ${SECURITY_EVENT_TOPIC:security-access-events}
-  rate-limit-per-minute: ${SECURITY_RATE_LIMIT_PER_MINUTE:120}
-  cloudflare:
-    enabled: ${SECURITY_CLOUDFLARE_ENABLED:false}
-    # Prod: tu choi moi request khong di qua connector/proxy Cloudflare tin cay.
-    required: ${SECURITY_CLOUDFLARE_REQUIRED:false}
-    # Voi compose Tunnel, chi trust IP tinh cua container cloudflared tren edge network.
-    trusted-proxy-cidrs: ${SECURITY_CLOUDFLARE_TRUSTED_PROXY_CIDRS:127.0.0.1/32,::1/128}
-  # Chi bat khi gateway nam sau reverse proxy da XOA header do client tu gui.
-  # Cloudflare mode khong dung X-Forwarded-For; no dung CF-Connecting-IP da xac minh.
-  trust-forwarded-for: ${SECURITY_TRUST_FORWARDED_FOR:false}
 
 # ----- BL-07 Observability (Actuator + Prometheus + distributed tracing) -----
 management:

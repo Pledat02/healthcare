@@ -28,7 +28,6 @@ public class SecurityConfig {
                         // Cho phep CORS preflight di qua -> gateway globalcors gan header
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers("/actuator/health/**").permitAll()
-                        .pathMatchers("/api/security/**").hasRole("DEV")
                         // Swagger cua cac service con (neu truy cap qua gateway)
                         .pathMatchers("/api/*/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         // Con lai: phai co token hop le

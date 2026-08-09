@@ -353,11 +353,7 @@ export const vi = {
     updated: 'Đã cập nhật hồ sơ bệnh nhân',
     saveChanges: 'Lưu thay đổi',
   },
-  security: {
-    title: 'Trung tâm an ninh',
-    subtitle: 'Rà soát cảnh báo, truy vết sự kiện và quản lý IP bị chặn',
-  },
-  role: { PATIENT: 'Bệnh nhân', DOCTOR: 'Bác sĩ', ADMIN: 'Quản trị', DEV: 'An ninh hệ thống' },
+  role: { PATIENT: 'Bệnh nhân', DOCTOR: 'Bác sĩ', ADMIN: 'Quản trị' },
   nav: {
     home: 'Trang chủ',
     doctors: 'Bác sĩ',
@@ -374,7 +370,6 @@ export const vi = {
     manageDoctors: 'Bác sĩ',
     managePatients: 'Bệnh nhân',
     allAppointments: 'Lịch hẹn',
-    security: 'An ninh',
   },
   status: {
     PENDING: 'Chờ xác nhận',
@@ -777,11 +772,7 @@ export const en = {
     updated: 'Patient record updated',
     saveChanges: 'Save changes',
   },
-  security: {
-    title: 'Security operations',
-    subtitle: 'Review alerts, investigate events, and manage blocked IP addresses',
-  },
-  role: { PATIENT: 'Patient', DOCTOR: 'Doctor', ADMIN: 'Admin', DEV: 'Security analyst' },
+  role: { PATIENT: 'Patient', DOCTOR: 'Doctor', ADMIN: 'Admin' },
   nav: {
     home: 'Home',
     doctors: 'Doctors',
@@ -798,7 +789,6 @@ export const en = {
     manageDoctors: 'Doctors',
     managePatients: 'Patients',
     allAppointments: 'Appointments',
-    security: 'Security',
   },
   status: {
     PENDING: 'Pending',

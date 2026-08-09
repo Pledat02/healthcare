@@ -22,7 +22,6 @@ import {
   Building2,
   ChevronDown,
   MoreHorizontal,
-  ShieldAlert,
 } from 'lucide-react'
 
 // Menu theo tung vai tro (label lay qua i18n key)
@@ -45,9 +44,6 @@ const NAV = {
     { to: '/admin/doctors', key: 'nav.manageDoctors', icon: Users },
     { to: '/admin/patients', key: 'nav.managePatients', icon: UserRoundCog },
     { to: '/admin/appointments', key: 'nav.allAppointments', icon: ClipboardList },
-  ],
-  DEV: [
-    { to: '/dev/security', key: 'nav.security', icon: ShieldAlert },
   ],
 }
 

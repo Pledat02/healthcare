@@ -91,6 +91,7 @@ export default function App() {
             <Route path="/admin/patients" element={<RequireRole role="ADMIN"><ManagePatientsPage /></RequireRole>} />
             <Route path="/admin/appointments" element={<RequireRole role="ADMIN"><AllAppointmentsPage /></RequireRole>} />
 
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppShell>

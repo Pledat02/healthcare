@@ -104,9 +104,6 @@ services:
         condition: service_started
       medical-record-service:
         condition: service_started
-      # security-service loai khoi deploy public (chua co DB) - bo depends_on
-      # security-service:
-      #   condition: service_started
 
   # Bat bang: docker compose --profile cloudflare ... up -d --build
   # Public hostname trong Cloudflare Tunnel tro toi http://api-gateway:8090.
@@ -197,23 +194,6 @@ services:
       SPRING_DATASOURCE_URL: ${MEDICALRECORD_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${MEDICALRECORD_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${MEDICALRECORD_DB_PASSWORD}
-
-  # security-service: LOAI khoi deploy public (chua co DB rieng).
-  # Bat lai sau khi tao SECURITY_DB tren Supabase + them secrets.yaml, va bo comment
-  # o depends_on cua api-gateway phia tren.
-  # security-service:
-  #   <<: *service-base
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #     args:
-  #       SERVICE: security-service
-  #       APP_PORT: "8086"
-  #   image: healthcare/security-service:latest
-  #   environment:
-  #     SPRING_DATASOURCE_URL: ${SECURITY_DB_URL}
-  #     SPRING_DATASOURCE_USERNAME: ${SECURITY_DB_USER}
-  #     SPRING_DATASOURCE_PASSWORD: ${SECURITY_DB_PASSWORD}
 
 volumes:
   redis_data:

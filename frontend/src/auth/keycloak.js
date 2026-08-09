@@ -25,7 +25,6 @@ export function hasRole(role) {
   return getRoles().includes(role)
 }
 
-// Vai tro chinh de dieu huong (uu tien ADMIN > DOCTOR > PATIENT)
 export function primaryRole() {
   if (hasRole('ADMIN')) return 'ADMIN'
   if (hasRole('DOCTOR')) return 'DOCTOR'
