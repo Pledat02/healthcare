@@ -8,7 +8,8 @@ import {
 } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
 import DoctorAvatar from '@/shared/components/DoctorAvatar'
-import { Stethoscope, Clock, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import Paginator from '@/shared/components/Paginator'
+import { Stethoscope, Clock, Search } from 'lucide-react'
 
 const PAGE_SIZE = 6
 
@@ -110,19 +111,8 @@ export default function DoctorsPage() {
             ))}
           </div>
 
-          {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <Button variant="secondary" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-                <ChevronLeft className="h-4 w-4" /> {t('common.prev')}
-              </Button>
-              <span className="text-sm text-muted">
-                {t('doctors.pageInfo', { page: page + 1, total: totalPages, count: totalElements })}
-              </span>
-              <Button variant="secondary" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
-                {t('common.next')} <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          <Paginator page={page} totalPages={totalPages} onPage={setPage}
+            info={t('doctors.pageInfo', { page: page + 1, total: totalPages, count: totalElements })} />
         </>
       )}
 
@@ -160,7 +150,7 @@ function BookingModal({ doctor, onClose, toast }) {
   useEffect(() => {
     setTime('')
     setLoadingSlots(true)
-    api.get(`/appointments/doctors/${doctor.id}/booked`, { params: { date } })
+      api.get(`/appointments/doctors/${doctor.id}/booked`, { params: { date } })
       .then((res) => {
         const set = new Set((unwrap(res) || []).map(instantToClinicHHMM))
         setBooked(set)

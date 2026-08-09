@@ -6,9 +6,10 @@ import { useI18n } from '@/shared/i18n/I18nProvider'
 import { useConfirm } from '@/shared/components/Confirm'
 import { Button, Card, Field, Input, Spinner, EmptyState, PageHeader } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
+import Paginator from '@/shared/components/Paginator'
 import DoctorAvatar from '@/shared/components/DoctorAvatar'
 import {
-  Users, Plus, Trash2, ChevronLeft, ChevronRight, Pencil, Search, Eye, Check, X,
+  Users, Plus, Trash2, Pencil, Search, Eye, Check, X,
 } from 'lucide-react'
 
 const PAGE_SIZE = 10
@@ -172,17 +173,8 @@ export default function ManageDoctorsPage() {
             </div>
           </Card>
 
-          {totalPages > 1 && (
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-              <Button variant="secondary" disabled={page === 0} onClick={() => setPage((value) => value - 1)}>
-                <ChevronLeft className="h-4 w-4" /> {t('common.prev')}
-              </Button>
-              <span className="text-sm text-muted">{t('manageDoctors.pageInfo', { page: page + 1, total: totalPages })}</span>
-              <Button variant="secondary" disabled={page >= totalPages - 1} onClick={() => setPage((value) => value + 1)}>
-                {t('common.next')} <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          <Paginator page={page} totalPages={totalPages} onPage={setPage}
+            info={t('manageDoctors.pageInfo', { page: page + 1, total: totalPages })} />
         </>
       )}
 

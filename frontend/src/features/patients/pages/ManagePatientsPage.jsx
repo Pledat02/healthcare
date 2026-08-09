@@ -5,7 +5,8 @@ import { useI18n } from '@/shared/i18n/I18nProvider'
 import { useConfirm } from '@/shared/components/Confirm'
 import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } from '@/shared/ui'
 import Modal from '@/shared/components/Modal'
-import { CalendarCheck, ChevronLeft, ChevronRight, Pencil, Search, Trash2, UsersRound } from 'lucide-react'
+import Paginator from '@/shared/components/Paginator'
+import { CalendarCheck, Pencil, Search, Trash2, UsersRound } from 'lucide-react'
 
 const GENDER_VALUES = ['MALE', 'FEMALE', 'OTHER']
 const PAGE_SIZE = 10
@@ -201,17 +202,8 @@ export default function ManagePatientsPage() {
         </Card>
       )}
 
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-center gap-3">
-          <Button variant="secondary" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
-            <ChevronLeft className="h-4 w-4" /> {t('common.prev')}
-          </Button>
-          <span className="text-sm text-muted">{t('managePatients.pageInfo', { page: page + 1, total: totalPages, count: totalElements })}</span>
-          <Button variant="secondary" disabled={page >= totalPages - 1} onClick={() => setPage((current) => current + 1)}>
-            {t('common.next')} <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      <Paginator page={page} totalPages={totalPages} onPage={setPage}
+        info={t('managePatients.pageInfo', { page: page + 1, total: totalPages, count: totalElements })} />
 
       {editing && <EditPatientModal patient={editing} onClose={() => setEditing(null)} onSaved={() => setRefreshKey((current) => current + 1)} toast={toast} />}
     </>

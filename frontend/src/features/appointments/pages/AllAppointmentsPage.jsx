@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
-import api, { unwrap, apiMessage } from '@/shared/lib/api'
+import { useState } from 'react'
+import api, { apiMessage } from '@/shared/lib/api'
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList'
 import { formatDateTime } from '@/shared/lib/format'
 import { useToast } from '@/shared/components/Toast'
 import { useI18n } from '@/shared/i18n/I18nProvider'
 import Modal from '@/shared/components/Modal'
+import Paginator from '@/shared/components/Paginator'
 import { Button, Card, Select, Field, Textarea, Spinner, EmptyState, PageHeader, StatusBadge } from '@/shared/ui'
-import { ClipboardList, ChevronLeft, ChevronRight, Eye, XCircle } from 'lucide-react'
+import { ClipboardList, Eye, XCircle } from 'lucide-react'
 
 const STATUS_VALUES = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED']
 
@@ -14,44 +16,13 @@ const PAGE_SIZE = 10
 export default function AllAppointmentsPage() {
   const toast = useToast()
   const { t } = useI18n()
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
-  const [page, setPage] = useState(0)
-  const [totalPages, setTotalPages] = useState(0)
-  const [totalElements, setTotalElements] = useState(0)
-  const [refreshKey, setRefreshKey] = useState(0)
   const [detail, setDetail] = useState(null)       // lich dang xem chi tiet
   const [cancelling, setCancelling] = useState(null) // lich dang huy
-
-  // Doi bo loc -> ve trang dau
-  useEffect(() => { setPage(0) }, [filter])
-
-  // Phan trang phia SERVER: khong tai toan bang, loc trang thai o backend
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      setLoading(true)
-      try {
-        const res = await api.get('/appointments', {
-          params: { page, size: PAGE_SIZE, status: filter || undefined },
-        })
-        const d = unwrap(res) || {}
-        const list = d.content || []
-        if (cancelled) return
-        setItems(list)
-        setTotalPages(d.totalPages || 0)
-        setTotalElements(d.totalElements || 0)
-        // Ten benh nhan + bac si da duoc appointment-service lam giau san trong response
-      } catch (e) {
-        if (!cancelled) toast.error(apiMessage(e))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [page, filter, refreshKey]) // eslint-disable-line
+  // Ten benh nhan + bac si da duoc appointment-service lam giau san trong response
+  const { items, page, setPage, totalPages, totalElements, loading, reload } = usePaginatedList(
+    '/appointments', { params: { status: filter || undefined }, pageSize: PAGE_SIZE, deps: [filter] },
+  )
 
   const canCancel = (a) => a.status !== 'COMPLETED' && a.status !== 'CANCELLED'
 
@@ -117,17 +88,8 @@ export default function AllAppointmentsPage() {
             </div>
           </Card>
 
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-center gap-3">
-              <Button variant="secondary" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-                <ChevronLeft className="h-4 w-4" /> {t('common.prev')}
-              </Button>
-              <span className="text-sm text-muted">{t('allAppt.pageInfo', { page: page + 1, total: totalPages, count: totalElements })}</span>
-              <Button variant="secondary" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
-                {t('common.next')} <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          <Paginator page={page} totalPages={totalPages} onPage={setPage}
+            info={t('allAppt.pageInfo', { page: page + 1, total: totalPages, count: totalElements })} />
         </>
       )}
 
@@ -136,7 +98,7 @@ export default function AllAppointmentsPage() {
         <CancelModal
           appointment={cancelling}
           onClose={() => setCancelling(null)}
-          onDone={() => { setCancelling(null); setRefreshKey((k) => k + 1) }}
+          onDone={() => { setCancelling(null); reload() }}
           toast={toast}
         />
       )}
