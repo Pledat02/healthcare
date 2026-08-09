@@ -1,4 +1,4 @@
-package com.hehe.doctor_service.Config;
+package com.hehe.doctor_service.config;
 
 import com.hehe.doctor_service.service.DoctorAvatarService;
 import org.slf4j.Logger;

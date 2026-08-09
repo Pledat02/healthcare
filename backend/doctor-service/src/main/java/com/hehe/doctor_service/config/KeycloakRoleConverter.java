@@ -1,4 +1,4 @@
-package com.hehe.doctor_service.Config;
+package com.hehe.doctor_service.config;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;

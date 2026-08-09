@@ -1,4 +1,4 @@
-package com.hehe.doctor_service.Config;
+package com.hehe.doctor_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,6 +1,6 @@
 package com.hehe.doctor_service.service;
 
-import com.hehe.doctor_service.Config.DoctorAvatarProperties;
+import com.hehe.doctor_service.config.DoctorAvatarProperties;
 import com.hehe.doctor_service.exception.AppException;
 import com.hehe.doctor_service.exception.ErrorCode;
 import org.springframework.http.HttpHeaders;

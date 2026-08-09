@@ -1,6 +1,6 @@
 package com.hehe.doctor_service.service;
 
-import com.hehe.doctor_service.Config.DoctorAvatarProperties;
+import com.hehe.doctor_service.config.DoctorAvatarProperties;
 import com.hehe.doctor_service.entity.Doctor;
 import com.hehe.doctor_service.entity.DoctorAvatarStatus;
 import com.hehe.doctor_service.repository.DoctorRepository;
