@@ -22,7 +22,6 @@ COPY doctor-service/pom.xml         doctor-service/
 COPY appointment-service/pom.xml    appointment-service/
 COPY medical-record-service/pom.xml medical-record-service/
 COPY notification-service/pom.xml   notification-service/
-COPY security-service/pom.xml       security-service/
 
 ARG SERVICE
 RUN mvn -B -q -pl "${SERVICE}" dependency:go-offline
