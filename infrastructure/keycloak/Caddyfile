@@ -1,4 +1,6 @@
-{$KEYCLOAK_HOSTNAME} {
+# Internal-only proxy for Cloudflare Tunnel. Cloudflare terminates public TLS;
+# this hop normalizes identity headers before Keycloak consumes them.
+:8080 {
     encode zstd gzip
 
     header {
@@ -8,5 +10,10 @@
         -Server
     }
 
-    reverse_proxy keycloak:8080
+    reverse_proxy keycloak:8080 {
+        header_up X-Forwarded-For {http.request.header.CF-Connecting-IP}
+        header_up X-Forwarded-Proto https
+        header_up X-Forwarded-Host {http.request.host}
+        header_up X-Forwarded-Port 443
+    }
 }

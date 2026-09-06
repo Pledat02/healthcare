@@ -30,6 +30,7 @@ public enum ErrorCode {
     // --- BR-01: chống trùng lịch ---
     APPOINTMENT_CONFLICT(409, "Bác sĩ đã có lịch hẹn khác trong khung giờ này"),
     ALREADY_BOOKED_DOCTOR_TODAY(409, "Bạn đã có lịch hẹn với bác sĩ này trong ngày — mỗi ngày chỉ đặt được 1 ca với cùng bác sĩ"),
+    PATIENT_TIME_CONFLICT(409, "Bạn đã có một lịch hẹn khác trùng khung giờ này — không thể đặt hai lịch cùng lúc"),
 
     // --- BR-04: lịch đã khám xong thì khóa ---
     CANNOT_MODIFY_COMPLETED(400, "Lịch hẹn đã hoàn thành, không thể hủy hoặc sửa"),
@@ -47,8 +48,9 @@ public enum ErrorCode {
     APPOINTMENT_NOT_CONFIRMED(400, "Chỉ có thể hoàn thành lịch hẹn đã được xác nhận"),
     APPOINTMENT_ALREADY_COMPLETED(400, "Lịch hẹn đã hoàn thành, không thể xác nhận lại"),
 
-    // --- Gọi service khác ---
-    DOCTOR_SERVICE_UNAVAILABLE(503, "Không kết nối được doctor-service");
+    // --- Gọi service khác (circuit breaker mở / hết retry / timeout) ---
+    DOCTOR_SERVICE_UNAVAILABLE(503, "Không kết nối được doctor-service"),
+    PATIENT_SERVICE_UNAVAILABLE(503, "Không kết nối được patient-service");
 
     private final int code;
     private final String message;

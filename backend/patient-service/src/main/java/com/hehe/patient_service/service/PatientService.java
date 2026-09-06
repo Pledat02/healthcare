@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,10 +92,15 @@ public class PatientService {
                 .map(patientMapper::toResponse).toList();
     }
 
-    // Xoa: chi ADMIN. Kiem o service (defense-in-depth) chu khong chi dua vao SecurityConfig URL.
+    // Xoa: chi ADMIN. FK trong database cascade appointments trong cung transaction;
+    // trigger huy reminder dang cho va giu lai du lieu audit/lam sang.
+    @Transactional
     public void delete(String id) {
         if (!SecurityUtil.isAdmin()) throw new AppException(ErrorCode.FORBIDDEN);
-        patientRepository.deleteById(id);
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PATIENT_NOT_FOUND));
+        patientRepository.delete(patient);
+        patientRepository.flush();
     }
 
     // ĐỌC: ADMIN hoặc DOCTOR (bác sĩ điều trị cần xem thông tin bệnh nhân) hoặc chính chủ

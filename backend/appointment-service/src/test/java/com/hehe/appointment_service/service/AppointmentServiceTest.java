@@ -198,6 +198,30 @@ class AppointmentServiceTest {
         assertThat(entity.getPatientId()).isEqualTo("pat-1");
     }
 
+    @Test
+    @DisplayName("BR: benh nhan tu trung gio voi lich khac cua minh (bac si khac) -> PATIENT_TIME_CONFLICT, khong luu")
+    void create_patientOverlap_throwsConflict() {
+        var time = futureAtVietnamTime(10, 0);
+        var request = requestAt(time);
+        when(doctorClient.getDoctor(DOCTOR_ID))
+                .thenReturn(doctorWorking(LocalTime.of(8, 0), LocalTime.of(17, 0)));
+        when(appointmentRepository.isConflict(eq(DOCTOR_ID), any(), eq(30))).thenReturn(false);
+        when(patientClient.getPatient()).thenReturn(patient("pat-1"));
+        when(appointmentMapper.toEntity(request)).thenReturn(new Appointment());
+        // Lich moi chua co id -> currentId = "" (khong loai tru gi)
+        when(appointmentRepository.existsPatientOverlap(eq("pat-1"), any(), eq(30), eq("")))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(AppException.class)
+                .extracting(e -> ((AppException) e).getErrorCode())
+                .isEqualTo(ErrorCode.PATIENT_TIME_CONFLICT);
+
+        // Chan truoc khi cham DB/mail
+        verify(appointmentRepository, never()).saveAndFlush(any());
+        verifyNoInteractions(notificationClient);
+    }
+
     // ---------- cancel() : BR-06 (chu so huu) + BR-04 (khong sua lich da COMPLETED) ----------
 
     private Appointment existingAppointment(String patientId, AppointmentStatus status) {
@@ -319,6 +343,30 @@ class AppointmentServiceTest {
 
         verify(appointmentRepository).saveAndFlush(appt);
         verify(notificationClient).send(any());
+    }
+
+    @Test
+    @DisplayName("BR: doi gio de len mot lich khac cua chinh minh -> PATIENT_TIME_CONFLICT, khong luu")
+    void update_patientOverlap_throwsConflict() {
+        Appointment appt = existingAppointment("pat-1", AppointmentStatus.CONFIRMED);
+        var time = futureAtVietnamTime(11, 0);
+        when(appointmentRepository.findById("appt-1")).thenReturn(Optional.of(appt));
+        when(patientClient.getPatient()).thenReturn(patient("pat-1"));
+        when(doctorClient.getDoctor(DOCTOR_ID))
+                .thenReturn(doctorWorking(LocalTime.of(8, 0), LocalTime.of(17, 0)));
+        when(appointmentRepository.isConflictOnUpdate(eq(DOCTOR_ID), any(), eq(30), eq("appt-1")))
+                .thenReturn(false);
+        // Loai tru chinh lich dang doi (appt-1), nhung van de len mot lich khac
+        when(appointmentRepository.existsPatientOverlap(eq("pat-1"), any(), eq(30), eq("appt-1")))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> service.update("appt-1", updateRequest(time)))
+                .isInstanceOf(AppException.class)
+                .extracting(e -> ((AppException) e).getErrorCode())
+                .isEqualTo(ErrorCode.PATIENT_TIME_CONFLICT);
+
+        verify(appointmentRepository, never()).saveAndFlush(any());
+        verifyNoInteractions(notificationClient);
     }
 
     // ---------- confirm() : bac si/admin xac nhan ----------

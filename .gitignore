@@ -17,3 +17,9 @@ infrastructure/keycloak/backups/*
 # Maven build output
 target/
 **/target/
+
+# IDE project files
+.idea/
+
+# Stray resilience4j auto-config dump at backend root (not on any classpath)
+/backend/META-INF/

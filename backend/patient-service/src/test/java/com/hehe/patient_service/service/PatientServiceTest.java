@@ -227,18 +227,37 @@ class PatientServiceTest {
                     .extracting(e -> ((AppException) e).getErrorCode())
                     .isEqualTo(ErrorCode.FORBIDDEN);
         }
-        verify(patientRepository, never()).deleteById(any());
+        verify(patientRepository, never()).delete(any());
     }
 
     @Test
-    @DisplayName("ADMIN xoa -> goi deleteById")
+    @DisplayName("ADMIN xoa -> delete + flush de database cascade truoc khi tra response")
     void delete_asAdmin_ok() {
+        Patient patient = patientOwnedBy("kc-x");
+        when(patientRepository.findById("pat-1")).thenReturn(Optional.of(patient));
         try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
             mocked.when(SecurityUtil::isAdmin).thenReturn(true);
 
             service.delete("pat-1");
         }
-        verify(patientRepository).deleteById("pat-1");
+        verify(patientRepository).delete(patient);
+        verify(patientRepository).flush();
+    }
+
+    @Test
+    @DisplayName("ADMIN xoa ID khong ton tai -> PATIENT_NOT_FOUND")
+    void delete_asAdmin_notFound() {
+        when(patientRepository.findById("missing")).thenReturn(Optional.empty());
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+            mocked.when(SecurityUtil::isAdmin).thenReturn(true);
+
+            assertThatThrownBy(() -> service.delete("missing"))
+                    .isInstanceOf(AppException.class)
+                    .extracting(e -> ((AppException) e).getErrorCode())
+                    .isEqualTo(ErrorCode.PATIENT_NOT_FOUND);
+        }
+        verify(patientRepository, never()).delete(any());
+        verify(patientRepository, never()).flush();
     }
 
     // ---------- update (BR-06 GHI): chi ADMIN hoac chinh chu, DOCTOR khong duoc sua ----------

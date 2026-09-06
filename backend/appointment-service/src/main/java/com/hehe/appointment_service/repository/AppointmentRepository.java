@@ -51,6 +51,22 @@ public interface AppointmentRepository extends JpaRepository<Appointment,String>
                                            @Param("dayStart") Instant dayStart,
                                            @Param("dayEnd") Instant dayEnd);
 
+    // BR: benh nhan khong duoc tu trung gio voi CHINH MINH (ke ca voi bac si khac).
+    // Chan moi khoang [appointmentTime, +durationMinutes) DE LEN mot lich con hieu luc san co.
+    // :currentId de loai tru chinh lich dang doi khi update (truyen '' khi tao moi).
+    @NativeQuery("SELECT EXISTS ( " +
+            "  SELECT 1 FROM appointments a " +
+            "  WHERE a.patient_id = :patientId " +
+            "    AND a.id <> :currentId " +
+            "    AND a.status <> 'CANCELLED' " +
+            "    AND a.appointment_time < CAST(:appointmentTime AS timestamptz) + (:durationMinutes * INTERVAL '1 minute') " +
+            "    AND CAST(:appointmentTime AS timestamptz) < a.appointment_time + (a.duration_minutes * INTERVAL '1 minute') " +
+            ")")
+    boolean existsPatientOverlap(@Param("patientId") String patientId,
+                                 @Param("appointmentTime") Instant appointmentTime,
+                                 @Param("durationMinutes") int durationMinutes,
+                                 @Param("currentId") String currentId);
+
     // Lay lich cua bac si trong 1 ngay/tuan: appointmentTime nam trong [start, end)
     List<Appointment> findByDoctorIdAndAppointmentTimeBetween(String doctorId, Instant start, Instant end);
     List<Appointment> findByPatientId(String patientId);

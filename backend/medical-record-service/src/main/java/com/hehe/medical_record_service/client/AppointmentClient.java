@@ -1,5 +1,6 @@
 package com.hehe.medical_record_service.client;
 
+import com.hehe.medical_record_service.config.ResilientCaller;
 import com.hehe.medical_record_service.dto.response.ApiResponse;
 import com.hehe.medical_record_service.dto.response.AppointmentDto;
 import com.hehe.medical_record_service.exception.AppException;
@@ -15,21 +16,22 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class AppointmentClient {
 
+    private static final String CB = "appointment-service";
+
     private final RestClient appointmentRestClient;
+    private final ResilientCaller resilientCaller;   // BL-03: circuit breaker + retry
 
     public AppointmentDto getAppointment(String appointmentId) {
-        ApiResponse<AppointmentDto> res = appointmentRestClient.get()
-                .uri("/api/appointments/{id}", appointmentId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + SecurityUtils.currentToken())   // ← forward thẻ
-                .retrieve()
-                .onStatus(s -> s.value() == 404, (req, resp) -> {
-                    throw new AppException(ErrorCode.APPOINTMENT_NOT_FOUND);
-                })
-                .body(new ParameterizedTypeReference<ApiResponse<AppointmentDto>>() {});
-
-        return res.getData();
+        return resilientCaller.call(CB, ErrorCode.SERVICE_UNAVAILABLE, () -> {
+            ApiResponse<AppointmentDto> res = appointmentRestClient.get()
+                    .uri("/api/appointments/{id}", appointmentId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + SecurityUtils.currentToken())   // ← forward thẻ
+                    .retrieve()
+                    .onStatus(s -> s.value() == 404, (req, resp) -> {
+                        throw new AppException(ErrorCode.APPOINTMENT_NOT_FOUND);
+                    })
+                    .body(new ParameterizedTypeReference<ApiResponse<AppointmentDto>>() {});
+            return res.getData();
+        });
     }
-
-
-
 }

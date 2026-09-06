@@ -2,11 +2,13 @@ package com.hehe.appointment_service.client;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 
@@ -32,7 +34,11 @@ public class InternalTokenClient {
             @Value("${keycloak.realm}") String realm,
             @Value("${keycloak.internal-client-id}") String clientId,
             @Value("${keycloak.internal-client-secret}") String clientSecret) {
-        this.http = RestClient.builder().baseUrl(serverUrl).build();
+        // Timeout de khong treo khi Keycloak cham/chet (lay service-account token)
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(2));
+        factory.setReadTimeout(Duration.ofSeconds(3));
+        this.http = RestClient.builder().baseUrl(serverUrl).requestFactory(factory).build();
         this.realm = realm;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
