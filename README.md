@@ -8,6 +8,24 @@ SPA, and Keycloak-based authentication.
 > **Frontend demo:** https://healthcare-rosy-eta.vercel.app
 > (the backend runs behind a Cloudflare Tunnel; it must be online for login/data)
 
+### Demo accounts (for reviewers)
+
+On the login page, click **"Sign in with account"** and use one of the accounts
+below (they are also shown directly on the login screen):
+
+| Role   | Username     | Password       |
+| ------ | ------------ | -------------- |
+| Admin  | `demo-admin` | `Demo@123456`  |
+| Doctor | `demo-bacsi` | `Demo@123456`  |
+
+> These are throwaway demo accounts, intentionally separate from real admin
+> credentials. To make them work, create matching users in the `healthcare`
+> Keycloak realm: `demo-admin` with the realm role **ADMIN**, and `demo-bacsi`
+> with **DOCTOR** (the doctor can also be created from the admin UI → *Add doctor*,
+> which auto-provisions its Keycloak account). Patients can self-register via
+> **"Register a patient account"** or Google login. Change the values in one place
+> — `DEMO_ACCOUNTS` in `frontend/src/auth/LoginPage.jsx` — if you use different ones.
+
 ---
 
 ## Tech stack
