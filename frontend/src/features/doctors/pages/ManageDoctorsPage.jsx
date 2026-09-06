@@ -9,7 +9,7 @@ import Modal from '@/shared/components/Modal'
 import Paginator from '@/shared/components/Paginator'
 import DoctorAvatar from '@/shared/components/DoctorAvatar'
 import {
-  Users, Plus, Trash2, Pencil, Search, Eye, Check, X,
+  Users, Plus, Trash2, Pencil, Search, Eye, Check, X, Camera,
 } from 'lucide-react'
 
 const PAGE_SIZE = 10
@@ -215,7 +215,27 @@ function DoctorModal({ doctor, onClose, onSaved, toast }) {
   } : EMPTY)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [avatarPreview, setAvatarPreview] = useState('')
   const set = (key) => (e) => setForm((value) => ({ ...value, [key]: e.target.value }))
+
+  useEffect(() => {
+    if (!avatarFile) { setAvatarPreview(''); return }
+    const url = URL.createObjectURL(avatarFile)
+    setAvatarPreview(url)
+    return () => URL.revokeObjectURL(url)
+  }, [avatarFile])
+
+  function pickAvatar(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t('manageDoctors.avatarTooLarge'))
+      return
+    }
+    setAvatarFile(file)
+  }
 
   async function submit(e) {
     e.preventDefault()
@@ -231,9 +251,21 @@ function DoctorModal({ doctor, onClose, onSaved, toast }) {
       workEndTime: `${form.workEndTime}:00`,
     }
     try {
+      let id = doctor?.id
       if (isEditing) await api.put(`/doctors/${doctor.id}`, payload)
-      else await api.post('/doctors', payload)
-      toast.success(isEditing ? t('manageDoctors.updated') : t('manageDoctors.added'))
+      else id = unwrap(await api.post('/doctors', payload))?.id
+      let avatarFailed = false
+      if (avatarFile && id) {
+        try {
+          const body = new FormData()
+          body.append('file', avatarFile)
+          await api.put(`/doctors/${id}/avatar`, body)
+        } catch {
+          avatarFailed = true
+        }
+      }
+      if (avatarFailed) toast.error(t('manageDoctors.avatarUploadFailed'))
+      else toast.success(isEditing ? t('manageDoctors.updated') : t('manageDoctors.added'))
       onClose()
       onSaved()
     } catch (err) {
@@ -246,6 +278,29 @@ function DoctorModal({ doctor, onClose, onSaved, toast }) {
   return (
     <Modal open onClose={onClose} title={isEditing ? t('manageDoctors.editTitle') : t('manageDoctors.add')}>
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2 flex items-center gap-4">
+          {avatarPreview ? (
+            <img src={avatarPreview} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover shadow-sm" width="64" height="64" />
+          ) : (
+            <DoctorAvatar doctor={isEditing ? doctor : null} className="h-16 w-16" />
+          )}
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-text">{t('manageDoctors.avatarLabel')}</p>
+            <div className="mt-1 flex items-center gap-3">
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-slate-50">
+                <Camera className="h-4 w-4" aria-hidden="true" />
+                {avatarPreview ? t('manageDoctors.avatarChange') : t('manageDoctors.avatarChoose')}
+                <input type="file" className="sr-only" accept="image/jpeg,image/png" onChange={pickAvatar} disabled={saving} />
+              </label>
+              {avatarFile && (
+                <button type="button" onClick={() => setAvatarFile(null)} className="text-sm text-muted hover:text-danger">
+                  {t('manageDoctors.avatarRemove')}
+                </button>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-muted">{t('manageDoctors.avatarHint')}</p>
+          </div>
+        </div>
         {!isEditing && (
           <>
             <div className="sm:col-span-2 rounded-lg bg-primary-soft p-3 text-sm text-text">

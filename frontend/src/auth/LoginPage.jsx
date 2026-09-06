@@ -3,6 +3,13 @@ import { useI18n } from '@/shared/i18n/I18nProvider'
 import { Button } from '@/shared/ui'
 import { Stethoscope, CalendarCheck, ShieldCheck, Clock, ArrowRight } from 'lucide-react'
 
+// Tai khoan demo cho nha tuyen dung. Phai khop voi user da tao trong Keycloak
+// (realm healthcare): demo-admin co role ADMIN, demo-bacsi co role DOCTOR.
+const DEMO_ACCOUNTS = [
+  { roleKey: 'login.demoRoleAdmin', username: 'demo-admin', password: 'Demo@123456' },
+  { roleKey: 'login.demoRoleDoctor', username: 'demo-bacsi', password: 'Demo@123456' },
+]
+
 export default function LoginPage() {
   const { login, loginWithGoogle, register, forgotPassword } = useAuth()
   const { t, lang, toggleLang } = useI18n()
@@ -101,6 +108,22 @@ export default function LoginPage() {
             <Button variant="ghost" className="w-full" onClick={() => register()}>
               {t('login.register')}
             </Button>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-dashed border-primary/30 bg-primary-soft/50 p-4">
+            <p className="text-sm font-semibold text-text">{t('login.demoTitle')}</p>
+            <p className="mt-1 text-xs text-muted">{t('login.demoHint')}</p>
+            <div className="mt-3 space-y-2">
+              {DEMO_ACCOUNTS.map(({ roleKey, username, password }) => (
+                <div key={username} className="flex items-center gap-2 text-xs">
+                  <span className="inline-flex shrink-0 rounded-md bg-primary/10 px-2 py-0.5 font-semibold text-primary">{t(roleKey)}</span>
+                  <span className="text-muted">{t('login.demoUser')}:</span>
+                  <code className="rounded bg-white px-1.5 py-0.5 font-mono text-text">{username}</code>
+                  <span className="text-muted">{t('login.demoPass')}:</span>
+                  <code className="rounded bg-white px-1.5 py-0.5 font-mono text-text">{password}</code>
+                </div>
+              ))}
+            </div>
           </div>
 
           <p className="mt-6 text-center text-xs text-muted">{t('login.terms')}</p>
