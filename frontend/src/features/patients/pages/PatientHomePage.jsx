@@ -4,7 +4,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { usePatientProfile } from '@/auth/PatientProfile'
 import { useI18n } from '@/shared/i18n/I18nProvider'
 import api, { fetchByIdsMap, unwrap } from '@/shared/lib/api'
-import heroDoctor from '@/assets/medibook-patient-hero.webp'
+import heroDoctor from '@/assets/patient-home-doctor.jpg'
 import {
   FeatureCards, MarketingCta, MarketingPage, SectionHeading, StarRating,
   Testimonial, TrustList,
