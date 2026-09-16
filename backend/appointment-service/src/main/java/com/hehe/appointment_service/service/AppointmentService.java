@@ -92,6 +92,13 @@ public class AppointmentService {
         appointment.setPatientId(patientDto.getId());
         appointment.setDurationMinutes(durationMinutes);
 
+        // BR: benh nhan khong the o hai buoi kham cung luc -> chan moi khoang de len lich san co
+        // cua chinh minh (ke ca voi bac si khac). currentId = "" vi lich moi chua co id.
+        if (appointmentRepository.existsPatientOverlap(
+                patientDto.getId(), appointmentTime, durationMinutes, "")) {
+            throw new AppException(ErrorCode.PATIENT_TIME_CONFLICT);
+        }
+
         // BR: moi ngay benh nhan chi dat 1 ca voi CUNG 1 bac si
         // (vd da hen 9h thi khong the hen them 10h cua bac si do trong cung ngay).
         LocalDate day = appointmentTime.atZone(CLINIC_ZONE).toLocalDate();
@@ -151,6 +158,13 @@ public class AppointmentService {
         // BR-01: chong trung lich
         if (appointmentRepository.isConflictOnUpdate(request.getDoctorId(),appointmentTime,durationMinutes,id)) {
             throw new AppException(ErrorCode.APPOINTMENT_CONFLICT);
+        }
+
+        // BR: benh nhan khong the o hai buoi kham cung luc -> chan de len lich khac cua chinh minh
+        // (loai tru chinh lich dang doi).
+        if (appointmentRepository.existsPatientOverlap(
+                me.getId(), appointmentTime, durationMinutes, id)) {
+            throw new AppException(ErrorCode.PATIENT_TIME_CONFLICT);
         }
 
         appointment = appointmentMapper.updateEntity(appointment,request);

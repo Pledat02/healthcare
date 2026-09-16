@@ -26,10 +26,50 @@
 		<tag/>
 		<url/>
 	</scm>
+
+	<!-- BL-03 Resilience: quan version Resilience4j qua BOM (Spring Boot 4 chua co starter chinh thuc,
+	     nen dung core module + cau hinh programmatic, khong phu thuoc auto-config cua Boot 3) -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.github.resilience4j</groupId>
+				<artifactId>resilience4j-bom</artifactId>
+				<version>2.3.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<!-- BL-03: circuit breaker + retry cho REST lien service (core, khong dung starter) -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-circuitbreaker</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-retry</artifactId>
+		</dependency>
+		<!-- THI NGHIEM: thu starter annotation @CircuitBreaker (build cho Boot 3) tren Boot 4.1 -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot3</artifactId>
+		</dependency>
+
+		<!-- Cache ho so bac si (doc nhieu, doi it) qua Redis - giam tai goi doctor-service -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

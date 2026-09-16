@@ -69,23 +69,35 @@ services:
     environment:
       KEYCLOAK_HOSTNAME: ${KEYCLOAK_HOSTNAME:?Set KEYCLOAK_HOSTNAME in .env}
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "127.0.0.1:${KEYCLOAK_LOCAL_PROXY_PORT:-8088}:8080"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
     depends_on:
       keycloak:
         condition: service_healthy
     networks:
       - identity-edge
 
+  # Public hostname trong Tunnel tro toi http://keycloak-tls:8080.
+  keycloak-cloudflared:
+    image: cloudflare/cloudflared:latest
+    pull_policy: always
+    profiles: ["cloudflare"]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    command: ["tunnel", "--no-autoupdate", "--loglevel", "info", "--metrics", "0.0.0.0:2000", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_KEYCLOAK_TUNNEL_TOKEN:-}
+    depends_on:
+      keycloak-tls:
+        condition: service_started
+    networks:
+      - identity-edge
+
 volumes:
   keycloak_db_data:
-  caddy_data:
-  caddy_config:
 
 networks:
   identity-edge:

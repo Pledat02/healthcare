@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.io.Serializable;
 import java.time.LocalTime;
 
 @Data
@@ -14,7 +15,10 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DoctorDto {
+public class DoctorDto implements Serializable {   // Serializable de cache xuong Redis (JDK serializer)
+
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
 
     String id;
 

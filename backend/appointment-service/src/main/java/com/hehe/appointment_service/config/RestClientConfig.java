@@ -3,25 +3,57 @@ package com.hehe.appointment_service.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
+import java.time.Duration;
+
+/**
+ * BL-03: moi RestClient goi service khac PHAI co connect/read timeout.
+ * Neu khong, downstream treo -> thread cua service nay treo vo han -> can kiet thread pool
+ * -> sap day chuyen. Timeout dat qua bien cau hinh (services.http.*), co default an toan.
+ */
 @Configuration
 public class RestClientConfig {
 
+    private ClientHttpRequestFactory timeoutFactory(long connectMs, long readMs) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofMillis(connectMs));   // bat tay TCP
+        factory.setReadTimeout(Duration.ofMillis(readMs));         // cho phan hoi
+        return factory;
+    }
+
     @Bean
-    RestClient doctorRestClient(@Value("${services.doctor.url}") String baseUrl) {
+    RestClient doctorRestClient(
+            @Value("${services.doctor.url}") String baseUrl,
+            @Value("${services.http.connect-timeout-ms:2000}") long connectMs,
+            @Value("${services.http.read-timeout-ms:3000}") long readMs) {
         return RestClient.builder()
                 .baseUrl(baseUrl)
+                .requestFactory(timeoutFactory(connectMs, readMs))
                 .build();
     }
+
     @Bean
-    RestClient patientRestClient(@Value("${services.patient.url}") String baseUrl) {
+    RestClient patientRestClient(
+            @Value("${services.patient.url}") String baseUrl,
+            @Value("${services.http.connect-timeout-ms:2000}") long connectMs,
+            @Value("${services.http.read-timeout-ms:3000}") long readMs) {
         return RestClient.builder()
                 .baseUrl(baseUrl)
+                .requestFactory(timeoutFactory(connectMs, readMs))
                 .build();
     }
+
     @Bean
-    RestClient notificationRestClient(@Value("${services.notification.url}") String baseUrl) {
-        return RestClient.builder().baseUrl(baseUrl).build();
+    RestClient notificationRestClient(
+            @Value("${services.notification.url}") String baseUrl,
+            @Value("${services.http.connect-timeout-ms:2000}") long connectMs,
+            @Value("${services.http.read-timeout-ms:3000}") long readMs) {
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(timeoutFactory(connectMs, readMs))
+                .build();
     }
 }

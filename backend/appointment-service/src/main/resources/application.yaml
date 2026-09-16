@@ -8,6 +8,55 @@ services:
     url: ${PATIENT_SERVICE_URL:http://localhost:8081}
   notification:
     url: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+  # BL-03: timeout cho moi REST client goi service khac (tranh treo thread vo han)
+  http:
+    connect-timeout-ms: ${HTTP_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${HTTP_READ_TIMEOUT_MS:3000}
+
+# BL-03: cau hinh circuit breaker + retry cho tung downstream
+resilience:
+  retry:
+    max-attempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:3}
+    wait-ms: ${RESILIENCE_RETRY_WAIT_MS:200}
+  circuitbreaker:
+    sliding-window-size: ${RESILIENCE_CB_WINDOW:10}
+    minimum-number-of-calls: ${RESILIENCE_CB_MIN_CALLS:5}
+    failure-rate-threshold: ${RESILIENCE_CB_FAILURE_RATE:50}
+    wait-duration-open-ms: ${RESILIENCE_CB_WAIT_OPEN_MS:10000}
+    permitted-calls-half-open: ${RESILIENCE_CB_HALF_OPEN_CALLS:3}
+    slow-call-ms: ${RESILIENCE_CB_SLOW_CALL_MS:2000}
+
+# BL-03 (ban annotation): cau hinh cho starter resilience4j-spring-boot3 (@CircuitBreaker/@Retry).
+# Dung boi PatientClient. DoctorClient van dung ResilientCaller programmatic (prefix `resilience` o tren).
+# Thu tu aspect: CB order > Retry order -> CircuitBreaker boc NGOAI Retry (circuit MO thi khong retry).
+resilience4j:
+  circuitbreaker:
+    circuit-breaker-aspect-order: 2
+    instances:
+      patient-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: ${RESILIENCE_CB_WINDOW:10}
+        minimum-number-of-calls: ${RESILIENCE_CB_MIN_CALLS:5}
+        failure-rate-threshold: ${RESILIENCE_CB_FAILURE_RATE:50}
+        wait-duration-in-open-state: ${RESILIENCE_CB_WAIT_OPEN_MS:10000}ms
+        permitted-number-of-calls-in-half-open-state: ${RESILIENCE_CB_HALF_OPEN_CALLS:3}
+        slow-call-duration-threshold: ${RESILIENCE_CB_SLOW_CALL_MS:2000}ms
+        slow-call-rate-threshold: 100
+        # Loi nghiep vu khong phai loi ha nguon -> khong lam mo circuit
+        ignore-exceptions:
+          - com.hehe.appointment_service.exception.AppException
+  retry:
+    retry-aspect-order: 1
+    instances:
+      patient-service:
+        max-attempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:3}
+        wait-duration: ${RESILIENCE_RETRY_WAIT_MS:200}ms
+        # Chi retry loi thoang qua: timeout/IO va 5xx
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.client.HttpServerErrorException
+        ignore-exceptions:
+          - com.hehe.appointment_service.exception.AppException
 
 spring:
   # Mat khau DB nam trong secrets.yaml (da gitignore, khong day len GitHub)
@@ -26,6 +75,18 @@ spring:
     # Supabase free: 15 ket noi/project. 5 service dung chung project Singapore.
     hikari:
       maximum-pool-size: 3
+
+  # Cache ho so bac si qua Redis: doc rat nhieu (moi lan dat lich/lam giau) nhung doi rat it.
+  # appointment-service KHONG so huu du lieu bac si nen khong the evict khi doi -> dua vao TTL ngan.
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000        # 5 phut (ngan hon doctor-service de bot le gio lam viec)
+      cache-null-values: false
 
   jpa:
     hibernate:

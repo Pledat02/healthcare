@@ -8,6 +8,23 @@ services:
     url: ${PATIENT_SERVICE_URL:http://localhost:8081}
   doctor:
     url: ${DOCTOR_SERVICE_URL:http://localhost:8082}
+  # BL-03: timeout cho moi REST client goi service khac (tranh treo thread vo han)
+  http:
+    connect-timeout-ms: ${HTTP_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${HTTP_READ_TIMEOUT_MS:3000}
+
+# BL-03: cau hinh circuit breaker + retry cho tung downstream
+resilience:
+  retry:
+    max-attempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:3}
+    wait-ms: ${RESILIENCE_RETRY_WAIT_MS:200}
+  circuitbreaker:
+    sliding-window-size: ${RESILIENCE_CB_WINDOW:10}
+    minimum-number-of-calls: ${RESILIENCE_CB_MIN_CALLS:5}
+    failure-rate-threshold: ${RESILIENCE_CB_FAILURE_RATE:50}
+    wait-duration-open-ms: ${RESILIENCE_CB_WAIT_OPEN_MS:10000}
+    permitted-calls-half-open: ${RESILIENCE_CB_HALF_OPEN_CALLS:3}
+    slow-call-ms: ${RESILIENCE_CB_SLOW_CALL_MS:2000}
 
 spring:
   # Mat khau DB nam trong secrets.yaml (da gitignore)
